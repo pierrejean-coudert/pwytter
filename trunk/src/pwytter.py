@@ -23,7 +23,7 @@
 #TODO: Faire un scrit setup.py pour twitter.py, simplejson, PIL
 #TODO: POP3/IMAP client : http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/52299
 #TODO: Changer le user Agent pourt faire apparaitre Pwytter
-#TODO: RSS Client
+#TODO: RSS Client : http://feedparser.org/, http://code.google.com/p/davtwitter/
 #TODO: Masked password
 
 #DONE: Improved UI : reduced width, better Balloon position
