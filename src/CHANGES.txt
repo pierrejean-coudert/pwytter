@@ -1,0 +1,30 @@
+2007-07-
+  Release 0.5
+  add Image and user hints
+  Reduce UI width to 450px
+
+2007-06-30
+  Release 0.4
+  Asynchronous Image Loading : better UI response
+  User cache to reduce twitter API calls
+  Setup with py2exe support
+  
+2007-06-22
+  Release 0.3
+  Edit parameters/  Save in XML Files
+  clickable profile and user URLs, Names and Images
+  Improved UI
+  MultiLine Message display and Improved Word Wrap
+  Better path management (Unix path compatible)
+  icons on button
+  balloons suport (Hints)
+  Bug corrected in UserTimeLine Display : error 404
+
+2007-06-18
+  Release 0.2
+  Add Timeline chooser
+
+2007-06-16
+  Release 0.1
+  Initial svn checkin of pwytter
+
