@@ -12,17 +12,21 @@
 #   GNU General Public License for more details.
 
 
-#TODO: Direct messages
-#TODO: Replies
-#TODO: Friends
-#TODO: Followers
+#TODO: Set user Agent pour faire apparaitre Pwytter
+#TODO: dialogue parameter auto si pas de fichier XML
 #TODO: parameters : live refresh (line number...)
+#TODO: Autoreconnect si mauvaise connection
+
+#TODO: Direct messages
+#TODO: Friends : load and display
+#TODO: Friends : hide button
+#TODO: Replies
+#TODO: Followers
 #TODO: download only the required number of messages
 #TODO: Sur chaque message ajouter message direct et favori
 #TODO: Add url Hint on messages and users
 #TODO: Faire un scrit setup.py pour twitter.py, simplejson, PIL
 #TODO: POP3/IMAP client : http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/52299
-#TODO: Changer le user Agent pourt faire apparaitre Pwytter
 #TODO: RSS Client : http://feedparser.org/, http://code.google.com/p/davtwitter/
 #TODO: Masked password
 
@@ -31,7 +35,7 @@
 '''A Python Tkinter Twitter Client'''
 
 __author__ = 'coudert@free.fr'
-__version__ = '0.3'
+__version__ = '0.4'
 
 from Tkinter import *
 import tkBalloon
@@ -343,8 +347,11 @@ class MainPanel(Frame):
         i=0
         for fname in self.tw.Friends:
             loaded, aImage= self.tw.imageFromCache(fname)
-            self._imagesLoaded = self._imagesLoaded and loaded        
-            self.FriendImages[i]['ImageRef'].paste(aImage, (0,0,20,20))
+            self._imagesLoaded = self._imagesLoaded and loaded     
+            try :   
+                self.FriendImages[i]['ImageRef'].paste(aImage, (0,0,20,20))
+            except:
+                print "error pasting friends images:",fname
             self.FriendImages[i]['ImageHint'].settext("http://twitter.com/"+fname)
             i=i+1
 
@@ -414,7 +421,10 @@ class MainPanel(Frame):
             name = self.tw.texts[i]["name"]
             loaded, aImage= self.tw.imageFromCache(name)
             self._imagesLoaded = self._imagesLoaded and loaded        
-            self.Lines[i]['ImageRef'].paste(aImage, (0,0,20,20))
+            try:
+                self.Lines[i]['ImageRef'].paste(aImage, (0,0,20,20))
+            except:
+                print "error pasintg image:", name
             self.Lines[i]['Name']["text"]= name
             self.Lines[i]['ImageHint'].settext("http://twitter.com/"+name)
             self.Lines[i]['NameHint'].settext("http://twitter.com/"+name)
