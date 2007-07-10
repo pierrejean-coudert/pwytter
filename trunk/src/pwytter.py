@@ -12,7 +12,7 @@
 #   GNU General Public License for more details.
 
 
-#TODO: Set user Agent pour faire apparaitre Pwytter
+#TODO: Set user Agent pour faire apparaitre Pwytter http://pwytter.googlecode.com/files/pwytter-header.xml
 #TODO: dialogue parameter auto si pas de fichier XML
 #TODO: parameters : live refresh (line number...)
 #TODO: Autoreconnect si mauvaise connection
