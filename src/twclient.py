@@ -26,12 +26,16 @@ from PIL import Image, ImageTk
 
 
 class TwClient(object):
+    """X-Twitter-Client: Pwytter
+       X-Twitter-Client-URL: http://pwytter.googlecode.com/files/pwytter-header.xml
+       X-Twitter-Client-Version: 0.4"""
     def __init__(self, aVersion, aUser, aPassword):
         self.user, self.password = aUser, aPassword
        
         self.api = twitter.Api(self.user,self.password)
         self.api.SetCache(None)
         self.api.SetUserAgent('Pwytter/%s' % (aVersion))
+        
 
         self._imageLoading = Image.open(os.path.join("media",'loading.png'))
         self._imageLoading.thumbnail((32,32),Image.ANTIALIAS)
