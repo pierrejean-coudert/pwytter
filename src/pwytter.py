@@ -252,7 +252,7 @@ class MainPanel(Frame):
 
         aLine['NameBox']  = Frame(aLine['Box'], bg=linecolor)
         aLine['Name']     = Label(aLine['NameBox'],text="...",bg=linecolor, name="name"+str(i),
-                                     font=('arialblack',8,'bold'),fg="white", cursor="hand2")
+                                     font=('arial',10,'bold'),fg="white", cursor="hand2")
         aLine['NameHint'] = tkBalloon.Balloon(aLine['Name'])
         aLine['Time']     = Label(aLine['NameBox'],text="...",bg=linecolor,\
                                      fg="#BBBBBB", justify="left")
@@ -270,7 +270,7 @@ class MainPanel(Frame):
                                         "world_nb.png", None, linecolor,"iurl"+str(i))
         
         aLine['Msg']      = Label(aLine['Box'],text="...",bg=linecolor, name=str(i),
-                                    font=('arialblack',8,'bold'), fg="#99CBFE", width=57)
+                                    font=('arial',8,'bold'), fg="#99CBFE", width=57)
         aLine['MsgHint']=  tkBalloon.Balloon(aLine['Msg'])
             
         aLine['Image'].bind('<1>', self._nameClick)
