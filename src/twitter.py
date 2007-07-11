@@ -896,6 +896,7 @@ class Api(object):
     self._cache_timeout = Api.DEFAULT_CACHE_TIMEOUT
     self._user_agent = 'Python-urllib/%s (python-twitter/%s)' % \
                        (self._urllib.__version__, twitter.__version__)
+    self._x_twitter_header = None
     self._input_encoding = input_encoding
     self.SetCredentials(username, password)
 
@@ -1271,6 +1272,18 @@ class Api(object):
     '''
     self._user_agent = user_agent
 
+  def SetXTwitterHeader(self, client, url, version):
+    '''Add a X-Twitter header that would be send to the server
+
+    Args:
+      client:  client name as a string. Will be send to the server as the X-Twitter-Client
+      url:     url of the meta.xml as a string. Will be send to the server as the X-Twitter-Client-URL
+      version: client version as a string. Will be send to the server as the X-Twitter-Client-Version
+      '''
+    self._x_twitter_header={'X-Twitter-Client' : client,
+                            'X-Twitter-Client-URL' : url,
+                            'X-Twitter-Client-Version' : version}
+
   def _BuildUrl(self, url, path_elements=None, extra_params=None):
     # Break url into consituent parts
     (scheme, netloc, path, params, query, fragment) = urlparse.urlparse(url)
@@ -1304,6 +1317,10 @@ class Api(object):
     else:
       opener = self._urllib.build_opener()
     opener.addheaders = [('User-agent', self._user_agent)]
+    if self._x_twitter_header:
+      opener.addheaders.append(('X-Twitter-Client', self._x_twitter_header['X-Twitter-Client']))
+      opener.addheaders.append(('X-Twitter-Client-URL', self._x_twitter_header['X-Twitter-Client-URL']))
+      opener.addheaders.append(('X-Twitter-Client-Version', self._x_twitter_header['X-Twitter-Client-Version']))
     return opener
 
   def _Encode(self, s):
