@@ -11,31 +11,31 @@
 #   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #   GNU General Public License for more details.
 
-
-#TODO: Set user Agent pour faire apparaitre Pwytter http://pwytter.googlecode.com/files/pwytter-header.xml
-#TODO: dialogue parameter auto si pas de fichier XML
+#TODO: Validate on Linux
+#TODO: show parameter dialog if no XML file
 #TODO: parameters : live refresh (line number...)
 #TODO: Autoreconnect si mauvaise connection
+#TODO: Friends : load and display dynamically
+#TODO: Mac version: py2app
 
+#TODO: multiple accounts as in http://funkatron.com/index.php/site/spaz_a_twitter_client_for_mac_os_x_windows_and_linux/
 #TODO: Direct messages
-#TODO: Friends : load and display
-#TODO: Friends : hide button
 #TODO: Replies
 #TODO: Followers
 #TODO: download only the required number of messages
-#TODO: Sur chaque message ajouter message direct et favori
-#TODO: Add url Hint on messages and users
-#TODO: Faire un scrit setup.py pour twitter.py, simplejson, PIL
+#TODO: setup.py : twitter.py, simplejson, PIL
 #TODO: POP3/IMAP client : http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/52299
 #TODO: RSS Client : http://feedparser.org/, http://code.google.com/p/davtwitter/
 #TODO: Masked password
 
 #DONE: Improved UI : reduced width, better Balloon position
+#DONE: Send X-Twitter header with url -> http://www.pwytter.com/files/meta.xml
+#DONE: Friends : show/hide button
 
 '''A Python Tkinter Twitter Client'''
 
 __author__ = 'coudert@free.fr'
-__version__ = '0.4'
+__version__ = '0.5'
 
 from Tkinter import *
 import tkBalloon
@@ -44,6 +44,7 @@ import time
 import webbrowser
 import textwrap
 from urlparse import urlparse,urlunparse
+import os
 import os.path
 import xml.dom.minidom as dom
 from PIL import Image, ImageTk
@@ -141,9 +142,11 @@ class MainPanel(Frame):
             self._imageFile[name].thumbnail((16,16),Image.ANTIALIAS)
         return self._imageFile[name]
 
-    def _createClickableImage(self, parent, imageName, clickCommand, aColor, aName):
+    def _createClickableImage(self, parent, imageName, clickCommand, aColor, aName, aHint=None):
         self._imageRef.append(ImageTk.PhotoImage(self._imagefromfile(imageName)))
         aLabel = Label(parent, image=self._imageRef[-1], bg=aColor, name=aName)
+        if aHint:
+            self._imageRef.append(tkBalloon.Balloon(aLabel,aHint))
         if clickCommand:
             aLabel.bind('<1>', clickCommand)
             aLabel["cursor"] = 'hand2'
@@ -170,7 +173,24 @@ class MainPanel(Frame):
         self.MyUrl.grid(row=1,column=1, columnspan=2)
         self.MyUrl.bind('<1>', self._userClick)
 
-
+    def _createRefreshBox(self, parent):
+        self.refreshBox = Frame(parent, width=500, bg=self._bg)
+        self.ShowFriends = self._createClickableImage(self.refreshBox, "side_expand.png", 
+                                        self._showFriends,self._bg, "frie0","Show friends")
+        self.HideFriends = self._createClickableImage(self.refreshBox, "side_contract.png", 
+                                        self._hideFriends,self._bg, "frie1","Hide friends")
+        self.Time = Label(self.refreshBox, text="Current Time Unknown...", bg=self._bg, fg="white")
+        self.TimeLine = Label(self.refreshBox,text="Timeline: "+self.tw.timeLineName(),\
+                              bg="#484C4F", fg="white", cursor = 'hand2')
+        self.TimeLineHint=tkBalloon.Balloon(self.TimeLine, "Swicth TimeLine")
+        self.TimeLine.bind('<1>', self._timeLineClick)
+        self.Refresh = self._createClickableImage(self.refreshBox, "arrow_refresh.png", 
+                                        self.manualRefresh,self._bg, "refr0","Refresh")
+        self.ShowFriends.grid(row=0,column=1, sticky="E")
+        self.Time.grid(row=1,column=0,columnspan=2)
+        self.TimeLine.grid(row=2,column=0, sticky="W")
+        self.Refresh.grid(row=2,column=1, sticky="E")
+                
     def _createParameterBox(self, aParent):
         param_bg="#585C5F"
         self.ParamEmpyBox = Frame(aParent, bg=self._bg)
@@ -273,35 +293,38 @@ class MainPanel(Frame):
         return aLine
 
     def _createFriendZone(self, aParent):   
+        self.friendsEmptyBox = Frame(aParent, bg=self._bg)
+        self.friendsInsideBox = Frame(aParent, bg=self._bg)
+
         self.FriendImages=[]
         for i in range(20):
             aFriend={}
             aFriend['ImageRef'] = ImageTk.PhotoImage("RGB",(20,20))
-            aFriend['Image']    = Label(aParent,image=aFriend['ImageRef'], \
-                                           name="fri"+str(i), cursor="hand2")
+            aFriend['Image']    = Label(self.friendsInsideBox,image=aFriend['ImageRef'], \
+                                           name="frie"+str(i), cursor="hand2")
             aFriend['ImageHint']=  tkBalloon.Balloon(aFriend['Image'])
             self.FriendImages.append(aFriend)
             aFriend['Image'] .grid(row=int(i/4), column=i-(int(i/4)*4))
     
-    
+    def _showFriends(self,par=None):
+        self.friendsEmptyBox.pack_forget()
+        self.friendsInsideBox.pack(expand=1,padx=2)
+        self.ShowFriends.grid_forget()
+        self.HideFriends.grid(row=0,column=1, sticky="E")
+
+    def _hideFriends(self,par=None):
+        self.friendsInsideBox.pack_forget()
+        self.friendsEmptyBox.pack()
+        self.HideFriends.grid_forget()
+        self.ShowFriends.grid(row=0,column=1, sticky="E")
+
     def _createWidgets(self):      
         self.MainZone = Frame(self, bg=self._bg)
 
         self._createMySelfBox(self.MainZone)
         self.MySelfBox.grid(row=0, column=0, padx=2, ipadx=6, pady=2, sticky="W")
-
-        self.refreshBox = Frame(self.MainZone,width=500, bg=self._bg)
-        self.Time = Label(self.refreshBox, text="Current Time Unknown...", bg=self._bg, fg="white")
-        self.Time.grid(row=0,column=0,columnspan=2)
-        self.TimeLine = Label(self.refreshBox,text="Timeline: "+self.tw.timeLineName(),\
-                              bg="#484C4F", fg="white", cursor = 'hand2')
-        self.TimeLineHint=tkBalloon.Balloon(self.TimeLine, "Swicth TimeLine")
-        self.TimeLine.grid(row=1,column=0, sticky="W")
-        self.TimeLine.bind('<1>', self._timeLineClick)
-        self.RefreshImageRef = ImageTk.PhotoImage(self._imagefromfile('arrow_refresh.png'))
-        self.Refresh = Button(self.refreshBox, image=self.RefreshImageRef, command=self.manualRefresh, bg=self._bg)
-        self.Refresh.grid(row=1,column=1, sticky="E")
-        self.RefreshHint=tkBalloon.Balloon(self.Refresh, "Refresh")
+       
+        self._createRefreshBox(self.MainZone)
         self.refreshBox.grid(row=0, column=1, sticky="SE")
 
         self.ParameterBox = Frame(self.MainZone, bg=self._bg)
@@ -340,7 +363,8 @@ class MainPanel(Frame):
 
         self.FriendZone = Frame(self, bg=self._bg)
         self._createFriendZone(self.FriendZone)
-        self.FriendZone.grid(row=0,column=1,sticky=E,padx=2)
+        self.FriendZone.grid(row=0,column=1,sticky=E)
+        self._hideFriends()
 
     def _refreshFriends(self):
         self.tw.getFriends()
@@ -353,6 +377,7 @@ class MainPanel(Frame):
             except:
                 print "error pasting friends images:",fname
             self.FriendImages[i]['ImageHint'].settext("http://twitter.com/"+fname)
+            self.FriendImages[i]['Image'].bind('<1>', self._friendClick)
             i=i+1
 
     def _refreshMe(self):
@@ -399,6 +424,15 @@ class MainPanel(Frame):
             webbrowser.open("http://twitter.com/"+self.tw.texts[lineIndex]["name"])
         except Exception,e :
             print str(e),'-> Cannot open Browser with url:',"http://twitter.com/"+self.tw.texts[lineIndex]["name"]
+            
+    def _friendClick(self,par=None):
+        friendIndex= int(par.widget.winfo_name()[4:])
+        url=self.FriendImages[friendIndex]['ImageHint'].gettext()
+
+        try :
+            webbrowser.open(url)
+        except Exception,e :
+            print str(e),'-> Cannot open Browser with url:',url
 
     def _userUrlClick(self,par=None):
         lineIndex= int(par.widget.winfo_name()[4:])
@@ -495,7 +529,8 @@ class MainPanel(Frame):
 def MainLoop():
     rootTk = Tk()
     rootTk.title('Pwytter')
-    rootTk.iconbitmap('pwytter.ico') 
+    if os.name == 'nt':
+        rootTk.iconbitmap('pwytter.ico') 
     app = MainPanel(master=rootTk)
     #rootTk.attributes(alpha=0.5)
     rootTk.after(100,app.timer)
