@@ -11,7 +11,6 @@
 #   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #   GNU General Public License for more details.
 
-#TODO: Validate on Linux
 #TODO: show parameter dialog if no XML file
 #TODO: parameters : live refresh (line number...)
 #TODO: Autoreconnect si mauvaise connection
@@ -27,10 +26,12 @@
 #TODO: POP3/IMAP client : http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/52299
 #TODO: RSS Client : http://feedparser.org/, http://code.google.com/p/davtwitter/
 #TODO: Masked password
+#TODO: Notifications, Mac Growl integration, ...
 
 #DONE: Improved UI : reduced width, better Balloon position
 #DONE: Send X-Twitter header with url -> http://www.pwytter.com/files/meta.xml
 #DONE: Friends : show/hide button
+#DONE: Now run on linux
 
 '''A Python Tkinter Twitter Client'''
 
@@ -122,13 +123,26 @@ class MainPanel(Frame):
         self.linesVar = IntVar()
         
         Frame.__init__(self, master)
+        if os.name=='nt':
+            self._display={
+                'fontName':('arial',8,'bold'),
+                'fontMsg':('arial',8,'bold'),
+                'widthMsg':57,
+                'widthTwit':68
+                }
+        else:
+            self._display={
+                'fontName':('arial',12,'bold'),
+                'fontMsg':('arial',12,'bold'),
+                'widthMsg':61,
+                'widthTwit':61
+                }
         self._bg="#1F242A"
         self['bg']=self._bg
         self.pack(ipadx=2, ipady=2)
         self._createWidgets()
         self._refreshMe()
         self._refreshTime = 0
-
 
     def _applyParameters(self):
         self._refreshRate = int(self._params['refresh_rate'])
@@ -252,7 +266,7 @@ class MainPanel(Frame):
 
         aLine['NameBox']  = Frame(aLine['Box'], bg=linecolor)
         aLine['Name']     = Label(aLine['NameBox'],text="...",bg=linecolor, name="name"+str(i),
-                                     font=('arial',10,'bold'),fg="white", cursor="hand2")
+                                     font=self._display['fontName'],fg="white", cursor="hand2")
         aLine['NameHint'] = tkBalloon.Balloon(aLine['Name'])
         aLine['Time']     = Label(aLine['NameBox'],text="...",bg=linecolor,\
                                      fg="#BBBBBB", justify="left")
@@ -269,8 +283,9 @@ class MainPanel(Frame):
         aLine['UserUrlInvalid']= self._createClickableImage(aLine['IconBox'], \
                                         "world_nb.png", None, linecolor,"iurl"+str(i))
         
-        aLine['Msg']      = Label(aLine['Box'],text="...",bg=linecolor, name=str(i),
-                                    font=('arial',8,'bold'), fg="#99CBFE", width=57)
+        aLine['Msg']      = Label(aLine['Box'],text="...",bg=linecolor, name=str(i),\
+                                  font=self._display['fontMsg'], fg="#99CBFE",\
+                                  width=self._display['widthMsg'])
         aLine['MsgHint']=  tkBalloon.Balloon(aLine['Msg'])
             
         aLine['Image'].bind('<1>', self._nameClick)
@@ -291,7 +306,7 @@ class MainPanel(Frame):
         aLine['Msg'].grid(row=1,column=1,columnspan=2,rowspan=1, sticky='W',padx=1)
         aLine['Box'].grid(row=i,sticky=W,padx=0, pady=2, ipadx=1, ipady=1)
         return aLine
-
+ 
     def _createFriendZone(self, aParent):   
         self.friendsEmptyBox = Frame(aParent, bg=self._bg)
         self.friendsInsideBox = Frame(aParent, bg=self._bg)
@@ -346,15 +361,15 @@ class MainPanel(Frame):
                                fg="white" )
         self.RemainCar.pack(padx=5)
         self.editBox = Frame(self.EditParentBox, bg=self._bg)
-        self.TwitEdit = Entry(self.editBox, width=68, textvariable=self.twitText,\
+        self.TwitEdit = Entry(self.editBox, width=self._display['widthTwit'],\
+                              textvariable=self.twitText,\
                               validate="key", validatecommand=self.editValidate, \
                               bg="#2F3237", fg="white", bd=0)
         self.TwitEdit.pack(side="left",padx=2, ipadx=2, ipady=2)
-        self.SendImageRef = ImageTk.PhotoImage(Image.open(os.path.join("media","comment.png")))
-        self.Send = Button(self.editBox, image=self.SendImageRef,\
-                           command=self.sendTwit,default=ACTIVE, bg=self._bg)
-        self.Send.pack(side="left", padx=2, ipadx=1, ipady=1)
-        self.SendHint = tkBalloon.Balloon(self.Send, "Send")
+
+        self.Send = self._createClickableImage(self.editBox, "comment.png", 
+                                        self.sendTwit,self._bg, "send0","Send")       
+        self.Send.pack(side="left", padx=2, ipadx=1, ipady=1)       
         self.TwitEdit.bind("<Return>", self.sendTwit)
         self.editBox.pack()      
         self.EditParentBox.grid(row=4,column=0,columnspan=2, pady=2)
