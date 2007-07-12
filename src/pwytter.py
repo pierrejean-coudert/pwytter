@@ -14,7 +14,6 @@
 #TODO: show parameter dialog if no XML file
 #TODO: parameters : live refresh (line number...)
 #TODO: Autoreconnect si mauvaise connection
-#TODO: Friends : load and display dynamically
 #TODO: Mac version: py2app
 
 #TODO: multiple accounts as in http://funkatron.com/index.php/site/spaz_a_twitter_client_for_mac_os_x_windows_and_linux/
@@ -30,7 +29,7 @@
 
 #DONE: Improved UI : reduced width, better Balloon position
 #DONE: Send X-Twitter header with url -> http://www.pwytter.com/files/meta.xml
-#DONE: Friends : show/hide button
+#DONE: Friends : show/hide button, load and display dynamically
 #DONE: Now run on linux
 
 '''A Python Tkinter Twitter Client'''
@@ -184,6 +183,30 @@ class MainPanel(Frame):
         self.MyUrl.grid(row=1,column=1, columnspan=2)
         self.MyUrl.bind('<1>', self._userClick)
 
+    def _refreshMe(self):
+        print "refresh Me"
+        self._refreshFriends()
+        try:
+            self._needToRefreshMe = not self.tw.getMyDetails()
+            self.MyImageRef.paste(self.tw.myimage, (0,0,48,18))
+            self.MyName["text"] = self.tw.me.screen_name.encode('latin-1')
+            try:
+                self.MyImageHint.settext("%s: %s %cLocation: %s" % (self.tw.me.name.encode('latin-1'),\
+                                      self.tw.me.description.encode('latin-1'),13,\
+                                      self.tw.me.location.encode('latin-1')))
+                self.MyNameHint.settext(self.MyImageHint.gettext())
+            except Exception, e:
+                self.MyImageHint.settext('')
+                self.MyNameHint.settext('')
+            try:
+                self.MyUrl["text"] = self.tw.me.url.encode('latin-1')
+            except Exception, e:
+                self.MyUrl["text"] = ''
+                
+        except Exception, e:
+            print "_refreshMe Exception:",str(e)
+            self._needToRefreshMe = True
+
     def _createRefreshBox(self, parent):
         self.refreshBox = Frame(parent, width=500, bg=self._bg)
         self.ShowFriends = self._createClickableImage(self.refreshBox, "side_expand.png", 
@@ -304,20 +327,42 @@ class MainPanel(Frame):
         aLine['Box'].grid(row=i,sticky=W,padx=0, pady=2, ipadx=1, ipady=1)
         return aLine
  
+    def _createFriendImage(self, aParent, index):   
+        aFriend={}
+        aFriend['ImageRef'] = ImageTk.PhotoImage("RGB",(20,20))
+        aFriend['Image']    = Label(aParent,image=aFriend['ImageRef'], \
+                                       name="frie"+str(index), cursor="hand2")
+        aFriend['ImageHint']=  tkBalloon.Balloon(aFriend['Image'])
+        self.FriendImages.append(aFriend)
+        aFriend['Image'].grid(row=int(index/4), column=index-(int(index/4)*4), padx=1, pady=1)
+        return aFriend
+        
     def _createFriendZone(self, aParent):   
         self.friendsEmptyBox = Frame(aParent, bg=self._bg)
         self.friendsInsideBox = Frame(aParent, bg=self._bg)
-
         self.FriendImages=[]
-        for i in range(20):
-            aFriend={}
-            aFriend['ImageRef'] = ImageTk.PhotoImage("RGB",(20,20))
-            aFriend['Image']    = Label(self.friendsInsideBox,image=aFriend['ImageRef'], \
-                                           name="frie"+str(i), cursor="hand2")
-            aFriend['ImageHint']=  tkBalloon.Balloon(aFriend['Image'])
-            self.FriendImages.append(aFriend)
-            aFriend['Image'] .grid(row=int(i/4), column=i-(int(i/4)*4))
+        for i in range(2):
+            self._createFriendImage(self.friendsInsideBox,i)
     
+    def _refreshFriends(self):
+        self.tw.getFriends()
+        i=0
+        for fname in self.tw.Friends:
+            if i+1>len(self.FriendImages) :
+                self._createFriendImage(self.friendsInsideBox,i)
+            loaded, aImage= self.tw.imageFromCache(fname)
+            self._imagesLoaded = self._imagesLoaded and loaded     
+            try :   
+                self.FriendImages[i]['ImageRef'].paste(aImage, (0,0,20,20))
+            except:
+                print "error pasting friends images:",fname
+            self.FriendImages[i]['ImageHint'].settext("http://twitter.com/"+fname)
+            self.FriendImages[i]['Image'].bind('<1>', self._friendClick)
+            self.FriendImages[i]['Image'].grid(row=int(i/4), column=i-(int(i/4)*4), padx=1, pady=1)
+            i=i+1
+        for i in range(i,len(self.FriendImages)):
+            self.FriendImages[i]['Image'].grid_forget()
+
     def _showFriends(self,par=None):
         self.friendsEmptyBox.pack_forget()
         self.friendsInsideBox.pack(expand=1,padx=2)
@@ -363,7 +408,6 @@ class MainPanel(Frame):
                               validate="key", validatecommand=self.editValidate, \
                               bg="#2F3237", fg="white", bd=0)
         self.TwitEdit.pack(side="left",padx=2, ipadx=2, ipady=2)
-
         self.Send = self._createClickableImage(self.editBox, "comment.png", 
                                         self.sendTwit,self._bg, "send0","Send")       
         self.Send.pack(side="left", padx=2, ipadx=1, ipady=1)       
@@ -377,46 +421,7 @@ class MainPanel(Frame):
         self._createFriendZone(self.FriendZone)
         self.FriendZone.grid(row=0,column=1,sticky=E)
         self._hideFriends()
-
-    def _refreshFriends(self):
-        self.tw.getFriends()
-        i=0
-        for fname in self.tw.Friends:
-            loaded, aImage= self.tw.imageFromCache(fname)
-            self._imagesLoaded = self._imagesLoaded and loaded     
-            try :   
-                self.FriendImages[i]['ImageRef'].paste(aImage, (0,0,20,20))
-            except:
-                print "error pasting friends images:",fname
-            self.FriendImages[i]['ImageHint'].settext("http://twitter.com/"+fname)
-            self.FriendImages[i]['Image'].bind('<1>', self._friendClick)
-            i=i+1
-
-    def _refreshMe(self):
-        print "refresh Me"
-        self._refreshFriends()
-        try:
-            self._needToRefreshMe = not self.tw.getMyDetails()
-            self.MyImageRef.paste(self.tw.myimage, (0,0,48,18))
-            self.MyName["text"] = self.tw.me.screen_name.encode('latin-1')
-            try:
-                self.MyImageHint.settext("%s: %s %cLocation: %s" % (self.tw.me.name.encode('latin-1'),\
-                                      self.tw.me.description.encode('latin-1'),13,\
-                                      self.tw.me.location.encode('latin-1')))
-                self.MyNameHint.settext(self.MyImageHint.gettext())
-            except Exception, e:
-                self.MyImageHint.settext('')
-                self.MyNameHint.settext('')
-            try:
-                self.MyUrl["text"] = self.tw.me.url.encode('latin-1')
-            except Exception, e:
-                self.MyUrl["text"] = ''
-                
-        except Exception, e:
-            print "_refreshMe Exception:",str(e)
-            self._needToRefreshMe = True
-
-            
+           
     def _userClick(self,par=None):
         try :
             webbrowser.open(self.tw.me.url.encode('latin-1'))
@@ -440,7 +445,6 @@ class MainPanel(Frame):
     def _friendClick(self,par=None):
         friendIndex= int(par.widget.winfo_name()[4:])
         url=self.FriendImages[friendIndex]['ImageHint'].gettext()
-
         try :
             webbrowser.open(url)
         except Exception,e :
