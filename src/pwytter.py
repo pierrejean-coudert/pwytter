@@ -35,7 +35,7 @@
 
 '''A Python Tkinter Twitter Client'''
 
-__author__ = 'coudert@free.fr'
+__author__ = 'Pierre-Jean Coudert <coudert@free.fr>'
 __version__ = '0.5'
 
 from Tkinter import *
@@ -54,6 +54,7 @@ class PwytterParams(object):
     """Handle the Pwtytter configuration in an XML file pwytter.wml
     """
     def __init__(self):
+        self._paramPath = os.path.join('cfg','pwytter.xml')
         self.values={'user': '',
                      'password': '',
                      'refresh_rate' : '',
@@ -73,7 +74,7 @@ class PwytterParams(object):
 
     def readFromXML(self):
         try:
-            self._paramDoc = dom.parse('pwytter.xml').documentElement
+            self._paramDoc = dom.parse(self._paramPath).documentElement
             assert self._paramDoc.tagName == 'pwytter'
             for val in self.values.keys(): 
                 try :
@@ -94,7 +95,7 @@ class PwytterParams(object):
             Element=self._paramDoc.createElement(val)
             Element.appendChild(self._paramDoc.createTextNode(str(self.values[val])))
             top_element.appendChild(Element)
-        f=open('pwytter.xml', 'w')
+        f=open(self._paramPath, 'w')
         f.write(self._paramDoc.toprettyxml())
         f.close()
     
@@ -172,17 +173,13 @@ class MainPanel(Frame):
         self.MyImageRef = ImageTk.PhotoImage("RGB",(48,48))
         self.MyImage = Label(self.MySelfBox,image=self.MyImageRef )
         self.MyImage.grid(row=0,column=0, rowspan=3, sticky=W,padx=5, pady=5)
-        self.MyImageHint = tkBalloon.Balloon(self.MyImage)
-        
+        self.MyImageHint = tkBalloon.Balloon(self.MyImage)       
         self.MyName = Label(self.MySelfBox,text="...",font=('helvetica', 14, 'bold'), bg=me_bg, fg="white")
         self.MyName.grid(row=0,column=1)
         self.MyNameHint = tkBalloon.Balloon(self.MyName)
-
         self.Param = self._createClickableImage(self.MySelfBox, "cog.png", 
-                                        self._showParameters,me_bg, "para0")
-        #self.ParamHint=tkBalloon.Balloon(self.Param, "Parameters...")
+                                        self._showParameters,me_bg, "para0", "Parameters...")
         self.Param.grid(row=0,column=2, sticky="E")
-
         self.MyUrl = Label(self.MySelfBox,text="http", bg=me_bg, fg=me_fg, cursor = 'hand2' )
         self.MyUrl.grid(row=1,column=1, columnspan=2)
         self.MyUrl.bind('<1>', self._userClick)
