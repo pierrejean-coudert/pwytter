@@ -12,7 +12,6 @@
 #   GNU General Public License for more details.
 
 #TODO: show parameter dialog if no XML file
-#TODO: parameters : live refresh (line number...)
 #TODO: Autoreconnect si mauvaise connection
 #TODO: Mac version: py2app
 
@@ -31,6 +30,7 @@
 #DONE: Send X-Twitter header with url -> http://www.pwytter.com/files/meta.xml
 #DONE: Friends : show/hide button, load and display dynamically
 #DONE: Now run on linux
+#TODO: Bug corrected in change parameters : there is now a live refresh
 
 '''A Python Tkinter Twitter Client'''
 
@@ -53,7 +53,9 @@ class PwytterParams(object):
     """Handle the Pwtytter configuration in an XML file pwytter.wml
     """
     def __init__(self):
-        self._paramPath = os.path.join('cfg','pwytter.xml')
+        self._paramPath = 'cfg'
+        self._paramFileName = os.path.join(self._paramPath,'pwytter.xml')
+        
         self.values={'user': '',
                      'password': '',
                      'refresh_rate' : '',
@@ -73,7 +75,7 @@ class PwytterParams(object):
 
     def readFromXML(self):
         try:
-            self._paramDoc = dom.parse(self._paramPath).documentElement
+            self._paramDoc = dom.parse(self._paramFileName).documentElement
             assert self._paramDoc.tagName == 'pwytter'
             for val in self.values.keys(): 
                 try :
@@ -94,7 +96,9 @@ class PwytterParams(object):
             Element=self._paramDoc.createElement(val)
             Element.appendChild(self._paramDoc.createTextNode(str(self.values[val])))
             top_element.appendChild(Element)
-        f=open(self._paramPath, 'w')
+        if not os.path.exists(self._paramPath) :
+            os.makedirs(self._paramPath)
+        f=open(self._paramFileName, 'w')
         f.write(self._paramDoc.toprettyxml())
         f.close()
     
@@ -128,14 +132,16 @@ class MainPanel(Frame):
                 'fontName':('arial',8,'bold'),
                 'fontMsg':('arial',8,'bold'),
                 'widthMsg':57,
-                'widthTwit':68
+                'widthTwit':68,
+                'friendcolumn':4
                 }
         else:
             self._display={
                 'fontName':('arial',12,'bold'),
                 'fontMsg':('arial',12,'bold'),
                 'widthMsg':61,
-                'widthTwit':61
+                'widthTwit':61,
+                'friendcolumn':4
                 }
         self._bg="#1F242A"
         self['bg']=self._bg
@@ -216,7 +222,7 @@ class MainPanel(Frame):
         self.Time = Label(self.refreshBox, text="Current Time Unknown...", bg=self._bg, fg="white")
         self.TimeLine = Label(self.refreshBox,text="Timeline: "+self.tw.timeLineName(),\
                               bg="#484C4F", fg="white", cursor = 'hand2')
-        self.TimeLineHint=tkBalloon.Balloon(self.TimeLine, "Swicth TimeLine")
+        self.TimeLineHint=tkBalloon.Balloon(self.TimeLine, "Switch TimeLine")
         self.TimeLine.bind('<1>', self._timeLineClick)
         self.Refresh = self._createClickableImage(self.refreshBox, "arrow_refresh.png", 
                                         self.manualRefresh,self._bg, "refr0","Refresh")
@@ -273,10 +279,15 @@ class MainPanel(Frame):
         self._params['nb_lines']= self.linesVar.get()
         self._params.writeToXML()
         self._applyParameters()
-        self._refreshMe()       
         self._hideParameters()
+        self._refreshMe()       
+        self.manualRefresh()
 
-    def _createLine(self, aParent, linecolor, i):
+    def _createLine(self, aParent, i):
+        if i==0:
+            linecolor = "#484C4F"
+        else:
+            linecolor = "#2F3237"
         aLine={}
         aLine['Box']      = Frame(aParent,bg=linecolor)
         aLine['ImageRef'] = ImageTk.PhotoImage("RGB",(48,48))
@@ -327,6 +338,57 @@ class MainPanel(Frame):
         aLine['Box'].grid(row=i,sticky=W,padx=0, pady=2, ipadx=1, ipady=1)
         return aLine
  
+    def _displaylines(self, par=None):
+        self._imagesLoaded=True
+        for i in range(min(self._TwitLines,len(self.tw.texts))):
+            if i+1>len(self.Lines) :
+                print "create line",i
+                self.Lines.append(self._createLine(self.LinesBox, i))
+            name = self.tw.texts[i]["name"]
+            loaded, aImage= self.tw.imageFromCache(name)
+            self._imagesLoaded = self._imagesLoaded and loaded        
+            try:
+                self.Lines[i]['ImageRef'].paste(aImage, (0,0,20,20))
+            except:
+                print "error pasintg image:", name
+            self.Lines[i]['Name']["text"]= name
+            self.Lines[i]['ImageHint'].settext("http://twitter.com/"+name)
+            self.Lines[i]['NameHint'].settext("http://twitter.com/"+name)
+            self.Lines[i]['Time']["text"]= self.tw.texts[i]["time"]
+            initText=self.tw.texts[i]["msg"].decode('latin-1','replace')
+            self.Lines[i]['Msg']["text"]=textwrap.fill(initText, 70, break_long_words=True)
+            urlstart = initText.find("http://")
+            if urlstart > -1 :
+                self.tw.texts[i]["url"] = urlunparse(urlparse(initText[urlstart:])).split('"')[0]
+                self.Lines[i]['Msg'].bind('<1>', self._urlClick)
+                self.Lines[i]['Msg']["cursor"] = 'hand2'
+                self.Lines[i]['Msg']["fg"] = "#B9DBFF"
+                self.Lines[i]['MsgHint'].settext(self.tw.texts[i]["url"])
+                self.Lines[i]['MsgHint'].enable()
+                print "url detected:",self.tw.texts[i]["url"]
+            else:
+                self.tw.texts[i]["url"] = ''
+                self.Lines[i]['Msg'].bind('<1>', None)
+                self.Lines[i]['Msg']["cursor"] = ''
+                self.Lines[i]['Msg']["fg"] = "#99CBFE"    
+                self.Lines[i]['MsgHint'].disable()
+            if self.tw.texts[i]["user_url"] == '':
+                self.Lines[i]['UserUrl'].bind('<1>', None)
+                self.Lines[i]['UserUrl']["cursor"] = ''    
+                self.Lines[i]['UserUrl'].grid_forget()           
+                self.Lines[i]['UserUrlInvalid'].grid(row=0, column=2, sticky='E')
+            else:
+                self.Lines[i]['UserUrl'].bind('<1>', self._userUrlClick)
+                self.Lines[i]['UserUrl']["cursor"] = 'hand2'
+                self.Lines[i]['UserUrlHint'].settext(self.tw.texts[i]["user_url"])
+                self.Lines[i]['UserUrlInvalid'].grid_forget() 
+                self.Lines[i]['UserUrl'].grid(row=0, column=2, sticky='E')
+                self.Lines[i]['UserUrl'].grid()
+            self.Lines[i]['Box'].grid(row=i,sticky=W,padx=0, pady=2, ipadx=1, ipady=1)
+        for i in range(i+1,len(self.Lines)):
+            print "forget line",i
+            self.Lines[i]['Box'].grid_forget()
+    
     def _createFriendImage(self, aParent, index):   
         aFriend={}
         aFriend['ImageRef'] = ImageTk.PhotoImage("RGB",(20,20))
@@ -334,13 +396,16 @@ class MainPanel(Frame):
                                        name="frie"+str(index), cursor="hand2")
         aFriend['ImageHint']=  tkBalloon.Balloon(aFriend['Image'])
         self.FriendImages.append(aFriend)
-        aFriend['Image'].grid(row=int(index/4), column=index-(int(index/4)*4), padx=1, pady=1)
+        c=self._display['friendcolumn']
+        aFriend['Image'].grid(row=1+int(index/c), column=index-(int(index/c)*c), padx=1, pady=1)
         return aFriend
         
     def _createFriendZone(self, aParent):   
         self.friendsEmptyBox = Frame(aParent, bg=self._bg)
         self.friendsInsideBox = Frame(aParent, bg=self._bg)
         self.FriendImages=[]
+        self.FriendTitle = Label(self.friendsInsideBox,text="Friends", bg=self._bg, fg="white")
+        self.FriendTitle.grid(row=0,column=0,columnspan=self._display['friendcolumn'])
         for i in range(2):
             self._createFriendImage(self.friendsInsideBox,i)
     
@@ -358,7 +423,8 @@ class MainPanel(Frame):
                 print "error pasting friends images:",fname
             self.FriendImages[i]['ImageHint'].settext("http://twitter.com/"+fname)
             self.FriendImages[i]['Image'].bind('<1>', self._friendClick)
-            self.FriendImages[i]['Image'].grid(row=int(i/4), column=i-(int(i/4)*4), padx=1, pady=1)
+            c=self._display['friendcolumn']
+            self.FriendImages[i]['Image'].grid(row=1+int(i/c), column=i-(int(i/c)*c), padx=1, pady=1)
             i=i+1
         for i in range(i,len(self.FriendImages)):
             self.FriendImages[i]['Image'].grid_forget()
@@ -392,10 +458,7 @@ class MainPanel(Frame):
         self.LinesBox= Frame(self.MainZone,bg=self._bg) 
         self.Lines=[]       
         for i in range(self._TwitLines):           
-            if i==0:
-                self.Lines.append(self._createLine(self.LinesBox, "#484C4F",i))
-            else:
-                self.Lines.append(self._createLine(self.LinesBox, "#2F3237",i))
+            self.Lines.append(self._createLine(self.LinesBox, i))
         self.LinesBox.grid(row=3, column=0,columnspan=2)
 
         self.EditParentBox = Frame(self.MainZone, bg=self._bg)
@@ -465,50 +528,6 @@ class MainPanel(Frame):
         self.TimeLine["text"] = "Timeline: "+self.tw.timeLineName()
         self._refreshTwitZone()
           
-    def _displaylines(self, par=None):
-        self._imagesLoaded=True
-        for i in range(min(self._TwitLines,len(self.tw.texts))):
-            name = self.tw.texts[i]["name"]
-            loaded, aImage= self.tw.imageFromCache(name)
-            self._imagesLoaded = self._imagesLoaded and loaded        
-            try:
-                self.Lines[i]['ImageRef'].paste(aImage, (0,0,20,20))
-            except:
-                print "error pasintg image:", name
-            self.Lines[i]['Name']["text"]= name
-            self.Lines[i]['ImageHint'].settext("http://twitter.com/"+name)
-            self.Lines[i]['NameHint'].settext("http://twitter.com/"+name)
-            self.Lines[i]['Time']["text"]= self.tw.texts[i]["time"]
-            initText=self.tw.texts[i]["msg"].decode('latin-1','replace')
-            self.Lines[i]['Msg']["text"]=textwrap.fill(initText, 70, break_long_words=True)
-            urlstart = initText.find("http://")
-            if urlstart > -1 :
-                self.tw.texts[i]["url"] = urlunparse(urlparse(initText[urlstart:])).split('"')[0]
-                self.Lines[i]['Msg'].bind('<1>', self._urlClick)
-                self.Lines[i]['Msg']["cursor"] = 'hand2'
-                self.Lines[i]['Msg']["fg"] = "#B9DBFF"
-                self.Lines[i]['MsgHint'].settext(self.tw.texts[i]["url"])
-                self.Lines[i]['MsgHint'].enable()
-                print "url detected:",self.tw.texts[i]["url"]
-            else:
-                self.tw.texts[i]["url"] = ''
-                self.Lines[i]['Msg'].bind('<1>', None)
-                self.Lines[i]['Msg']["cursor"] = ''
-                self.Lines[i]['Msg']["fg"] = "#99CBFE"    
-                self.Lines[i]['MsgHint'].disable()
-            if self.tw.texts[i]["user_url"] == '':
-                self.Lines[i]['UserUrl'].bind('<1>', None)
-                self.Lines[i]['UserUrl']["cursor"] = ''    
-                self.Lines[i]['UserUrl'].grid_forget()           
-                self.Lines[i]['UserUrlInvalid'].grid(row=0, column=2, sticky='E')
-            else:
-                self.Lines[i]['UserUrl'].bind('<1>', self._userUrlClick)
-                self.Lines[i]['UserUrl']["cursor"] = 'hand2'
-                self.Lines[i]['UserUrlHint'].settext(self.tw.texts[i]["user_url"])
-                self.Lines[i]['UserUrlInvalid'].grid_forget() 
-                self.Lines[i]['UserUrl'].grid(row=0, column=2, sticky='E')
-                self.Lines[i]['UserUrl'].grid()
-    
     def _refreshTwitZone(self):
         timestr = time.strftime("%a, %d %b %Y %H:%M:%S", time.localtime())
         self.Time["text"]= timestr
@@ -548,7 +567,6 @@ def MainLoop():
     if os.name == 'nt':
         rootTk.iconbitmap('pwytter.ico') 
     app = MainPanel(master=rootTk)
-    #rootTk.attributes(alpha=0.5)
     rootTk.after(100,app.timer)
     try :
         app.mainloop()
