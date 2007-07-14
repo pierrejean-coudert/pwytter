@@ -24,7 +24,6 @@ import Queue
 import threading
 from PIL import Image, ImageTk
 
-
 class TwClient(object):
     def __init__(self, aVersion, aUser, aPassword):
         self.user, self.password = aUser, aPassword

@@ -1,14 +1,24 @@
 #!/usr/bin/python
 #
-# Copyright 2007 Pierre-Jean Coudert. All Rights Reserved.
+#   Author : Pierre-Jean Coudert
+#
+#   This program is free software; you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation; version 2 of the License.
+# 
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
 
 from distutils.core import setup
 import py2exe
-from pwytter import __version__ as VERSION
 import glob
 #PIL specific
 #import Image
-  
+
+from pwytter import __version__ as VERSION
+
 setup(  
   name = "pwytter",
   version = VERSION,
@@ -20,10 +30,10 @@ setup(
   platforms=['any'],
   url='http://www.pwytter.com',
   keywords='twitter client python tkinter',
-  packages=['twclient','simplejson'],
-  package_dir={'twclient': 'twclient', 
-               'simplejson': 'twclient:simplejson'},
-  package_data={'twclient': ['doc/*.*']},
+#  packages=['twclient','simplejson'],
+#  package_dir={'twclient': 'twclient', 
+#               'simplejson': 'twclient:simplejson'},
+#  package_data={'twclient': ['doc/*.*']},
   py_modules = ['pwytter','tkBalloon'],
   data_files=[("text", glob.glob("*.txt")),
               "pwytter.ico",
