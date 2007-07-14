@@ -119,7 +119,7 @@ class MainPanel(Frame):
         self._imageRef=[]
         self._needToRefreshMe = True
         self._imagesLoaded = True
-        
+        self._imagesFriendsLoaded = True
         self._params = PwytterParams()
         self._params.readFromXML()
         
@@ -419,11 +419,12 @@ class MainPanel(Frame):
     def _refreshFriends(self):
         self.tw.getFriends()
         i=0
+        self._imagesFriendsLoaded = True
         for fname in self.tw.Friends:
             if i+1>len(self.FriendImages) :
                 self._createFriendImage(self.friendsInsideBox,i)
             loaded, aImage= self.tw.imageFromCache(fname)
-            self._imagesLoaded = self._imagesLoaded and loaded     
+            self._imagesFriendsLoaded = self._imagesFriendsLoaded and loaded     
             try :   
                 self.FriendImages[i]['ImageRef'].paste(aImage, (0,0,20,20))
             except:
@@ -554,6 +555,8 @@ class MainPanel(Frame):
             self._refreshMe()
         if not self._imagesLoaded :
             self._displaylines()
+        if not self._imagesFriendsLoaded :
+            self._refreshFriends()
         self.after(1000, self.timer)
 
     def sendTwit(self,par=None):
