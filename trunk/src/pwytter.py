@@ -146,8 +146,8 @@ class MainPanel(Frame):
                 }
         else:
             self._display={
-                'fontName':('arial',12,'bold'),
-                'fontMsg':('arial',12,'bold'),
+                'fontName':('arial',11,'bold'),
+                'fontMsg':('arial',11,'bold'),
                 'widthMsg':61,
                 'widthTwit':61,
                 'friendcolumn':4
