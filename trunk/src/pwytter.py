@@ -12,6 +12,7 @@
 #   GNU General Public License for more details.
 
 #TODO: show parameter dialog if no XML file
+#TODO: Reduce friend image size / limit number of displayed friends
 #TODO: Autoreconnect si mauvaise connection
 #TODO: Mac version: py2app
 
@@ -28,14 +29,6 @@
 #TODO: Notifications, Mac Growl integration, ...
 #TODO: Twitter user browser : click on a user image to go in his context (messages, friends,..)
 #TODO: Create / delete friendship
-
-#DONE: Improved UI : reduced width, better Balloon position
-#DONE: Send X-Twitter header with url -> http://www.pwytter.com/files/meta.xml
-#DONE: Friends : show/hide button, load and display dynamically
-#DONE: Now run on linux
-#TODO: Bug corrected in change parameters : there is now a live refresh
-#TODO: No more exception when quitting the application
-#TODO: sdist support in setup.py
 
 '''A Python Tkinter Twitter Client'''
 
@@ -59,7 +52,7 @@ import xml.dom.minidom as dom
 from PIL import Image, ImageTk
 
 class PwytterParams(object):
-    """Handle the Pwtytter configuration in an XML file pwytter.wml
+    """Handle the Pwtytter configuration in an XML file pwytter.xml
     """
     def __init__(self):
         self._paramPath = 'cfg'

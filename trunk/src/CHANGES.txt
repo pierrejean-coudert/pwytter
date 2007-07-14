@@ -1,7 +1,13 @@
-2007-07-
+2007-07-14
   Release 0.5
   add Image and user hints
-  Reduce UI width to 450px
+  Reduce UI width to 450px, better Balloon position
+  Send X-Twitter header with url -> http://www.pwytter.com/files/meta.xml
+  Friends support: show/hide button, load and display dynamically
+  Now run on linux
+  sdist support in setup.py
+  Bug: in change parameters : there is now a live refresh
+  Bug: No more exception when quitting the application
 
 2007-06-30
   Release 0.4
