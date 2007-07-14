@@ -15,25 +15,34 @@
 #TODO: Autoreconnect si mauvaise connection
 #TODO: Mac version: py2app
 
+#TODO: reference pwytter in python cheesecake
 #TODO: multiple accounts as in http://funkatron.com/index.php/site/spaz_a_twitter_client_for_mac_os_x_windows_and_linux/
 #TODO: Direct messages
 #TODO: Replies
 #TODO: Followers
 #TODO: download only the required number of messages
-#TODO: setup.py : twitter.py, simplejson, PIL
+#TODO: setup.py : auto install twitter.py, simplejson, PIL
 #TODO: POP3/IMAP client : http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/52299
 #TODO: RSS Client : http://feedparser.org/, http://code.google.com/p/davtwitter/
 #TODO: Masked password
 #TODO: Notifications, Mac Growl integration, ...
+#TODO: Twitter user browser : click on a user image to go in his context (messages, friends,..)
+#TODO: Create / delete friendship
 
 #DONE: Improved UI : reduced width, better Balloon position
 #DONE: Send X-Twitter header with url -> http://www.pwytter.com/files/meta.xml
 #DONE: Friends : show/hide button, load and display dynamically
 #DONE: Now run on linux
 #TODO: Bug corrected in change parameters : there is now a live refresh
+#TODO: No more exception when quitting the application
+#TODO: sdist support in setup.py
 
 '''A Python Tkinter Twitter Client'''
 
+import sys
+from os.path import dirname, join, abspath
+sys.path.append(join(abspath(dirname(__file__)), 'twclient'))  
+        
 __author__ = 'Pierre-Jean Coudert <coudert@free.fr>'
 __version__ = '0.5'
 
@@ -342,7 +351,6 @@ class MainPanel(Frame):
         self._imagesLoaded=True
         for i in range(min(self._TwitLines,len(self.tw.texts))):
             if i+1>len(self.Lines) :
-                print "create line",i
                 self.Lines.append(self._createLine(self.LinesBox, i))
             name = self.tw.texts[i]["name"]
             loaded, aImage= self.tw.imageFromCache(name)
@@ -386,7 +394,6 @@ class MainPanel(Frame):
                 self.Lines[i]['UserUrl'].grid()
             self.Lines[i]['Box'].grid(row=i,sticky=W,padx=0, pady=2, ipadx=1, ipady=1)
         for i in range(i+1,len(self.Lines)):
-            print "forget line",i
             self.Lines[i]['Box'].grid_forget()
     
     def _createFriendImage(self, aParent, index):   
@@ -560,18 +567,12 @@ class MainPanel(Frame):
     def editValidate(self):
         self.RemainCar["text"] =  "%d caracter(s) remaining" % (140-len(self.twitText.get().encode('latin-1')))
         return True
-        
-def MainLoop():
+
+if __name__ == "__main__":
     rootTk = Tk()
     rootTk.title('Pwytter')
     if os.name == 'nt':
         rootTk.iconbitmap('pwytter.ico') 
     app = MainPanel(master=rootTk)
     rootTk.after(100,app.timer)
-    try :
-        app.mainloop()
-    finally:
-        rootTk.destroy()
-
-if __name__ == "__main__":
-    MainLoop()
+    app.mainloop()
