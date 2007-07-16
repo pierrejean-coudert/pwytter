@@ -11,25 +11,6 @@
 #   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #   GNU General Public License for more details.
 
-#TODO: show parameter dialog if no XML file
-#TODO: Reduce friend image size / limit number of displayed friends
-#TODO: Autoreconnect si mauvaise connection
-#TODO: Mac version: py2app
-
-#TODO: reference pwytter in python cheesecake
-#TODO: multiple accounts as in http://funkatron.com/index.php/site/spaz_a_twitter_client_for_mac_os_x_windows_and_linux/
-#TODO: Direct messages
-#TODO: Replies
-#TODO: Followers
-#TODO: download only the required number of messages
-#TODO: setup.py : auto install twitter.py, simplejson, PIL
-#TODO: POP3/IMAP client : http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/52299
-#TODO: RSS Client : http://feedparser.org/, http://code.google.com/p/davtwitter/
-#TODO: Masked password
-#TODO: Notifications, Mac Growl integration, ...
-#TODO: Twitter user browser : click on a user image to go in his context (messages, friends,..)
-#TODO: Create / delete friendship
-
 '''A Python Tkinter Twitter Client'''
 
 import sys
@@ -133,8 +114,16 @@ class MainPanel(Frame):
             self._display={
                 'fontName':('arial',8,'bold'),
                 'fontMsg':('arial',8,'bold'),
-                'widthMsg':57,
-                'widthTwit':68,
+                'widthMsg':58,
+                'widthTwit':69,
+                'friendcolumn':4
+                }
+        elif os.name=='mac':
+            self._display={
+                'fontName':('arial',11,'bold'),
+                'fontMsg':('arial',11,'bold'),
+                'widthMsg':61,
+                'widthTwit':61,
                 'friendcolumn':4
                 }
         else:
@@ -411,6 +400,7 @@ class MainPanel(Frame):
     
     def _refreshFriends(self):
         self.tw.getFriends()
+        self.tw.getFollowers()
         i=0
         self._imagesFriendsLoaded = True
         for fname in self.tw.Friends:
@@ -565,10 +555,17 @@ class MainPanel(Frame):
         return True
 
 if __name__ == "__main__":
+    #print time.now()
+    print time.tzname
+    os.environ['TZ'] = 'France'
+    #print time.now()
+    print time.tzname
+
     rootTk = Tk()
     rootTk.title('Pwytter')
     if os.name == 'nt':
         rootTk.iconbitmap('pwytter.ico') 
     app = MainPanel(master=rootTk)
+    rootTk.resizable(width=0, height=0) 
     rootTk.after(100,app.timer)
     app.mainloop()

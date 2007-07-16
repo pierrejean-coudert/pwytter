@@ -26,22 +26,21 @@ from PIL import Image, ImageTk
 
 class TwClient(object):
     def __init__(self, aVersion, aUser, aPassword):
-        self.user, self.password = aUser, aPassword
-       
+        self.user, self.password = aUser, aPassword      
         self.api = twitter.Api(self.user,self.password)
         self.api.SetCache(None)
-        #self.api.SetUserAgent('Pwytter/%s' % (aVersion))
-        self.api.SetXTwitterHeader('Pwytter', 'http://www.pwytter.com/files/meta.xml', aVersion)
-        
+        self.api.SetXTwitterHeader('Pwytter', 'http://www.pwytter.com/files/meta.xml', aVersion)       
 
         self._imageLoading = Image.open(os.path.join("media",'loading.png'))
         self._imageLoading.thumbnail((32,32),Image.ANTIALIAS)
                        
         self._statuses =[]
-        self._friends = []
         self.texts = []
-        self.Friends={}
-        
+        self._friends = []
+        self.Friends=[]
+        self._followers = []
+        self.Followers=[]
+        #Cache
         self._usercache={}
         self._imagecache={}        
         self._requestedImageList=[]
@@ -54,7 +53,6 @@ class TwClient(object):
     def login(self, aUser, aPassword):
         self.user, self.password = aUser, aPassword     
         self.api.SetCredentials(self.user, self.password)
-
 
     def getMyDetails(self):
         self.me = self.userFromCache(self.user)       
@@ -109,8 +107,15 @@ class TwClient(object):
             self._addUserToCache(f)
             friendName= f.screen_name.encode('latin-1','replace')
             self.Friends.append(friendName)
-        print "My friends:",self.Friends
 
+    def getFollowers(self):
+        self._followers = self.api.GetFollowers()
+        self.Followers=[]
+        for f in self._followers :
+            self._addUserToCache(f)
+            fName= f.screen_name.encode('latin-1','replace')
+            self.Followers.append(fName)
+            
     def _threadLoadUserImage(self):
         aUserName=self._userQueue.get()
         print "load image:",aUserName
