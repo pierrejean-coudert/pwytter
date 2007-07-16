@@ -1,0 +1,25 @@
+# Release 0.6
+#TODO: show parameter dialog if no XML file
+#TODO: Reduce friend image size / limit number of displayed friends
+#TODO: Followers
+#TODO: Autoreconnect si mauvaise connection
+#TODO: Mac version: py2app
+#TODO: reference pwytter in python cheesecake
+#TODO: download only the required number of messages
+#TODO: Masked password
+#TODO: Better edit line handling : car count, erase "enter your message here"
+
+
+# Release 0.7
+#TODO: Design an Icon
+#TODO: Direct messages
+#TODO: Replies
+#TODO: Notifications, Mac Growl integration ( http://growl.info/documentation/developer/python-support.php, http://aaronland.info/python/twitter/twnotifier/, ...
+
+# Later
+#TODO: multiple accounts as in http://funkatron.com/index.php/site/spaz_a_twitter_client_for_mac_os_x_windows_and_linux/
+#TODO: setup.py : auto install twitter.py, simplejson, PIL
+#TODO: POP3/IMAP client : http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/52299
+#TODO: RSS Client : http://feedparser.org/, http://code.google.com/p/davtwitter/
+#TODO: Twitter user browser : click on a user image to go in his context (messages, friends,..)
+#TODO: Create / delete friendship

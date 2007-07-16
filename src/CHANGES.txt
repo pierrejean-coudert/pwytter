@@ -1,36 +1,40 @@
+2007-07-
+  * Release 0.6
+
 2007-07-14
-  Release 0.5
-  add Image and user hints
-  Reduce UI width to 450px, better Balloon position
-  Send X-Twitter header with url -> http://www.pwytter.com/files/meta.xml
-  Friends support: show/hide button, load and display dynamically
-  Now run on linux
-  sdist support in setup.py
-  Bug: in change parameters : there is now a live refresh
-  Bug: No more exception when quitting the application
+  * Release 0.5
+  * add Image and user hints
+  * Reduce UI width to 450px, better Balloon position
+  * Send X-Twitter header with url -> http://www.pwytter.com/files/meta.xml
+  * Friends support: show/hide button, load and display dynamically
+  * Now run on linux
+  * sdist support in setup.py
+  * Bug: in change parameters : there is now a live refresh
+  * Bug: No more exception when quitting the application
 
 2007-06-30
-  Release 0.4
-  Asynchronous Image Loading : better UI response
-  User cache to reduce twitter API calls
-  Setup with py2exe support
+  * Release 0.4
+  * Asynchronous Image Loading : better UI response
+  * User cache to reduce twitter API calls
+  * Setup with py2exe support
   
 2007-06-22
-  Release 0.3
-  Edit parameters/  Save in XML Files
-  clickable profile and user URLs, Names and Images
-  Improved UI
-  MultiLine Message display and Improved Word Wrap
-  Better path management (Unix path compatible)
-  icons on button
-  balloons suport (Hints)
-  Bug corrected in UserTimeLine Display : error 404
+  * Release 0.3
+  * Edit parameters/  Save in XML Files
+  * clickable profile and user URLs, Names and Images
+  * Improved UI
+  * MultiLine Message display and Improved Word Wrap
+  * Better path management (Unix path compatible)
+  * icons on button
+  * balloons suport (Hints)
+  * Bug corrected in UserTimeLine Display : error 404
 
 2007-06-18
-  Release 0.2
-  Add Timeline chooser
+  * Release 0.2
+  * Add Timeline chooser
 
 2007-06-16
-  Release 0.1
-  Initial svn checkin of pwytter
+  * Release 0.1
+  * Initial svn checkin of pwytter
+
 
