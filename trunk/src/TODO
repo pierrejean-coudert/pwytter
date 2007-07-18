@@ -1,4 +1,5 @@
 # Release 0.6
+#TODO: Direct messages
 #TODO: show parameter dialog if no XML file
 #TODO: Reduce friend image size / limit number of displayed friends
 #TODO: Followers
@@ -8,13 +9,17 @@
 #TODO: download only the required number of messages
 #TODO: Masked password
 #TODO: Better edit line handling : car count, erase "enter your message here"
+#TODO: tkBalloon on Mac OS X: Should be displayed on top.
+#TODO: change cursor when getting timeline
 
 
 # Release 0.7
 #TODO: Design an Icon
-#TODO: Direct messages
 #TODO: Replies
+#TODO: UTF-8 message support
+#TODO: I18N
 #TODO: Notifications, Mac Growl integration ( http://growl.info/documentation/developer/python-support.php, http://aaronland.info/python/twitter/twnotifier/, ...
+#TODO: onTop user information dialog : name, links, directmessage, add as friend, ...
 
 # Later
 #TODO: multiple accounts as in http://funkatron.com/index.php/site/spaz_a_twitter_client_for_mac_os_x_windows_and_linux/

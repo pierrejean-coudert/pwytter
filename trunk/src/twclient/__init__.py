@@ -97,9 +97,12 @@ class TwClient(object):
                                "user_url" : user_url
                               })
                     
-    def sendText(self,atext):
-        self._statuses = self.api.PostUpdate(atext)
+    def sendText(self,aText):
+        self._statuses = self.api.PostUpdate(aText)
         
+    def sendDirectMessage(self, aUser, aText):
+        return self.api.PostDirectMessage(aUser, aText)
+
     def getFriends(self):
         self._friends = self.api.GetFriends()
         self.Friends=[]
