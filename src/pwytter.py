@@ -69,7 +69,6 @@ class PwytterParams(object):
                     self.values[val]=''
         except:
             self._resetDefaults()
-        print self.values
     
     def writeToXML(self):
         impl = dom.getDOMImplementation()
@@ -85,7 +84,6 @@ class PwytterParams(object):
         f.write(self._paramDoc.toprettyxml())
         f.close()
     
-    
 class MainPanel(Frame):
     """ Main tk Frame """
     def __init__(self, master=None):
@@ -97,13 +95,13 @@ class MainPanel(Frame):
         self._params = PwytterParams()
         self._params.readFromXML()
         
-        print self._params.values
-        
-        self.tw=twclient.TwClient(__version__, self._params['user'], self._params['password'])
+        self.tw=twclient.TwClient(__version__, self._params['user'], self._params['password'])       
         self._applyParameters()
-        
+
         self.twitText = StringVar()
         self.twitText.set('Enter your message here...')
+        self.directText = StringVar()
+        self.directText.set('Enter your direct message here...')
         self.userVar = StringVar()
         self.passwordVar = StringVar()
         self.refreshVar = IntVar()
@@ -116,6 +114,7 @@ class MainPanel(Frame):
                 'fontMsg':('arial',8,'bold'),
                 'widthMsg':58,
                 'widthTwit':69,
+                'widthDirectMsg':66,
                 'friendcolumn':4
                 }
         elif os.name=='mac':
@@ -124,6 +123,7 @@ class MainPanel(Frame):
                 'fontMsg':('arial',11,'bold'),
                 'widthMsg':61,
                 'widthTwit':61,
+                'widthDirectMsg':60,
                 'friendcolumn':4
                 }
         else:
@@ -132,6 +132,7 @@ class MainPanel(Frame):
                 'fontMsg':('arial',11,'bold'),
                 'widthMsg':61,
                 'widthTwit':61,
+                'widthDirectMsg':60,
                 'friendcolumn':4
                 }
         self._bg="#1F242A"
@@ -182,8 +183,8 @@ class MainPanel(Frame):
 
     def _refreshMe(self):
         print "refresh Me"
-        self._refreshFriends()
         try:
+            self._imagesFriendsLoaded = False
             self._needToRefreshMe = not self.tw.getMyDetails()
             self.MyImageRef.paste(self.tw.myimage, (0,0,48,18))
             self.MyName["text"] = self.tw.me.screen_name.encode('latin-1')
@@ -295,7 +296,9 @@ class MainPanel(Frame):
         
         aLine['IconBox']  = Frame(aLine['Box'], bg=linecolor)
         aLine['Direct']   = self._createClickableImage(aLine['IconBox'], \
-                                        "arrow_right.png", self.manualRefresh, linecolor,"drct"+str(i))
+                                        "arrow_right.png", self._showDirectMessage, linecolor,"drct"+str(i),'Direct Message...')
+        aLine['DirectInvalid']   = self._createClickableImage(aLine['IconBox'], \
+                                        "arrow_nb.png", None, linecolor,"drci"+str(i))
         aLine['Favorite'] = self._createClickableImage(aLine['IconBox'], \
                                         "asterisk_nb.png", self.manualRefresh, linecolor,"favo"+str(i))
         aLine['FavoriteHint']= tkBalloon.Balloon(aLine['Favorite'],"Favorite")
@@ -303,30 +306,43 @@ class MainPanel(Frame):
                                         "world_go.png", self._userUrlClick, linecolor,"uurl"+str(i))
         aLine['UserUrlHint']=  tkBalloon.Balloon(aLine['UserUrl'])
         aLine['UserUrlInvalid']= self._createClickableImage(aLine['IconBox'], \
-                                        "world_nb.png", None, linecolor,"iurl"+str(i))
-        
+                                        "world_nb.png", None, linecolor,"iurl"+str(i))        
         aLine['Msg']      = Label(aLine['Box'],text="...",bg=linecolor, name=str(i),\
                                   font=self._display['fontMsg'], fg="#99CBFE",\
                                   width=self._display['widthMsg'])
         aLine['MsgHint']=  tkBalloon.Balloon(aLine['Msg'])
-            
+        directColor = "#686C6F"
+        aLine['DirectBox']      = Frame(aLine['Box'], bg=directColor, padx=3, pady=2)
+        aLine['DirectBoxEmpty'] = Frame(aLine['Box'], bg=linecolor)
+        aLine['DirectCancel']   = self._createClickableImage(aLine['DirectBox'], \
+                                        "cross.png", self._hideDirectMessage, directColor,"dcan"+str(i),'Cancel')
+        aLine['DirectEdit']     =   Entry(aLine['DirectBox'], width=self._display['widthDirectMsg'],\
+                              textvariable=self.directText, validate="key", \
+                              bg=self._bg, fg="white", bd=0, name="dedi"+str(i))
+        aLine['DirectSend'] = self._createClickableImage(aLine['DirectBox'], \
+                                        "comment.png", self._sendDirectMessage, directColor,"dsen"+str(i),'Send')
+        aLine['DirectCancel'].grid(row=0,column=0, sticky='W',padx=1)
+        aLine['DirectEdit'].grid(row=0,column=1, padx=1)
+        aLine['DirectSend'].grid(row=0,column=2, sticky='E',padx=1)
+
         aLine['Image'].bind('<1>', self._nameClick)
-        aLine['Image'].grid(row=0,column=0,rowspan=2, sticky='NW',padx=1,pady=2)
-        
+        aLine['Image'].grid(row=0,column=0,rowspan=2, sticky='NW',padx=1,pady=2)        
         aLine['NameBox'].grid(row=0,column=1, sticky='W') 
         aLine['Name'].bind('<1>', self._nameClick)
         aLine['Name'].grid(row=0,column=0, sticky='W',padx=1)
         aLine['Time'].grid(row=0,column=1, sticky='W') 
-
         aLine['IconBox'].grid(row=0,column=2, sticky='E') 
-        aLine['Direct'].grid(row=0,column=0, rowspan=1, sticky='W')
+        aLine['Direct'].grid_forget()
+        aLine['DirectInvalid'].grid(row=0,column=0, rowspan=1, sticky='W')
         aLine['Favorite'].grid(row=0,column=1, rowspan=1, sticky='E')
         aLine['UserUrl'].grid(row=0,column=2, sticky='E')
         aLine['UserUrl'].grid_forget()           
         aLine['UserUrlInvalid'].grid(row=0,column=2, sticky='E')
-
         aLine['Msg'].grid(row=1,column=1,columnspan=2,rowspan=1, sticky='W',padx=1)
         aLine['Box'].grid(row=i,sticky=W,padx=0, pady=2, ipadx=1, ipady=1)
+        aLine['DirectBox'].grid_forget()
+        #aLine['DirectBox'].grid(row=2,column=0,columnspan=3,rowspan=1, sticky='W',padx=1)
+        aLine['DirectBoxEmpty'].grid(row=2,column=0,columnspan=3,rowspan=1, sticky='W',padx=1)
         return aLine
  
     def _displaylines(self, par=None):
@@ -345,6 +361,12 @@ class MainPanel(Frame):
             self.Lines[i]['ImageHint'].settext("http://twitter.com/"+name)
             self.Lines[i]['NameHint'].settext("http://twitter.com/"+name)
             self.Lines[i]['Time']["text"]= self.tw.texts[i]["time"]
+            if name==self.MyName["text"]:
+                self.Lines[i]['Direct'].grid_forget()
+                self.Lines[i]['DirectInvalid'].grid(row=0,column=0, rowspan=1, sticky='W')
+            else:
+                self.Lines[i]['DirectInvalid'].grid_forget()
+                self.Lines[i]['Direct'].grid(row=0,column=0, rowspan=1, sticky='W')
             initText=self.tw.texts[i]["msg"].decode('latin-1','replace')
             self.Lines[i]['Msg']["text"]=textwrap.fill(initText, 70, break_long_words=True)
             urlstart = initText.find("http://")
@@ -399,26 +421,33 @@ class MainPanel(Frame):
             self._createFriendImage(self.friendsInsideBox,i)
     
     def _refreshFriends(self):
-        self.tw.getFriends()
-        self.tw.getFollowers()
-        i=0
-        self._imagesFriendsLoaded = True
-        for fname in self.tw.Friends:
-            if i+1>len(self.FriendImages) :
-                self._createFriendImage(self.friendsInsideBox,i)
-            loaded, aImage= self.tw.imageFromCache(fname)
-            self._imagesFriendsLoaded = self._imagesFriendsLoaded and loaded     
-            try :   
-                self.FriendImages[i]['ImageRef'].paste(aImage, (0,0,20,20))
-            except:
-                print "error pasting friends images:",fname
-            self.FriendImages[i]['ImageHint'].settext("http://twitter.com/"+fname)
-            self.FriendImages[i]['Image'].bind('<1>', self._friendClick)
-            c=self._display['friendcolumn']
-            self.FriendImages[i]['Image'].grid(row=1+int(i/c), column=i-(int(i/c)*c), padx=1, pady=1)
-            i=i+1
-        for i in range(i,len(self.FriendImages)):
-            self.FriendImages[i]['Image'].grid_forget()
+        try:
+            self.tw.getFriends()
+            i=0
+            self._imagesFriendsLoaded = True
+            for fname in self.tw.Friends:
+                if i+1>len(self.FriendImages) :
+                    self._createFriendImage(self.friendsInsideBox,i)
+                loaded, aImage= self.tw.imageFromCache(fname)
+                self._imagesFriendsLoaded = self._imagesFriendsLoaded and loaded     
+                try :   
+                    self.FriendImages[i]['ImageRef'].paste(aImage, (0,0,20,20))
+                except:
+                    print "error pasting friends images:",fname
+                self.FriendImages[i]['ImageHint'].settext("http://twitter.com/"+fname)
+                self.FriendImages[i]['Image'].bind('<1>', self._friendClick)
+                c=self._display['friendcolumn']
+                self.FriendImages[i]['Image'].grid(row=1+int(i/c), column=i-(int(i/c)*c), padx=1, pady=1)
+                i=i+1
+            for i in range(i,len(self.FriendImages)):
+                self.FriendImages[i]['Image'].grid_forget()
+        except Exception,e :
+            print str(e),"-> Can't get friends"
+            
+        try:
+            self.tw.getFollowers()
+        except Exception,e :
+            print str(e),"-> Can't get followers"
 
     def _showFriends(self,par=None):
         self.friendsEmptyBox.pack_forget()
@@ -431,6 +460,24 @@ class MainPanel(Frame):
         self.friendsEmptyBox.pack()
         self.HideFriends.grid_forget()
         self.ShowFriends.grid(row=0,column=1, sticky="E")
+
+    def _showDirectMessage(self,par=None):
+        lineIndex= int(par.widget.winfo_name()[4:])
+        self.Lines[lineIndex]['DirectBoxEmpty'].grid_forget()
+        self.Lines[lineIndex]['DirectBox'].grid(row=2,column=0,columnspan=3,rowspan=1, sticky='W',padx=1)
+
+    def _hideDirectMessage(self,par=None):
+        lineIndex= int(par.widget.winfo_name()[4:])
+        self.Lines[lineIndex]['DirectBox'].grid_forget()
+        self.Lines[lineIndex]['DirectBoxEmpty'].grid(row=2,column=0,columnspan=3,rowspan=1, sticky='W',padx=1)
+        
+    def _sendDirectMessage(self,par=None):
+        lineIndex= int(par.widget.winfo_name()[4:])
+        try:
+            print self.tw.sendDirectMessage(self.tw.texts[lineIndex]["name"], self.directText.get())
+        except Exception,e :
+            print str(e),'-> error sending direct msg:',self.directText.get(),'to',self.tw.texts[lineIndex]["name"]
+        self._hideDirectMessage(par)
 
     def _createWidgets(self):      
         self.MainZone = Frame(self, bg=self._bg)
@@ -473,7 +520,7 @@ class MainPanel(Frame):
 
         self.FriendZone = Frame(self, bg=self._bg)
         self._createFriendZone(self.FriendZone)
-        self.FriendZone.grid(row=0,column=1,sticky=E)
+        self.FriendZone.grid(row=0,column=1,sticky=NE)
         self._hideFriends()
            
     def _userClick(self,par=None):
@@ -531,16 +578,19 @@ class MainPanel(Frame):
 #            pass
 
     def timer(self):
-        if time.time()-self._refreshTime >= self._refreshRate :
-            self._refreshTwitZone()
-            self._refreshTime = time.time()
-        if self._needToRefreshMe:
-            self._refreshMe()
-        if not self._imagesLoaded :
-            self._displaylines()
-        if not self._imagesFriendsLoaded :
-            self._refreshFriends()
-        self.after(1000, self.timer)
+        try:
+            if time.time()-self._refreshTime >= self._refreshRate :
+                self._refreshTwitZone()
+                self._refreshTime = time.time()
+            if not self._imagesLoaded :
+                self._displaylines()
+            if self._needToRefreshMe:
+                self._refreshMe()
+                self._displaylines()
+            if not self._imagesFriendsLoaded :
+                self._refreshFriends()
+        finally:
+            self.after(1000, self.timer)
 
     def sendTwit(self,par=None):
         self.tw.sendText(self.twitText.get())
