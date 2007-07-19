@@ -1,0 +1,4 @@
+recursive-include media *.png
+recursive-include twclient\doc *.html
+include *.txt
+include . TODO
