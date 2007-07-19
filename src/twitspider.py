@@ -8,7 +8,7 @@ import threading
 class Spider(object):
     def __init__(self):
         print "Twitter User spider"
-        self.tw=twclient.TwClient('0.5', 'pwytter', 'pwytter123')       
+        self.tw=twclient.TwClient('0.5', 'pwytter', 'pwytter123')
         
     def ConnectToDB(self):       
         self.con = sqlite.connect("users.sql")
@@ -42,8 +42,8 @@ class Spider(object):
             print '+ Adding',aName
             self.cur.execute('INSERT INTO user (name, spiderdate) VALUES (:who,:when)',{"who":aName, "when":datetime.datetime.min})
             self.con.commit()
-        else:
-            print '- Already in:',aName
+#        else:
+#            print '- Already in:',aName
     
     def SelectNextUserToSpid(self):
         self.cur.execute("SELECT name FROM user WHERE spiderdate=:when LIMIT 1",{"when":self.minScanDate})
@@ -55,8 +55,8 @@ class Spider(object):
         return aUser
     
     def AddFriends(self):
-        friendNames=['pwytter']
-        friends=None
+        friendNames = ['pwytter']
+        friends = None
         while not friends:
             try:
                 friends=self.tw.api.GetFriends()
@@ -70,20 +70,28 @@ class Spider(object):
         for aUser in Users:
             aName= aUser[0]
             if aName not in friendNames:
-                print "**** Add friend:",aName
-                self.tw.api.CreateFriendship(aName)
-                time.sleep(60)
+                try :
+                    self.tw.api.CreateFriendship(aName)
+                    print "**** Add friend:",aName
+                    time.sleep(60)
+                except Exception,e:
+                    print str(e)
 
     def ScanUserFriends(self, aName):
-            try:        
-                friends=self.tw.api.GetFriends(aName)
+            friends = None
+            retry = 0
+            while not friends and retry<5:
+                try:        
+                    friends=self.tw.api.GetFriends(aName)
+                except Exception,e:
+                    print str(e)
+                retry += 1
+            if friends:
                 for f in friends:
                     friendName= f.screen_name.encode('latin-1','replace')
                     self.AddUser(friendName)
-                self.cur.execute('UPDATE user SET spiderdate=:when WHERE name=:who',{"who":aName, "when":datetime.datetime.now()})
-                self.con.commit()
-            except Exception,e:
-                print str(e)
+            self.cur.execute('UPDATE user SET spiderdate=:when WHERE name=:who',{"who":aName, "when":datetime.datetime.now()})
+            self.con.commit()
         
     def LoadUsers(self):
         self.AddUser("pwytter")
@@ -107,5 +115,5 @@ if __name__ == "__main__":
     t = threading.Thread(None,sp.AddFriends)
     t.setDaemon(True)
     t.start() 
-#    while True: pass
+
     sp.LoadUsers()

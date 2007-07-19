@@ -15,10 +15,10 @@
 
 import sys
 from os.path import dirname, join, abspath
-sys.path.append(join(abspath(dirname(__file__)), 'twclient'))  
+sys.path.append(join(abspath(dirname(sys.path[0])), 'twclient'))  
         
 __author__ = 'Pierre-Jean Coudert <coudert@free.fr>'
-__version__ = '0.5'
+__version__ = '0.5.1'
 
 from Tkinter import *
 import tkBalloon
@@ -115,7 +115,7 @@ class MainPanel(Frame):
                 'widthMsg':58,
                 'widthTwit':69,
                 'widthDirectMsg':66,
-                'friendcolumn':4
+                'friendcolumn':6
                 }
         elif os.name=='mac':
             self._display={
@@ -124,7 +124,7 @@ class MainPanel(Frame):
                 'widthMsg':61,
                 'widthTwit':61,
                 'widthDirectMsg':60,
-                'friendcolumn':4
+                'friendcolumn':6
                 }
         else:
             self._display={
@@ -133,7 +133,7 @@ class MainPanel(Frame):
                 'widthMsg':61,
                 'widthTwit':61,
                 'widthDirectMsg':60,
-                'friendcolumn':4
+                'friendcolumn':6
                 }
         self._bg="#1F242A"
         self['bg']=self._bg
