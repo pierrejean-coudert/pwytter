@@ -1,5 +1,11 @@
 2007-07-
   * Release 0.6
+  * Send direct message
+  
+2007-07-19
+  * Release 0.5.1
+  * Bug corrected in setup.py for Win32 release
+  * new file MANIFEST.in for source distribution
 
 2007-07-14
   * Release 0.5
