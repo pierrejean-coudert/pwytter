@@ -1,23 +1,25 @@
 # Release 0.6
-#TODO: Setup.py: must be ok on linux
-#TODO: Direct messages
-#TODO: show parameter dialog if no XML file
-#TODO: Reduce friend image size / limit number of displayed friends
 #TODO: Followers
-#TODO: Autoreconnect if bad connection
 #TODO: Mac version: py2app
-#TODO: reference pwytter in python cheesecake
-#TODO: Masked password
 #TODO: Better edit line handling : car count, erase "enter your message here"
 #TODO: tkBalloon on Mac OS X: Should be displayed on top.
-#TODO: change cursor when getting timeline
+#TODO: Setup.py: must be ok on linux
+#TODO: Reduce friend image size / limit number of displayed friends
+#TODO: Autoreconnect if bad connection
+#TODO: make a python-twitter patch : 'source':'pwytter' in PostUpdate
+#TODO: reference pwytter in python cheesecake
 
 #DONE: Link to pwytter.com
 #DONE: in parameter dialog : add a link to create a twitter account https://twitter.com/signup
-#TODO: Update detect
+#DONE: in parameter dialog : Masked password
+#DONE: Update detect
+#DONE: show parameter dialog if no XML file
+#DONE: Send Direct messages
+#DONE: busy cursor when getting timeline and sending messages
 
 
 # Release 0.7
+#TODO: Show Direct messages
 #TODO: download only the required number of messages
 #TODO: Themable user interface
 #TODO: loading splashcreen, and do not hide pwytter under other windows by default
@@ -28,6 +30,7 @@
 #TODO: Notifications, Mac Growl integration ( http://growl.info/documentation/developer/python-support.php, http://aaronland.info/python/twitter/twnotifier/, ...
 #TODO: onTop user information dialog : name, links, directmessage, add as friend, ...
 #TODO: handle a cache in the filesystem for quick startup
+#TODO: detect replies in messages (@xxx) in provide a link
 
 # Later
 #TODO: multiple accounts as in http://funkatron.com/index.php/site/spaz_a_twitter_client_for_mac_os_x_windows_and_linux/
