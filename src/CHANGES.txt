@@ -1,6 +1,13 @@
-2007-07-
+2007-07-23
   * Release 0.6
   * Send direct message
+  * Display Followers
+  * Update autodetect : New pwytter release 
+  * Show parameter dialog on first launch
+  * Added a link to create a twitter account https://twitter.com/signup in parameter dialog
+  * The password is masked now in parameter dialog
+  * display a busy cursor when getting timeline and sending message
+  * Add a Link to pwytter.com
   
 2007-07-19
   * Release 0.5.1

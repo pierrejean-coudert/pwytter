@@ -1,4 +1,4 @@
-# Release 0.6
+# Release 0.7
 #TODO: Mac version: py2app
 #TODO: Better edit line handling : car count, erase "enter your message here"
 #TODO: tkBalloon on Mac OS X: Should be displayed on top.
@@ -8,17 +8,7 @@
 #TODO: make a python-twitter patch : 'source':'pwytter' in PostUpdate
 #TODO: reference pwytter in python cheesecake
 
-#DONE: Link to pwytter.com
-#DONE: in parameter dialog : add a link to create a twitter account https://twitter.com/signup
-#DONE: in parameter dialog : Masked password
-#DONE: Update : New pwytter release autodetect
-#DONE: show parameter dialog if no XML file
-#DONE: Send Direct messages
-#DONE: busy cursor when getting timeline and sending messages
-#DONE: Followers
-
-
-# Release 0.7
+# Release 0.8
 #TODO: Show Direct messages
 #TODO: download only the required number of messages
 #TODO: Themable user interface
