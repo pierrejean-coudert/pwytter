@@ -15,10 +15,13 @@
 
 import sys
 from os.path import dirname, join, abspath
-sys.path.append(join(abspath(dirname(sys.path[0])), 'twclient'))  
+try:
+    sys.path.append(join(abspath(dirname(__file__)), 'twclient'))  
+except:
+    sys.path.append(join(abspath(dirname(sys.path[0])), 'twclient'))  
         
 __author__ = 'Pierre-Jean Coudert <coudert@free.fr>'
-__version__ = '0.5.1'
+__version__ = '0.6'
 
 from Tkinter import *
 import tkBalloon
@@ -108,38 +111,43 @@ class MainPanel(Frame):
         self.linesVar = IntVar()
         
         Frame.__init__(self, master)
-        if os.name=='nt':
-            self._display={
-                'fontName':('arial',8,'bold'),
-                'fontMsg':('arial',8,'bold'),
-                'widthMsg':58,
-                'widthTwit':69,
-                'widthDirectMsg':66,
-                'friendcolumn':6
-                }
-        elif os.name=='mac':
-            self._display={
-                'fontName':('arial',11,'bold'),
-                'fontMsg':('arial',11,'bold'),
+        self._display={
+            'fontName':('Helvetica',8,'bold'),
+            'fontMsg':('Helvetica',8,'bold'),
+            'fontLink':('Helvetica',9,'underline'),
+            'widthMsg':58,
+            'widthTwit':69,
+            'widthDirectMsg':66,
+            'friendcolumn':6,
+            'bg#'      : "#1F242A",
+            '1stLine#' : "#1F242A",
+            'line#'    : "#1F242A",
+            'param#'   : "#585C5F",
+            'update#'  : "#FFBBBB"
+            }
+        if os.name=='mac':
+            self._display.update({
+                'fontName':('Helvetica',11,'bold'),
+                'fontMsg':('Helvetica',11,'bold'),
                 'widthMsg':61,
                 'widthTwit':61,
-                'widthDirectMsg':60,
-                'friendcolumn':6
-                }
-        else:
-            self._display={
-                'fontName':('arial',11,'bold'),
-                'fontMsg':('arial',11,'bold'),
+                'widthDirectMsg':60
+                })
+        if os.name=='posix':
+            self._display.update({
+                'fontName':('Helvetica',11,'bold'),
+                'fontMsg':('Helvetica',11,'bold'),
                 'widthMsg':61,
                 'widthTwit':61,
-                'widthDirectMsg':60,
-                'friendcolumn':6
-                }
-        self._bg="#1F242A"
+                'widthDirectMsg':60
+                })
+        self._bg=self._display['bg#']
         self['bg']=self._bg
         self.pack(ipadx=2, ipady=2)
         self._createWidgets()
         self._refreshMe()
+        if not self.tw.VersionOK:
+            self._showUpdate()
         self._refreshTime = 0
 
     def _applyParameters(self):
@@ -207,6 +215,8 @@ class MainPanel(Frame):
 
     def _createRefreshBox(self, parent):
         self.refreshBox = Frame(parent, width=500, bg=self._bg)
+        self.PwytterLink = self._createClickableImage(self.refreshBox, "home.png", 
+                                        self._homeclick,self._bg, "pwyt0","Pwytter web site...")
         self.ShowFriends = self._createClickableImage(self.refreshBox, "side_expand.png", 
                                         self._showFriends,self._bg, "frie0","Show friends")
         self.HideFriends = self._createClickableImage(self.refreshBox, "side_contract.png", 
@@ -218,16 +228,39 @@ class MainPanel(Frame):
         self.TimeLine.bind('<1>', self._timeLineClick)
         self.Refresh = self._createClickableImage(self.refreshBox, "arrow_refresh.png", 
                                         self.manualRefresh,self._bg, "refr0","Refresh")
+        self.PwytterLink.grid(row=0,column=0, sticky="W")
         self.ShowFriends.grid(row=0,column=1, sticky="E")
         self.Time.grid(row=1,column=0,columnspan=2)
         self.TimeLine.grid(row=2,column=0, sticky="W")
         self.Refresh.grid(row=2,column=1, sticky="E")
                 
+    def _createUpdateBox(self, aParent):
+        update_bg=self._display['update#']
+        self.UpdateEmptyBox = Frame(aParent, bg=self._bg)
+        self.UpdateInsideBox = Frame(aParent, width=500, bg=update_bg)
+        self.UpdateCancel = self._createClickableImage(self.UpdateInsideBox, "cross.png", 
+                                        self._hideUpdate, update_bg, "upca0","Cancel")
+        self.UpdateLbl=Label(self.UpdateInsideBox, text="A new Pwytter release is available. You should upgrade now !", 
+                             bg=update_bg, font=self._display['fontLink'], cursor="hand2")
+        self.UpdateLbl.bind('<1>', self._updateClick)
+        self.UpdateGo = self._createClickableImage(self.UpdateInsideBox, "page_go.png", 
+                                        self._updateClick, update_bg, "upgo0","Update now...")
+
+        self.UpdateCancel.grid(row=0,column=0,padx=5,pady=5,sticky=W)
+        self.UpdateLbl.grid(row=0,column=1,padx=5,pady=5,sticky=W)
+        self.UpdateGo.grid(row=0,column=2,padx=5,pady=5,sticky=W)
+
     def _createParameterBox(self, aParent):
-        param_bg="#585C5F"
+        param_bg=self._display['param#']        
         self.ParamEmpyBox = Frame(aParent, bg=self._bg)
         self.ParamInsideBox = Frame(aParent, width=500, bg=param_bg)
         
+        self.ParamCancel = self._createClickableImage(self.ParamInsideBox, \
+                                        "cross.png", self._hideParameters, 
+                                        param_bg,"parcancel",'Cancel')
+        self.CreateAccountLbl=Label(self.ParamInsideBox, text="Click here to create a Free Twitter Account...", 
+                                    bg=param_bg, font=self._display['fontLink'],
+                                    cursor="hand2", fg="white"  )
         self.UserLbl=Label(self.ParamInsideBox, text="User", bg=param_bg)
         self.UserEntry = Entry(self.ParamInsideBox,textvariable=self.userVar)
         self.PasswordLbl=Label(self.ParamInsideBox, text="Password", bg=param_bg)
@@ -237,19 +270,20 @@ class MainPanel(Frame):
         self.LinesLbl=Label(self.ParamInsideBox, text="Lines", bg=param_bg)
         self.LinesEntry = Entry(self.ParamInsideBox, textvariable=self.linesVar)
         self.BtnBox=Frame(self.ParamInsideBox, bg=param_bg)
-        self.CancelBtn=Button(self.BtnBox, text="Cancel",command=self._hideParameters)
         self.ApplyBtn=Button(self.BtnBox, text="Apply",command=self._saveParameters)
         
-        self.UserLbl.grid(row=0,column=0,padx=5,pady=5,sticky=W)
-        self.UserEntry.grid(row=0, column=1,padx=5,pady=5)
-        self.PasswordLbl.grid(row=0,column=2,padx=5,pady=5,sticky=W)
-        self.PasswordEntry.grid(row=0, column=3,padx=5,pady=5)
-        self.RefreshLbl.grid(row=1,column=0,padx=5,pady=5,sticky=W)
-        self.refreshEntry.grid(row=1, column=1,padx=5,pady=5)
-        self.LinesLbl.grid(row=1,column=2,padx=5,pady=5,sticky=W)
-        self.LinesEntry.grid(row=1, column=3,padx=5,pady=5)
-        self.BtnBox.grid(row=2, column=0, columnspan=4, sticky=EW)
-        self.CancelBtn.pack(padx=5,pady=5,side="right")
+        self.ParamCancel.grid(row=0,column=0,padx=5,pady=5,sticky=NE)
+        self.CreateAccountLbl.bind('<1>', self._createAccountClick)
+        self.CreateAccountLbl.grid(row=0,column=1, columnspan=4,padx=5,pady=5)
+        self.UserLbl.grid(row=1,column=1,padx=5,pady=5,sticky=W)
+        self.UserEntry.grid(row=1, column=2,padx=5,pady=5)
+        self.PasswordLbl.grid(row=1,column=3,padx=5,pady=5,sticky=W)
+        self.PasswordEntry.grid(row=1, column=4,padx=5,pady=5)
+        self.RefreshLbl.grid(row=2,column=1,padx=5,pady=5,sticky=W)
+        self.refreshEntry.grid(row=2, column=2,padx=5,pady=5)
+        self.LinesLbl.grid(row=2,column=3,padx=5,pady=5,sticky=W)
+        self.LinesEntry.grid(row=2, column=4,padx=5,pady=5)
+        self.BtnBox.grid(row=3, column=4, columnspan=4, sticky=EW)
         self.ApplyBtn.pack(padx=5,pady=5,side="right")
        
     def _showParameters(self,par=None):
@@ -461,6 +495,14 @@ class MainPanel(Frame):
         self.HideFriends.grid_forget()
         self.ShowFriends.grid(row=0,column=1, sticky="E")
 
+    def _showUpdate(self,par=None):
+        self.UpdateEmptyBox.grid_forget()
+        self.UpdateInsideBox.grid(row=0,column=0)
+
+    def _hideUpdate(self,par=None):
+        self.UpdateInsideBox.grid_forget()
+        self.UpdateEmptyBox.grid(row=0,column=0)
+
     def _showDirectMessage(self,par=None):
         lineIndex= int(par.widget.winfo_name()[4:])
         self.Lines[lineIndex]['DirectBoxEmpty'].grid_forget()
@@ -516,49 +558,52 @@ class MainPanel(Frame):
         self.editBox.pack()      
         self.EditParentBox.grid(row=4,column=0,columnspan=2, pady=2)
         
-        self.MainZone.grid(column=0,sticky=W)
+        self.UpdateZone = Frame(self, bg=self._bg)
+        self._createUpdateBox(self.UpdateZone)
 
         self.FriendZone = Frame(self, bg=self._bg)
         self._createFriendZone(self.FriendZone)
-        self.FriendZone.grid(row=0,column=1,sticky=NE)
+
+        self.UpdateZone.grid(row=0,column=0)
+        self.MainZone.grid(row=1,column=0,sticky=W)
+        self.FriendZone.grid(row=1,column=1,sticky=NE)
+
         self._hideFriends()
            
-    def _userClick(self,par=None):
-        try :
-            webbrowser.open(self.tw.me.url.encode('latin-1'))
-        except Exception,e :
-            print str(e),'-> Cannot open Browser with url:',self.tw.me.url.encode('latin-1')
-
-    def _urlClick(self,par=None):
-        lineIndex= int(par.widget.winfo_name())
-        try :
-            webbrowser.open(self.tw.texts[lineIndex]["url"])
-        except Exception,e :
-            print str(e),'-> Cannot open Browser with url:',self.tw.texts[lineIndex]["url"]
-
-    def _nameClick(self,par=None):
-        lineIndex= int(par.widget.winfo_name()[4:])
-        try :
-            webbrowser.open("http://twitter.com/"+self.tw.texts[lineIndex]["name"])
-        except Exception,e :
-            print str(e),'-> Cannot open Browser with url:',"http://twitter.com/"+self.tw.texts[lineIndex]["name"]
-            
-    def _friendClick(self,par=None):
-        friendIndex= int(par.widget.winfo_name()[4:])
-        url=self.FriendImages[friendIndex]['ImageHint'].gettext()
+    def _openweb(self,url):
         try :
             webbrowser.open(url)
         except Exception,e :
             print str(e),'-> Cannot open Browser with url:',url
 
+    def _homeclick(self,par=None):
+        self._openweb('http://www.pwytter.com')
+
+    def _userClick(self,par=None):
+        self._openweb(self.tw.me.url.encode('latin-1'))
+
+    def _createAccountClick(self,par=None):
+        self._openweb('https://twitter.com/signup')
+        
+    def _updateClick(self,par=None):
+        self._openweb('http://www.pwytter.com/download')
+        
+    def _urlClick(self,par=None):
+        lineIndex= int(par.widget.winfo_name())
+        self._openweb(self.tw.texts[lineIndex]["url"])
+
+    def _nameClick(self,par=None):
+        lineIndex= int(par.widget.winfo_name()[4:])
+        self._openweb("http://twitter.com/"+self.tw.texts[lineIndex]["name"])
+            
+    def _friendClick(self,par=None):
+        friendIndex= int(par.widget.winfo_name()[4:])
+        self._openweb(self.FriendImages[friendIndex]['ImageHint'].gettext())
+
     def _userUrlClick(self,par=None):
         lineIndex= int(par.widget.winfo_name()[4:])
         userurl = self.tw.texts[lineIndex]["user_url"]
-        if userurl != "":
-            try :
-                webbrowser.open(userurl)
-            except Exception,e :
-                print str(e),'-> Cannot open Browser with url:',userurl
+        if userurl != "": self._openweb(userurl)
 
     def _timeLineClick(self,par=None):
         self.tw.nextTimeLine()
@@ -612,7 +657,7 @@ if __name__ == "__main__":
     print time.tzname
 
     rootTk = Tk()
-    rootTk.title('Pwytter')
+    rootTk.title('Pwytter %s' % (__version__))
     if os.name == 'nt':
         rootTk.iconbitmap('pwytter.ico') 
     app = MainPanel(master=rootTk)

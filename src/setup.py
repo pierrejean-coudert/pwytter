@@ -12,7 +12,9 @@
 #   GNU General Public License for more details.
 
 from distutils.core import setup
-import py2exe
+import os
+if os.name=='nt':
+    import py2exe
 import glob
 #PIL specific
 #import Image

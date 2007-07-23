@@ -29,7 +29,7 @@ class TwClient(object):
         self.user, self.password = aUser, aPassword      
         self.api = twitter.Api(self.user,self.password)
         self.api.SetCache(None)
-        self.api.SetXTwitterHeader('Pwytter', 'http://www.pwytter.com/files/meta.xml', aVersion)       
+        self.api.SetXTwitterHeader('pwytter', 'http://www.pwytter.com/files/meta.xml', aVersion)       
 
         self._imageLoading = Image.open(os.path.join("media",'loading.png'))
         self._imageLoading.thumbnail((32,32),Image.ANTIALIAS)
@@ -49,7 +49,19 @@ class TwClient(object):
         
         self._timeLines=("Public","User","Friends")
         self._currentTimeLine = 1
-
+        
+        self.VersionOK = self._checkversion(aVersion)
+        
+    def _checkversion(self, aVersion):
+        versionURL="http://www.pwytter.com/files/PWYTTER-VERSION.txt"
+        try:
+            lastVersion= urllib2.urlopen(versionURL).read()
+            print 'lastVersion',lastVersion
+        except Exception,e:
+            print "Unable to check Pwytter Version:",str(e)
+            lastVersion = aVersion
+        return lastVersion == aVersion
+        
     def login(self, aUser, aPassword):
         self.user, self.password = aUser, aPassword     
         self.api.SetCredentials(self.user, self.password)

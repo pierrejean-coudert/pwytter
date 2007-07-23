@@ -1,3 +1,8 @@
+import sys
+from os.path import dirname, join, abspath
+print abspath(dirname(sys.path[0]))
+sys.path.append(join(abspath(dirname(sys.path[0])),'src', 'twclient'))  
+    
 import time
 import csv
 import twclient
@@ -18,6 +23,8 @@ class Spider(object):
             self.con.execute("CREATE TABLE user(name VARCHAR(30) PRIMARY KEY, spiderdate TIMESTAMP)")
         except:
             pass
+        self.cur.execute("DELETE FROM user WHERE name=:who",{"who":u''})
+
         self.InitMinScanDate()
         
     def InitMinScanDate(self):
@@ -46,15 +53,19 @@ class Spider(object):
 #            print '- Already in:',aName
     
     def SelectNextUserToSpid(self):
-        self.cur.execute("SELECT name FROM user WHERE spiderdate=:when LIMIT 1",{"when":self.minScanDate})
+        self.cur.execute("SELECT name FROM user WHERE spiderdate=:when LIMIT 5",{"when":self.minScanDate})
         try: 
-           aUser= self.cur.fetchone()[0]
-        except:
-           aUser=None
-        print 'Next to Scan',aUser
+            aUser= u''
+            while aUser == u'':
+                aUser= self.cur.fetchone()[0]
+        except Exception,e:
+            print 'SelectNextUserToSpid',str(e)
+            aUser=None
+        print 'Next to Scan',aUser,'len:',len(aUser)
         return aUser
     
     def AddFriends(self):
+        friendsIgnoreCount=4206
         friendNames = ['pwytter']
         friends = None
         while not friends:
@@ -67,13 +78,19 @@ class Spider(object):
             friendNames.append(f.screen_name.encode('latin-1','replace'))
         print "friendNames", friendNames
 
+        for aUser in Users[:friendsIgnoreCount]:
+            aName= aUser[0]
+            if aName not in friendNames:
+                friendNames.append(aName)
+
         for aUser in Users:
             aName= aUser[0]
             if aName not in friendNames:
                 try :
                     self.tw.api.CreateFriendship(aName)
                     print "**** Add friend:",aName
-                    time.sleep(60)
+                    for wait in range(56):
+                        time.sleep(1)
                 except Exception,e:
                     print str(e)
 
@@ -84,7 +101,8 @@ class Spider(object):
                 try:        
                     friends=self.tw.api.GetFriends(aName)
                 except Exception,e:
-                    print str(e)
+                    print 'ScanUserFriends error:',str(e)
+                    print 'Try #',retry
                 retry += 1
             if friends:
                 for f in friends:
@@ -96,14 +114,17 @@ class Spider(object):
     def LoadUsers(self):
         self.AddUser("pwytter")
         while True:
-            username= self.SelectNextUserToSpid()
-            if username:
-                self.ScanUserFriends(username)
-                count,toscan=self.UserCount(),self.UserToScanCount() 
-                scanned=count-toscan
-                print "Scanned:",scanned, 'To Scan:',toscan, 'Total:',count, "Ratio:",1.0*toscan/scanned
-            else:
-                self.InitMinScanDate()
+            try:
+                username= self.SelectNextUserToSpid()
+                if username:
+                    self.ScanUserFriends(username)
+                    count,toscan=self.UserCount(),self.UserToScanCount() 
+                    scanned=count-toscan
+                    print "Scanned:",scanned, 'To Scan:',toscan, 'Total:',count, "Ratio:",1.0*toscan/scanned
+                else:
+                    self.InitMinScanDate()
+            except Exception,e:
+                print str(e)
           
 if __name__ == "__main__":
     sp=Spider()
