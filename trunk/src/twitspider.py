@@ -65,7 +65,7 @@ class Spider(object):
         return aUser
     
     def AddFriends(self):
-        friendsIgnoreCount=4206
+        friendsIgnoreCount=4891
         friendNames = ['pwytter']
         friends = None
         while not friends:
