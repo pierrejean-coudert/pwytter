@@ -38,16 +38,16 @@ setup(
   package_dir={'twclient': 'twclient', 
                'simplejson': 'twclient/simplejson'},
   #package_data={'twclient': glob.glob('twclient/doc/*.*')},
-  py_modules = ['pwytter','tkBalloon'],
+  py_modules = ['pwytter','tkBalloon','pwParam','pwTools'],
   data_files=[("text", glob.glob("*.txt")),
-              ("ico",glob.glob("*.ico")),
-              ("media",glob.glob("media\\*.*"))],
+#              ("ico",glob.glob("*.ico")),
+              ("media",glob.glob("media\\*.png")+glob.glob("media\\*.ico"))],
   #console=['pwytter.py']
   #
   #py2exe
   windows = [
         {"script": "pwytter.py",
-         "icon_resources": [(1, "pwytter.ico")]
+         "icon_resources": [(1, "media\\pwytter.ico")]
         }],
   #
   #This next part it for the Cheese Shop, look a little down the page.

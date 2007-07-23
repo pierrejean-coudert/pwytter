@@ -81,11 +81,11 @@ class MainPanel(Frame):
             }
         if os.name=='mac':
             self._display.update({
-                'fontName':('Helvetica',11,'bold'),
-                'fontMsg':('Helvetica',11,'bold'),
+                'fontName':('Helvetica',9,'bold'),
+                'fontMsg':('Helvetica',9,'bold'),
                 'widthMsg':61,
                 'widthTwit':61,
-                'widthDirectMsg':60
+                'widthDirectMsg':58
                 })
         if os.name=='posix':
             self._display.update({
@@ -338,6 +338,7 @@ class MainPanel(Frame):
  
     def _displaylines(self, par=None):
         self._imagesLoaded=True
+        i=0
         for i in range(min(self._TwitLines,len(self.tw.texts))):
             if i+1>len(self.Lines) :
                 self.Lines.append(self._createLine(self.LinesBox, i))
@@ -391,14 +392,20 @@ class MainPanel(Frame):
         for i in range(i+1,len(self.Lines)):
             self.Lines[i]['Box'].grid_forget()
     
-    def _createFriendImage(self, aParent, index):   
+    def _createFriendImage(self, aParent, index, type):   
         aFriend={}
         aFriend['ImageRef'] = ImageTk.PhotoImage("RGB",(20,20))
-        aFriend['Image']    = Label(aParent,image=aFriend['ImageRef'], \
-                                       name="frie"+str(index), cursor="hand2")
-        aFriend['ImageHint']=  tkBalloon.Balloon(aFriend['Image'])
-        self.FriendImages.append(aFriend)
         c=self._display['friendcolumn']
+        if type=="friend":
+            aFriend['Image']    = Label(aParent,image=aFriend['ImageRef'], \
+                                           name="frie"+str(index), cursor="hand2")
+            aFriend['ImageHint']=  tkBalloon.Balloon(aFriend['Image'])
+            self.FriendImages.append(aFriend)
+        else:
+            aFriend['Image']    = Label(aParent,image=aFriend['ImageRef'], \
+                                           name="foll"+str(index), cursor="hand2")
+            aFriend['ImageHint']=  tkBalloon.Balloon(aFriend['Image'])
+            self.FollowerImages.append(aFriend)
         aFriend['Image'].grid(row=1+int(index/c), column=index-(int(index/c)*c), padx=1, pady=1)
         return aFriend
         
@@ -406,10 +413,20 @@ class MainPanel(Frame):
         self.friendsEmptyBox = Frame(aParent, bg=self._bg)
         self.friendsInsideBox = Frame(aParent, bg=self._bg)
         self.FriendImages=[]
-        self.FriendTitle = Label(self.friendsInsideBox,text="Friends", bg=self._bg, fg="white")
+        self.FriendTitle = Label(self.friendsInsideBox,text="Following", bg=self._bg, 
+                                 fg="white")
         self.FriendTitle.grid(row=0,column=0,columnspan=self._display['friendcolumn'])
         for i in range(2):
-            self._createFriendImage(self.friendsInsideBox,i)
+            self._createFriendImage(self.friendsInsideBox,i,"friend")
+
+        self.followersEmptyBox = Frame(aParent, bg=self._bg)
+        self.followersInsideBox = Frame(aParent, bg=self._bg)
+        self.FollowerImages=[]
+        self.FollowerTitle = Label(self.followersInsideBox,text="Followers", bg=self._bg, 
+                                   fg="white")
+        self.FollowerTitle.grid(row=0,column=0,columnspan=self._display['friendcolumn'])
+        for i in range(2):
+            self._createFriendImage(self.followersInsideBox,i,"follower")
     
     def _refreshFriends(self):
         try:
@@ -418,7 +435,7 @@ class MainPanel(Frame):
             self._imagesFriendsLoaded = True
             for fname in self.tw.Friends:
                 if i+1>len(self.FriendImages) :
-                    self._createFriendImage(self.friendsInsideBox,i)
+                    self._createFriendImage(self.friendsInsideBox,i, "friend")
                 loaded, aImage= self.tw.imageFromCache(fname)
                 self._imagesFriendsLoaded = self._imagesFriendsLoaded and loaded     
                 try :   
@@ -437,18 +454,39 @@ class MainPanel(Frame):
             
         try:
             self.tw.getFollowers()
+            i=0
+            for fname in self.tw.Followers:
+                if i+1>len(self.FollowerImages) :
+                    self._createFriendImage(self.followersInsideBox,i, "follower")
+                loaded, aImage= self.tw.imageFromCache(fname)
+                self._imagesFriendsLoaded = self._imagesFriendsLoaded and loaded     
+                try :   
+                    self.FollowerImages[i]['ImageRef'].paste(aImage, (0,0,20,20))
+                except:
+                    print "error pasting friends images:",fname
+                self.FollowerImages[i]['ImageHint'].settext("http://twitter.com/"+fname)
+                self.FollowerImages[i]['Image'].bind('<1>', self._friendClick)
+                c=self._display['friendcolumn']
+                self.FollowerImages[i]['Image'].grid(row=1+int(i/c), column=i-(int(i/c)*c), padx=1, pady=1)
+                i=i+1
+            for i in range(i,len(self.FollowerImages)):
+                self.FollowerImages[i]['Image'].grid_forget()        
         except Exception,e :
             print str(e),"-> Can't get followers"
 
     def _showFriends(self,par=None):
         self.friendsEmptyBox.pack_forget()
         self.friendsInsideBox.pack(expand=1,padx=2)
+        self.followersEmptyBox.pack_forget()
+        self.followersInsideBox.pack(expand=1,padx=2)
         self.ShowFriends.grid_forget()
         self.HideFriends.grid(row=0,column=1, sticky="E")
 
     def _hideFriends(self,par=None):
         self.friendsInsideBox.pack_forget()
         self.friendsEmptyBox.pack()
+        self.followersInsideBox.pack_forget()
+        self.followersEmptyBox.pack(expand=1,padx=2)
         self.HideFriends.grid_forget()
         self.ShowFriends.grid(row=0,column=1, sticky="E")
 
@@ -632,7 +670,7 @@ if __name__ == "__main__":
     rootTk = Tk()
     rootTk.title('Pwytter %s' % (__version__))
     if os.name == 'nt':
-        rootTk.iconbitmap('pwytter.ico') 
+        rootTk.iconbitmap(os.path.join("media",'pwytter.ico')) 
     app = MainPanel(master=rootTk)
     rootTk.resizable(width=0, height=0) 
     rootTk.after(100,app.timer)

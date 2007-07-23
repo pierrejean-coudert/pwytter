@@ -1,5 +1,4 @@
 # Release 0.6
-#TODO: Followers
 #TODO: Mac version: py2app
 #TODO: Better edit line handling : car count, erase "enter your message here"
 #TODO: tkBalloon on Mac OS X: Should be displayed on top.
@@ -12,10 +11,11 @@
 #DONE: Link to pwytter.com
 #DONE: in parameter dialog : add a link to create a twitter account https://twitter.com/signup
 #DONE: in parameter dialog : Masked password
-#DONE: Update detect
+#DONE: Update : New pwytter release autodetect
 #DONE: show parameter dialog if no XML file
 #DONE: Send Direct messages
 #DONE: busy cursor when getting timeline and sending messages
+#DONE: Followers
 
 
 # Release 0.7
