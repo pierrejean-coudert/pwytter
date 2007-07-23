@@ -135,11 +135,11 @@ class MainPanel(Frame):
                 })
         if os.name=='posix':
             self._display.update({
-                'fontName':('Helvetica',8,'bold'),
-                'fontMsg':('Helvetica',8,'bold'),
+                'fontName':('Helvetica',9,'bold'),
+                'fontMsg':('Helvetica',9,'bold'),
                 'widthMsg':61,
                 'widthTwit':61,
-                'widthDirectMsg':60
+                'widthDirectMsg':58
                 })
         self._bg=self._display['bg#']
         self['bg']=self._bg
