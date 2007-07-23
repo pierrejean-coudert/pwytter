@@ -32,17 +32,38 @@ setup(
   platforms=['any'],
   url='http://www.pwytter.com',
   keywords='twitter client python tkinter',
+  #
+  #packages
   packages=['twclient','simplejson'],
   package_dir={'twclient': 'twclient', 
                'simplejson': 'twclient/simplejson'},
   #package_data={'twclient': glob.glob('twclient/doc/*.*')},
   py_modules = ['pwytter','tkBalloon'],
   data_files=[("text", glob.glob("*.txt")),
-              "pwytter.ico",
+              ("ico",glob.glob("*.ico")),
               ("media",glob.glob("media\\*.*"))],
   #console=['pwytter.py']
+  #
+  #py2exe
   windows = [
         {"script": "pwytter.py",
          "icon_resources": [(1, "pwytter.ico")]
-        }]
+        }],
+  #
+  #This next part it for the Cheese Shop, look a little down the page.
+  classifiers = [
+      'Development Status :: 4 - Beta',
+      'Environment :: MacOS X',
+      'Environment :: Win32 (MS Windows)',
+      'Environment :: X11 Applications',     
+      'Intended Audience :: End Users/Desktop',
+      'Intended Audience :: Developers',
+      'License :: OSI Approved :: GNU General Public License (GPL)',
+      'Operating System :: Microsoft :: Windows',
+      'Operating System :: MacOS :: MacOS X',
+      'Operating System :: POSIX :: Linux',
+      'Programming Language :: Python',
+      'Topic :: Communications :: Chat',
+      'Topic :: Internet'
+  ]
 )

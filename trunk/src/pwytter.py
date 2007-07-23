@@ -26,67 +26,16 @@ __version__ = '0.6'
 from Tkinter import *
 import tkBalloon
 import twclient
+import pwParam
+import pwTools
 import time
 import webbrowser
 import textwrap
 from urlparse import urlparse,urlunparse
 import os
 import os.path
-import xml.dom.minidom as dom
 from PIL import Image, ImageTk
-
-class PwytterParams(object):
-    """Handle the Pwtytter configuration in an XML file pwytter.xml
-    """
-    def __init__(self):
-        self._paramPath = 'cfg'
-        self._paramFileName = os.path.join(self._paramPath,'pwytter.xml')
-        
-        self.values={'user': '',
-                     'password': '',
-                     'refresh_rate' : '',
-                     'nb_lines' : ''
-                    }
-    def _resetDefaults(self):
-        self.values['user'] = 'pwytter'
-        self.values['password'] = 'pwytter123'
-        self.values['refresh_rate'] = '120'
-        self.values['nb_lines'] = '4'
-
-    def __getitem__(self, aKey):
-        return self.values[aKey]
-        
-    def __setitem__(self, aKey, value):
-        self.values[aKey] = value
-
-    def readFromXML(self):
-        try:
-            self._paramDoc = dom.parse(self._paramFileName).documentElement
-            assert self._paramDoc.tagName == 'pwytter'
-            for val in self.values.keys(): 
-                try :
-                    node=self._paramDoc.getElementsByTagName(val)
-                    self.values[val]=node[0].firstChild.data.strip()
-                except Exception, e:
-                    print '!! Exception in process_node_string'+str(e)
-                    self.values[val]=''
-        except:
-            self._resetDefaults()
-    
-    def writeToXML(self):
-        impl = dom.getDOMImplementation()
-        self._paramDoc = impl.createDocument(None, 'pwytter', None)
-        top_element = self._paramDoc.documentElement
-        for val in self.values.keys(): 
-            Element=self._paramDoc.createElement(val)
-            Element.appendChild(self._paramDoc.createTextNode(str(self.values[val])))
-            top_element.appendChild(Element)
-        if not os.path.exists(self._paramPath) :
-            os.makedirs(self._paramPath)
-        f=open(self._paramFileName, 'w')
-        f.write(self._paramDoc.toprettyxml())
-        f.close()
-    
+ 
 class MainPanel(Frame):
     """ Main tk Frame """
     def __init__(self, master=None):
@@ -95,8 +44,13 @@ class MainPanel(Frame):
         self._needToRefreshMe = True
         self._imagesLoaded = True
         self._imagesFriendsLoaded = True
-        self._params = PwytterParams()
-        self._params.readFromXML()
+        self._needToShowParameters = False
+        self._busy = pwTools.BusyManager(master)
+        self._params = pwParam.PwytterParams()
+        try:
+            self._params.readFromXML()
+        except:
+            self._needToShowParameters = True
         
         self.tw=twclient.TwClient(__version__, self._params['user'], self._params['password'])       
         self._applyParameters()
@@ -148,6 +102,8 @@ class MainPanel(Frame):
         self._refreshMe()
         if not self.tw.VersionOK:
             self._showUpdate()
+        if self._needToShowParameters:
+            self._showParameters()            
         self._refreshTime = 0
 
     def _applyParameters(self):
@@ -264,7 +220,8 @@ class MainPanel(Frame):
         self.UserLbl=Label(self.ParamInsideBox, text="User", bg=param_bg)
         self.UserEntry = Entry(self.ParamInsideBox,textvariable=self.userVar)
         self.PasswordLbl=Label(self.ParamInsideBox, text="Password", bg=param_bg)
-        self.PasswordEntry = Entry(self.ParamInsideBox, textvariable=self.passwordVar)
+        self.PasswordEntry = Entry(self.ParamInsideBox, textvariable=self.passwordVar,
+                                   show='*')
         self.RefreshLbl=Label(self.ParamInsideBox, text="Refresh (s)", bg=param_bg)
         self.refreshEntry = Entry(self.ParamInsideBox, textvariable=self.refreshVar)
         self.LinesLbl=Label(self.ParamInsideBox, text="Lines", bg=param_bg)
@@ -272,18 +229,18 @@ class MainPanel(Frame):
         self.BtnBox=Frame(self.ParamInsideBox, bg=param_bg)
         self.ApplyBtn=Button(self.BtnBox, text="Apply",command=self._saveParameters)
         
-        self.ParamCancel.grid(row=0,column=0,padx=5,pady=5,sticky=NE)
+        self.ParamCancel.grid(row=0,column=0,padx=5,pady=5,sticky=NW)
         self.CreateAccountLbl.bind('<1>', self._createAccountClick)
-        self.CreateAccountLbl.grid(row=0,column=1, columnspan=4,padx=5,pady=5)
-        self.UserLbl.grid(row=1,column=1,padx=5,pady=5,sticky=W)
-        self.UserEntry.grid(row=1, column=2,padx=5,pady=5)
-        self.PasswordLbl.grid(row=1,column=3,padx=5,pady=5,sticky=W)
-        self.PasswordEntry.grid(row=1, column=4,padx=5,pady=5)
-        self.RefreshLbl.grid(row=2,column=1,padx=5,pady=5,sticky=W)
-        self.refreshEntry.grid(row=2, column=2,padx=5,pady=5)
-        self.LinesLbl.grid(row=2,column=3,padx=5,pady=5,sticky=W)
-        self.LinesEntry.grid(row=2, column=4,padx=5,pady=5)
-        self.BtnBox.grid(row=3, column=4, columnspan=4, sticky=EW)
+        self.CreateAccountLbl.grid(row=0,column=1, columnspan=3,padx=5,pady=5)
+        self.UserLbl.grid(row=1,column=0,padx=5,pady=5,sticky=W)
+        self.UserEntry.grid(row=1, column=1,padx=5,pady=5)
+        self.PasswordLbl.grid(row=1,column=2,padx=5,pady=5,sticky=W)
+        self.PasswordEntry.grid(row=1, column=3,padx=5,pady=5)
+        self.RefreshLbl.grid(row=2,column=0,padx=5,pady=5,sticky=W)
+        self.refreshEntry.grid(row=2, column=1,padx=5,pady=5)
+        self.LinesLbl.grid(row=2,column=2,padx=5,pady=5,sticky=W)
+        self.LinesEntry.grid(row=2, column=3,padx=5,pady=5)
+        self.BtnBox.grid(row=3, column=3, columnspan=4, sticky=EW)
         self.ApplyBtn.pack(padx=5,pady=5,side="right")
        
     def _showParameters(self,par=None):
@@ -514,12 +471,16 @@ class MainPanel(Frame):
         self.Lines[lineIndex]['DirectBoxEmpty'].grid(row=2,column=0,columnspan=3,rowspan=1, sticky='W',padx=1)
         
     def _sendDirectMessage(self,par=None):
-        lineIndex= int(par.widget.winfo_name()[4:])
+        self._busy.set()
         try:
-            print self.tw.sendDirectMessage(self.tw.texts[lineIndex]["name"], self.directText.get())
-        except Exception,e :
-            print str(e),'-> error sending direct msg:',self.directText.get(),'to',self.tw.texts[lineIndex]["name"]
-        self._hideDirectMessage(par)
+            lineIndex= int(par.widget.winfo_name()[4:])
+            try:
+                print self.tw.sendDirectMessage(self.tw.texts[lineIndex]["name"], self.directText.get())
+            except Exception,e :
+                print str(e),'-> error sending direct msg:',self.directText.get(),'to',self.tw.texts[lineIndex]["name"]
+            self._hideDirectMessage(par)
+        finally:
+            self._busy.reset()
 
     def _createWidgets(self):      
         self.MainZone = Frame(self, bg=self._bg)
@@ -606,11 +567,15 @@ class MainPanel(Frame):
         if userurl != "": self._openweb(userurl)
 
     def _timeLineClick(self,par=None):
-        self.tw.nextTimeLine()
-        print "Switch to Timeline:",self.tw.timeLineName()
-        self.TimeLine["text"] = "Timeline: "+self.tw.timeLineName()
-        self._refreshTwitZone()
-          
+        self._busy.set()
+        try:
+            self.tw.nextTimeLine()
+            print "Switch to Timeline:",self.tw.timeLineName()
+            self.TimeLine["text"] = "Timeline: "+self.tw.timeLineName()
+            self._refreshTwitZone()
+        finally:
+            self._busy.reset()
+  
     def _refreshTwitZone(self):
         timestr = time.strftime("%a, %d %b %Y %H:%M:%S", time.localtime())
         self.Time["text"]= timestr
@@ -638,12 +603,20 @@ class MainPanel(Frame):
             self.after(1000, self.timer)
 
     def sendTwit(self,par=None):
-        self.tw.sendText(self.twitText.get())
-        self.twitText.set('')
-        self._refreshTwitZone()
+        self._busy.set()
+        try:
+            self.tw.sendText(self.twitText.get())
+            self.twitText.set('')
+            self._refreshTwitZone()
+        finally:
+            self._busy.reset()
         
     def manualRefresh(self,par=None):
-        self._refreshTwitZone()
+        self._busy.set()
+        try:
+            self._refreshTwitZone()
+        finally:
+            self._busy.reset()
                    
     def editValidate(self):
         self.RemainCar["text"] =  "%d caracter(s) remaining" % (140-len(self.twitText.get().encode('latin-1')))
