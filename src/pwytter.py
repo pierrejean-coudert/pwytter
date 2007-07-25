@@ -21,7 +21,7 @@ except:
     sys.path.append(join(abspath(dirname(sys.path[0])), 'twclient'))  
         
 __author__ = 'Pierre-Jean Coudert <coudert@free.fr>'
-__version__ = '0.6'
+__version__ = '0.7'
 
 from Tkinter import *
 import tkBalloon
@@ -101,8 +101,8 @@ class MainPanel(Frame):
                 })
         if os.name=='posix':
             self._display.update({
-                'fontName':('Helvetica',9,'bold'),
-                'fontMsg':('Helvetica',9,'bold'),
+                'fontName':('bold'),
+                'fontMsg':('bold'),
                 'widthMsg':61,
                 'widthTwit':61,
                 'widthDirectMsg':58
