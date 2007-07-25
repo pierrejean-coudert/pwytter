@@ -141,7 +141,7 @@ class TwClient(object):
         returnImage = Image.open(StringIO.StringIO(urllib2.urlopen(imageurl).read()))
         returnImage.thumbnail((32,32),Image.ANTIALIAS)
         self._imageQueue.put((aUserName,returnImage))
-        print "image loaded:",aUserName, auser
+        #print "image loaded:",aUserName, auser
         #self._userQueue.task_done()
 
     def _imagesToCache(self):
@@ -168,7 +168,7 @@ class TwClient(object):
             
     def _addUserToCache(self, aUser):
         if aUser.screen_name not in self._usercache.keys() :  
-            print "add user to cache:",aUser.screen_name
+            #print "add user to cache:",aUser.screen_name
             self._usercache[aUser.screen_name]=aUser
             self._imagesToCache()
             self._requestImage(aUser.screen_name)
