@@ -95,17 +95,19 @@ class MainPanel(Frame):
             self._display.update({
                 'fontName':('Helvetica',9,'bold'),
                 'fontMsg':('Helvetica',9,'bold'),
+                'fontLink':('Helvetica',9,'underline'),
                 'widthMsg':61,
                 'widthTwit':61,
                 'widthDirectMsg':58
                 })
         if os.name=='posix':
             self._display.update({
-                'fontName':('bold'),
-                'fontMsg':('bold'),
+                'fontName':"Helvetica 12 bold",
+                'fontMsg': "Helvetica",
+                'fontLink':"Helvetica 12 underline",
                 'widthMsg':61,
-                'widthTwit':61,
-                'widthDirectMsg':58
+                'widthTwit':62,
+                'widthDirectMsg':59
                 })
         self._display.update({
             'text#'     : "black",
