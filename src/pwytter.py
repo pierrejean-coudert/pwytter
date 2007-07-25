@@ -25,6 +25,7 @@ __version__ = '0.6'
 
 from Tkinter import *
 import tkBalloon
+import pwSplashScreen
 import twclient
 import pwParam
 import pwTools
@@ -35,6 +36,7 @@ from urlparse import urlparse,urlunparse
 import os
 import os.path
 from PIL import Image, ImageTk
+import gettext
  
 class MainPanel(Frame):
     """ Main tk Frame """
@@ -55,10 +57,11 @@ class MainPanel(Frame):
         self.tw=twclient.TwClient(__version__, self._params['user'], self._params['password'])       
         self._applyParameters()
 
+        self._defaultTwitText = _('Enter your message here...')
         self.twitText = StringVar()
-        self.twitText.set('Enter your message here...')
+        self.twitText.set(self._defaultTwitText)
         self.directText = StringVar()
-        self.directText.set('Enter your direct message here...')
+        self.directText.set(_('Enter your direct message here...'))
         self.userVar = StringVar()
         self.passwordVar = StringVar()
         self.refreshVar = IntVar()
@@ -73,11 +76,20 @@ class MainPanel(Frame):
             'widthTwit':69,
             'widthDirectMsg':66,
             'friendcolumn':6,
-            'bg#'      : "#1F242A",
-            '1stLine#' : "#1F242A",
-            'line#'    : "#1F242A",
-            'param#'   : "#585C5F",
-            'update#'  : "#FFBBBB"
+            'text#'     : "white",
+            'bg#'       : "#1F242A",
+            '1stLine#'  : "#484C4F",
+            'line#'     : "#2F3237",
+            'param#'    : "#585C5F",
+            'timeline#' : "#484C4F",
+            'me_bg#'    : "#2F3237", 
+            'me_fg#'    : "#BBBBBB",
+            'time#'     : "#BBBBBB",
+            'message#'  : "#99CBFE",
+            'messageUrl#': "#B9DBFF",
+            'directMsg#': "#686C6F",
+            'update#'   : "#FFBBBB",
+            'twitEdit#' : "#2F3237"
             }
         if os.name=='mac':
             self._display.update({
@@ -95,6 +107,23 @@ class MainPanel(Frame):
                 'widthTwit':61,
                 'widthDirectMsg':58
                 })
+        self._display.update({
+            'text#'     : "black",
+            'bg#'       : "#FFFFFF",
+            '1stLine#'  : "#F8F8F8",
+            'line#'     : "#F0F0F0",
+            'param#'    : "#E0E0E0",
+            'timeline#' : "#D0D0D0",
+            'me_bg#'    : "#F0F0F0", 
+            'me_fg#'    : "#777777",
+            'time#'     : "#888888",
+            'message#'  : "#333333",
+            'messageUrl#':"#333388",
+            'directMsg#': "#E0E0E0",
+            'update#'   : "#FFBBBB",
+            'twitEdit#' : "#F0F0F0"
+            })
+                        
         self._bg=self._display['bg#']
         self['bg']=self._bg
         self.pack(ipadx=2, ipady=2)
@@ -129,31 +158,30 @@ class MainPanel(Frame):
         return aLabel
 
     def _createMySelfBox(self, aParent):
-        me_bg, me_fg = "#2F3237", "#BBBBBB"
+        me_bg, me_fg = self._display['me_bg#'],self._display['me_fg#']
         self.MySelfBox = Frame(aParent, bg=me_bg)
         self.MyImageRef = ImageTk.PhotoImage("RGB",(48,48))
         self.MyImage = Label(self.MySelfBox,image=self.MyImageRef )
         self.MyImage.grid(row=0,column=0, rowspan=3, sticky=W,padx=5, pady=5)
         self.MyImageHint = tkBalloon.Balloon(self.MyImage)       
-        self.MyName = Label(self.MySelfBox,text="...",font=('helvetica', 14, 'bold'), bg=me_bg, fg="white")
+        self.MyName = Label(self.MySelfBox,text="...",font=('Helvetica', 14, 'bold'), bg=me_bg, fg=self._display['text#'])
         self.MyName.grid(row=0,column=1)
         self.MyNameHint = tkBalloon.Balloon(self.MyName)
         self.Param = self._createClickableImage(self.MySelfBox, "cog.png", 
-                                        self._showParameters,me_bg, "para0", "Parameters...")
+                                        self._showParameters,me_bg, "para0", _("Parameters..."))
         self.Param.grid(row=0,column=2, sticky="E")
         self.MyUrl = Label(self.MySelfBox,text="http", bg=me_bg, fg=me_fg, cursor = 'hand2' )
         self.MyUrl.grid(row=1,column=1, columnspan=2)
         self.MyUrl.bind('<1>', self._userClick)
 
     def _refreshMe(self):
-        print "refresh Me"
         try:
             self._imagesFriendsLoaded = False
             self._needToRefreshMe = not self.tw.getMyDetails()
             self.MyImageRef.paste(self.tw.myimage, (0,0,48,18))
             self.MyName["text"] = self.tw.me.screen_name.encode('latin-1')
             try:
-                self.MyImageHint.settext("%s: %s %cLocation: %s" % (self.tw.me.name.encode('latin-1'),\
+                self.MyImageHint.settext(_("%s: %s %cLocation: %s") % (self.tw.me.name.encode('latin-1'),\
                                       self.tw.me.description.encode('latin-1'),13,\
                                       self.tw.me.location.encode('latin-1')))
                 self.MyNameHint.settext(self.MyImageHint.gettext())
@@ -172,18 +200,18 @@ class MainPanel(Frame):
     def _createRefreshBox(self, parent):
         self.refreshBox = Frame(parent, width=500, bg=self._bg)
         self.PwytterLink = self._createClickableImage(self.refreshBox, "home.png", 
-                                        self._homeclick,self._bg, "pwyt0","Pwytter web site...")
+                                        self._homeclick,self._bg, "pwyt0",_("Pwytter web site..."))
         self.ShowFriends = self._createClickableImage(self.refreshBox, "side_expand.png", 
-                                        self._showFriends,self._bg, "frie0","Show friends")
+                                        self._showFriends,self._bg, "frie0",_("Show friends"))
         self.HideFriends = self._createClickableImage(self.refreshBox, "side_contract.png", 
-                                        self._hideFriends,self._bg, "frie1","Hide friends")
-        self.Time = Label(self.refreshBox, text="Current Time Unknown...", bg=self._bg, fg="white")
-        self.TimeLine = Label(self.refreshBox,text="Timeline: "+self.tw.timeLineName(),\
-                              bg="#484C4F", fg="white", cursor = 'hand2')
-        self.TimeLineHint=tkBalloon.Balloon(self.TimeLine, "Switch TimeLine")
+                                        self._hideFriends,self._bg, "frie1",_("Hide friends"))
+        self.Time = Label(self.refreshBox, text=_("Current Time Unknown..."), bg=self._bg, fg=self._display['text#'])
+        self.TimeLine = Label(self.refreshBox,text=_("Timeline: %s") % (self.tw.timeLineName()),\
+                              bg=self._display['timeline#'], fg=self._display['text#'], cursor = 'hand2')
+        self.TimeLineHint=tkBalloon.Balloon(self.TimeLine, _("Switch TimeLine"))
         self.TimeLine.bind('<1>', self._timeLineClick)
         self.Refresh = self._createClickableImage(self.refreshBox, "arrow_refresh.png", 
-                                        self.manualRefresh,self._bg, "refr0","Refresh")
+                                        self.manualRefresh,self._bg, "refr0", _("Refresh"))
         self.PwytterLink.grid(row=0,column=0, sticky="W")
         self.ShowFriends.grid(row=0,column=1, sticky="E")
         self.Time.grid(row=1,column=0,columnspan=2)
@@ -195,12 +223,12 @@ class MainPanel(Frame):
         self.UpdateEmptyBox = Frame(aParent, bg=self._bg)
         self.UpdateInsideBox = Frame(aParent, width=500, bg=update_bg)
         self.UpdateCancel = self._createClickableImage(self.UpdateInsideBox, "cross.png", 
-                                        self._hideUpdate, update_bg, "upca0","Cancel")
-        self.UpdateLbl=Label(self.UpdateInsideBox, text="A new Pwytter release is available. You should upgrade now !", 
+                                        self._hideUpdate, update_bg, "upca0", _("Cancel"))
+        self.UpdateLbl=Label(self.UpdateInsideBox, text=_("A new Pwytter release is available. You should upgrade now !"), 
                              bg=update_bg, font=self._display['fontLink'], cursor="hand2")
         self.UpdateLbl.bind('<1>', self._updateClick)
         self.UpdateGo = self._createClickableImage(self.UpdateInsideBox, "page_go.png", 
-                                        self._updateClick, update_bg, "upgo0","Update now...")
+                                        self._updateClick, update_bg, "upgo0", _("Update now..."))
 
         self.UpdateCancel.grid(row=0,column=0,padx=5,pady=5,sticky=W)
         self.UpdateLbl.grid(row=0,column=1,padx=5,pady=5,sticky=W)
@@ -213,21 +241,21 @@ class MainPanel(Frame):
         
         self.ParamCancel = self._createClickableImage(self.ParamInsideBox, \
                                         "cross.png", self._hideParameters, 
-                                        param_bg,"parcancel",'Cancel')
-        self.CreateAccountLbl=Label(self.ParamInsideBox, text="Click here to create a Free Twitter Account...", 
+                                        param_bg,"parcancel", _('Cancel'))
+        self.CreateAccountLbl=Label(self.ParamInsideBox, text= _("Click here to create a Free Twitter Account..."), 
                                     bg=param_bg, font=self._display['fontLink'],
-                                    cursor="hand2", fg="white"  )
-        self.UserLbl=Label(self.ParamInsideBox, text="User", bg=param_bg)
+                                    cursor="hand2", fg=self._display['text#'])
+        self.UserLbl=Label(self.ParamInsideBox, text=_("User"), bg=param_bg)
         self.UserEntry = Entry(self.ParamInsideBox,textvariable=self.userVar)
-        self.PasswordLbl=Label(self.ParamInsideBox, text="Password", bg=param_bg)
+        self.PasswordLbl=Label(self.ParamInsideBox, text=_("Password"), bg=param_bg)
         self.PasswordEntry = Entry(self.ParamInsideBox, textvariable=self.passwordVar,
                                    show='*')
-        self.RefreshLbl=Label(self.ParamInsideBox, text="Refresh (s)", bg=param_bg)
+        self.RefreshLbl=Label(self.ParamInsideBox, text=_("Refresh (s)"), bg=param_bg)
         self.refreshEntry = Entry(self.ParamInsideBox, textvariable=self.refreshVar)
-        self.LinesLbl=Label(self.ParamInsideBox, text="Lines", bg=param_bg)
+        self.LinesLbl=Label(self.ParamInsideBox, text=_("Lines"), bg=param_bg)
         self.LinesEntry = Entry(self.ParamInsideBox, textvariable=self.linesVar)
         self.BtnBox=Frame(self.ParamInsideBox, bg=param_bg)
-        self.ApplyBtn=Button(self.BtnBox, text="Apply",command=self._saveParameters)
+        self.ApplyBtn=Button(self.BtnBox, text=_("Apply"), command=self._saveParameters)
         
         self.ParamCancel.grid(row=0,column=0,padx=5,pady=5,sticky=NW)
         self.CreateAccountLbl.bind('<1>', self._createAccountClick)
@@ -267,10 +295,8 @@ class MainPanel(Frame):
         self.manualRefresh()
 
     def _createLine(self, aParent, i):
-        if i==0:
-            linecolor = "#484C4F"
-        else:
-            linecolor = "#2F3237"
+        linecolor = self._display['line#']
+        if i==0: linecolor = self._display['1stLine#']
         aLine={}
         aLine['Box']      = Frame(aParent,bg=linecolor)
         aLine['ImageRef'] = ImageTk.PhotoImage("RGB",(48,48))
@@ -280,14 +306,15 @@ class MainPanel(Frame):
 
         aLine['NameBox']  = Frame(aLine['Box'], bg=linecolor)
         aLine['Name']     = Label(aLine['NameBox'],text="...",bg=linecolor, name="name"+str(i),
-                                     font=self._display['fontName'],fg="white", cursor="hand2")
+                                     font=self._display['fontName'],fg=self._display['text#'], cursor="hand2")
         aLine['NameHint'] = tkBalloon.Balloon(aLine['Name'])
         aLine['Time']     = Label(aLine['NameBox'],text="...",bg=linecolor,\
-                                     fg="#BBBBBB", justify="left")
+                                     fg=self._display['time#'], justify="left")
         
         aLine['IconBox']  = Frame(aLine['Box'], bg=linecolor)
         aLine['Direct']   = self._createClickableImage(aLine['IconBox'], \
-                                        "arrow_right.png", self._showDirectMessage, linecolor,"drct"+str(i),'Direct Message...')
+                                        "arrow_right.png", self._showDirectMessage, linecolor,"drct"+str(i),\
+                                        _('Direct Message...'))
         aLine['DirectInvalid']   = self._createClickableImage(aLine['IconBox'], \
                                         "arrow_nb.png", None, linecolor,"drci"+str(i))
         aLine['Favorite'] = self._createClickableImage(aLine['IconBox'], \
@@ -299,19 +326,21 @@ class MainPanel(Frame):
         aLine['UserUrlInvalid']= self._createClickableImage(aLine['IconBox'], \
                                         "world_nb.png", None, linecolor,"iurl"+str(i))        
         aLine['Msg']      = Label(aLine['Box'],text="...",bg=linecolor, name=str(i),\
-                                  font=self._display['fontMsg'], fg="#99CBFE",\
+                                  font=self._display['fontMsg'], fg=self._display['message#'],\
                                   width=self._display['widthMsg'])
         aLine['MsgHint']=  tkBalloon.Balloon(aLine['Msg'])
-        directColor = "#686C6F"
+        directColor = self._display['directMsg#']
         aLine['DirectBox']      = Frame(aLine['Box'], bg=directColor, padx=3, pady=2)
         aLine['DirectBoxEmpty'] = Frame(aLine['Box'], bg=linecolor)
         aLine['DirectCancel']   = self._createClickableImage(aLine['DirectBox'], \
-                                        "cross.png", self._hideDirectMessage, directColor,"dcan"+str(i),'Cancel')
+                                        "cross.png", self._hideDirectMessage, \
+                                        directColor,"dcan"+str(i),_('Cancel'))
         aLine['DirectEdit']     =   Entry(aLine['DirectBox'], width=self._display['widthDirectMsg'],\
                               textvariable=self.directText, validate="key", \
-                              bg=self._bg, fg="white", bd=0, name="dedi"+str(i))
+                              bg=self._bg, fg=self._display['text#'], bd=0, name="dedi"+str(i))
         aLine['DirectSend'] = self._createClickableImage(aLine['DirectBox'], \
-                                        "comment.png", self._sendDirectMessage, directColor,"dsen"+str(i),'Send')
+                                        "comment.png", self._sendDirectMessage, directColor,\
+                                        "dsen"+str(i), _('Send'))
         aLine['DirectCancel'].grid(row=0,column=0, sticky='W',padx=1)
         aLine['DirectEdit'].grid(row=0,column=1, padx=1)
         aLine['DirectSend'].grid(row=0,column=2, sticky='E',padx=1)
@@ -366,7 +395,7 @@ class MainPanel(Frame):
                 self.tw.texts[i]["url"] = urlunparse(urlparse(initText[urlstart:])).split('"')[0]
                 self.Lines[i]['Msg'].bind('<1>', self._urlClick)
                 self.Lines[i]['Msg']["cursor"] = 'hand2'
-                self.Lines[i]['Msg']["fg"] = "#B9DBFF"
+                self.Lines[i]['Msg']["fg"] = self._display['messageUrl#']
                 self.Lines[i]['MsgHint'].settext(self.tw.texts[i]["url"])
                 self.Lines[i]['MsgHint'].enable()
                 print "url detected:",self.tw.texts[i]["url"]
@@ -374,7 +403,7 @@ class MainPanel(Frame):
                 self.tw.texts[i]["url"] = ''
                 self.Lines[i]['Msg'].bind('<1>', None)
                 self.Lines[i]['Msg']["cursor"] = ''
-                self.Lines[i]['Msg']["fg"] = "#99CBFE"    
+                self.Lines[i]['Msg']["fg"] = self._display['message#']
                 self.Lines[i]['MsgHint'].disable()
             if self.tw.texts[i]["user_url"] == '':
                 self.Lines[i]['UserUrl'].bind('<1>', None)
@@ -413,8 +442,8 @@ class MainPanel(Frame):
         self.friendsEmptyBox = Frame(aParent, bg=self._bg)
         self.friendsInsideBox = Frame(aParent, bg=self._bg)
         self.FriendImages=[]
-        self.FriendTitle = Label(self.friendsInsideBox,text="Following", bg=self._bg, 
-                                 fg="white")
+        self.FriendTitle = Label(self.friendsInsideBox,text=_("Following"), bg=self._bg, 
+                                 fg=self._display['text#'])
         self.FriendTitle.grid(row=0,column=0,columnspan=self._display['friendcolumn'])
         for i in range(2):
             self._createFriendImage(self.friendsInsideBox,i,"friend")
@@ -422,8 +451,8 @@ class MainPanel(Frame):
         self.followersEmptyBox = Frame(aParent, bg=self._bg)
         self.followersInsideBox = Frame(aParent, bg=self._bg)
         self.FollowerImages=[]
-        self.FollowerTitle = Label(self.followersInsideBox,text="Followers", bg=self._bg, 
-                                   fg="white")
+        self.FollowerTitle = Label(self.followersInsideBox,text=_("Followers"), bg=self._bg, 
+                                   fg=self._display['text#'])
         self.FollowerTitle.grid(row=0,column=0,columnspan=self._display['friendcolumn'])
         for i in range(2):
             self._createFriendImage(self.followersInsideBox,i,"follower")
@@ -542,18 +571,21 @@ class MainPanel(Frame):
 
         self.EditParentBox = Frame(self.MainZone, bg=self._bg)
         self.RemainCar = Label(self.EditParentBox,text="...", bg=self._bg,\
-                               fg="white" )
+                               fg=self._display['text#'] )
         self.RemainCar.pack(padx=5)
         self.editBox = Frame(self.EditParentBox, bg=self._bg)
         self.TwitEdit = Entry(self.editBox, width=self._display['widthTwit'],\
                               textvariable=self.twitText,\
-                              validate="key", validatecommand=self.editValidate, \
-                              bg="#2F3237", fg="white", bd=0)
+                              bg=self._display['twitEdit#'], fg=self._display['text#'], bd=0)
         self.TwitEdit.pack(side="left",padx=2, ipadx=2, ipady=2)
         self.Send = self._createClickableImage(self.editBox, "comment.png", 
                                         self.sendTwit,self._bg, "send0","Send")       
         self.Send.pack(side="left", padx=2, ipadx=1, ipady=1)       
         self.TwitEdit.bind("<Return>", self.sendTwit)
+        self.TwitEdit.bind('<Button-1>',self.emptyTwit)  
+        self.twitText.trace("w", self.editValidate)
+        self.editValidate()
+        
         self.editBox.pack()      
         self.EditParentBox.grid(row=4,column=0,columnspan=2, pady=2)
         
@@ -609,7 +641,7 @@ class MainPanel(Frame):
         try:
             self.tw.nextTimeLine()
             print "Switch to Timeline:",self.tw.timeLineName()
-            self.TimeLine["text"] = "Timeline: "+self.tw.timeLineName()
+            self.TimeLine["text"] = _("Timeline: %s") %(self.tw.timeLineName())
             self._refreshTwitZone()
         finally:
             self._busy.reset()
@@ -649,29 +681,36 @@ class MainPanel(Frame):
         finally:
             self._busy.reset()
         
+    def emptyTwit(self,par=None):
+        if self.twitText.get() == self._defaultTwitText:
+            self.twitText.set('')
+        
     def manualRefresh(self,par=None):
         self._busy.set()
         try:
             self._refreshTwitZone()
         finally:
             self._busy.reset()
-                   
-    def editValidate(self):
-        self.RemainCar["text"] =  "%d caracter(s) remaining" % (140-len(self.twitText.get().encode('latin-1')))
-        return True
-
+ 
+    def editValidate(self, *dummy):
+        #value = self.twitText.get()
+        actualLenghth=len(self.twitText.get())
+        if actualLenghth>140:
+            self.twitText.set(self.twitText.get()[:140])
+        else:
+            self.RemainCar["text"] =  _("%d character(s) left") % (140-actualLenghth)
+    
 if __name__ == "__main__":
-    #print time.now()
-    print time.tzname
-    os.environ['TZ'] = 'France'
-    #print time.now()
-    print time.tzname
-
+    gettext.install('pwytter')
+    #langFr = gettext.translation('pwytter', languages=['fr'])
+    #langFr.install()    
     rootTk = Tk()
     rootTk.title('Pwytter %s' % (__version__))
+    rootTk.resizable(width=0, height=0) 
     if os.name == 'nt':
         rootTk.iconbitmap(os.path.join("media",'pwytter.ico')) 
+    s = pwSplashScreen.Splash(rootTk)
     app = MainPanel(master=rootTk)
-    rootTk.resizable(width=0, height=0) 
-    rootTk.after(100,app.timer)
+    app.timer()
+    s.destroy() 
     app.mainloop()

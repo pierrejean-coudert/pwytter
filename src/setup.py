@@ -38,7 +38,7 @@ setup(
   package_dir={'twclient': 'twclient', 
                'simplejson': 'twclient/simplejson'},
   #package_data={'twclient': glob.glob('twclient/doc/*.*')},
-  py_modules = ['pwytter','tkBalloon','pwParam','pwTools'],
+  py_modules = ['pwytter','tkBalloon','pwParam','pwTools','pwSplashScreen'],
   data_files=[("text", glob.glob("*.txt")),
 #              ("ico",glob.glob("*.ico")),
               ("media",glob.glob("media\\*.png")+glob.glob("media\\*.ico"))],

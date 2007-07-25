@@ -10,15 +10,24 @@ from pysqlite2 import dbapi2 as sqlite
 import datetime
 import threading
 
-class Spider(object):
+class TwitterCrawler(object):
     def __init__(self):
-        print "Twitter User spider"
+        print "Twitter User crawler"
         self.tw=twclient.TwClient('0.5', 'pwytter', 'pwytter123')
         
     def ConnectToDB(self):       
         self.con = sqlite.connect("users.sql")
         #self.con = sqlite.connect(":memory:")
         self.cur = self.con.cursor()
+#  user.id
+#  user.name
+#  user.screen_name
+#  user.location
+#  user.description
+#  user.profile_image_url
+#  user.url
+#  user.status
+        
         try:
             self.con.execute("CREATE TABLE user(name VARCHAR(30) PRIMARY KEY, spiderdate TIMESTAMP)")
         except:
@@ -52,20 +61,20 @@ class Spider(object):
 #        else:
 #            print '- Already in:',aName
     
-    def SelectNextUserToSpid(self):
+    def SelectNextUserToCrawl(self):
         self.cur.execute("SELECT name FROM user WHERE spiderdate=:when LIMIT 5",{"when":self.minScanDate})
         try: 
             aUser= u''
             while aUser == u'':
                 aUser= self.cur.fetchone()[0]
+            print 'Next to Scan',aUser,'len:',len(aUser)
         except Exception,e:
             print 'SelectNextUserToSpid',str(e)
             aUser=None
-        print 'Next to Scan',aUser,'len:',len(aUser)
         return aUser
     
     def AddFriends(self):
-        friendsIgnoreCount=4891
+        friendsIgnoreCount= 6221
         friendNames = ['pwytter']
         friends = None
         while not friends:
@@ -111,11 +120,11 @@ class Spider(object):
             self.cur.execute('UPDATE user SET spiderdate=:when WHERE name=:who',{"who":aName, "when":datetime.datetime.now()})
             self.con.commit()
         
-    def LoadUsers(self):
+    def CrawlUsers(self):
         self.AddUser("pwytter")
         while True:
             try:
-                username= self.SelectNextUserToSpid()
+                username= self.SelectNextUserToCrawl()
                 if username:
                     self.ScanUserFriends(username)
                     count,toscan=self.UserCount(),self.UserToScanCount() 
@@ -127,14 +136,14 @@ class Spider(object):
                 print str(e)
           
 if __name__ == "__main__":
-    sp=Spider()
-    sp.ConnectToDB()
+    tc=TwitterCrawler()
+    tc.ConnectToDB()
     
     global Users
-    sp.cur.execute("SELECT name FROM user")
-    Users=sp.cur.fetchall()
-    t = threading.Thread(None,sp.AddFriends)
+    tc.cur.execute("SELECT name FROM user")
+    Users=tc.cur.fetchall()
+    t = threading.Thread(None,tc.AddFriends)
     t.setDaemon(True)
     t.start() 
 
-    sp.LoadUsers()
+    tc.CrawlUsers()
