@@ -1,5 +1,6 @@
 # Release 0.7
-#TODO: I18N
+#TODO: UTF-8 message support
+#TODO: GUI I18N
 #TODO: loading splashcreen, and do not hide pwytter under other windows by default
 #TODO: Themable user interface
 #TODO: Reduce friend image size / limit number of displayed friends
@@ -14,11 +15,13 @@
 #DONE: Convert End of Line to Linux
 
 # Release 0.8
+#TODO: Use SetupTools
+#TODO: Single WIN32 Setup with InnoSetup
+#TODO: Hide error message (icon with message in Hint)
 #TODO: Show Direct messages
 #TODO: download only the required number of messages
 #TODO: Design an Icon
 #TODO: Replies
-#TODO: UTF-8 message support
 #TODO: Notifications, Mac Growl integration ( http://growl.info/documentation/developer/python-support.php, http://aaronland.info/python/twitter/twnotifier/, ...
 #TODO: onTop user information dialog : name, links, directmessage, add as friend, ...
 #TODO: handle a cache in the filesystem for quick startup

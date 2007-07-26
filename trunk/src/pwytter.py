@@ -22,6 +22,7 @@ except:
         
 __author__ = 'Pierre-Jean Coudert <coudert@free.fr>'
 __version__ = '0.7'
+APP_NAME = "pwytter"
 
 from Tkinter import *
 import tkBalloon
@@ -37,6 +38,7 @@ import os
 import os.path
 from PIL import Image, ImageTk
 import gettext
+import locale
  
 class MainPanel(Frame):
     """ Main tk Frame """
@@ -66,7 +68,6 @@ class MainPanel(Frame):
         self.passwordVar = StringVar()
         self.refreshVar = IntVar()
         self.linesVar = IntVar()
-        
         Frame.__init__(self, master)
         self._display={
             'fontName':('Helvetica',8,'bold'),
@@ -75,21 +76,7 @@ class MainPanel(Frame):
             'widthMsg':58,
             'widthTwit':69,
             'widthDirectMsg':66,
-            'friendcolumn':6,
-            'text#'     : "white",
-            'bg#'       : "#1F242A",
-            '1stLine#'  : "#484C4F",
-            'line#'     : "#2F3237",
-            'param#'    : "#585C5F",
-            'timeline#' : "#484C4F",
-            'me_bg#'    : "#2F3237", 
-            'me_fg#'    : "#BBBBBB",
-            'time#'     : "#BBBBBB",
-            'message#'  : "#99CBFE",
-            'messageUrl#': "#B9DBFF",
-            'directMsg#': "#686C6F",
-            'update#'   : "#FFBBBB",
-            'twitEdit#' : "#2F3237"
+            'friendcolumn':6
             }
         if os.name=='mac':
             self._display.update({
@@ -109,22 +96,40 @@ class MainPanel(Frame):
                 'widthTwit':62,
                 'widthDirectMsg':59
                 })
-        self._display.update({
-            'text#'     : "black",
-            'bg#'       : "#FFFFFF",
-            '1stLine#'  : "#F8F8F8",
-            'line#'     : "#F0F0F0",
-            'param#'    : "#E0E0E0",
-            'timeline#' : "#D0D0D0",
-            'me_bg#'    : "#F0F0F0", 
-            'me_fg#'    : "#777777",
-            'time#'     : "#888888",
-            'message#'  : "#333333",
-            'messageUrl#':"#333388",
-            'directMsg#': "#E0E0E0",
-            'update#'   : "#FFBBBB",
-            'twitEdit#' : "#F0F0F0"
-            })
+        if  self._params['theme']=="black":       
+            self._display.update({
+                'text#'     : "white",
+                'bg#'       : "#1F242A",
+                '1stLine#'  : "#484C4F",
+                'line#'     : "#2F3237",
+                'param#'    : "#585C5F",
+                'timeline#' : "#484C4F",
+                'me_bg#'    : "#2F3237", 
+                'me_fg#'    : "#BBBBBB",
+                'time#'     : "#BBBBBB",
+                'message#'  : "#99CBFE",
+                'messageUrl#': "#B9DBFF",
+                'directMsg#': "#686C6F",
+                'update#'   : "#FFBBBB",
+                'twitEdit#' : "#2F3237"
+                })
+        else:
+            self._display.update({
+                'text#'     : "black",
+                'bg#'       : "#FFFFFF",
+                '1stLine#'  : "#F8F8F8",
+                'line#'     : "#F0F0F0",
+                'param#'    : "#E0E0E0",
+                'timeline#' : "#D0D0D0",
+                'me_bg#'    : "#F0F0F0", 
+                'me_fg#'    : "#777777",
+                'time#'     : "#888888",
+                'message#'  : "#333333",
+                'messageUrl#':"#333388",
+                'directMsg#': "#E0E0E0",
+                'update#'   : "#FFBBBB",
+                'twitEdit#' : "#F0F0F0"
+                })
                         
         self._bg=self._display['bg#']
         self['bg']=self._bg
@@ -581,7 +586,7 @@ class MainPanel(Frame):
                               bg=self._display['twitEdit#'], fg=self._display['text#'], bd=0)
         self.TwitEdit.pack(side="left",padx=2, ipadx=2, ipady=2)
         self.Send = self._createClickableImage(self.editBox, "comment.png", 
-                                        self.sendTwit,self._bg, "send0","Send")       
+                                        self.sendTwit,self._bg, "send0",_("Send"))
         self.Send.pack(side="left", padx=2, ipadx=1, ipady=1)       
         self.TwitEdit.bind("<Return>", self.sendTwit)
         self.TwitEdit.bind('<Button-1>',self.emptyTwit)  
@@ -695,17 +700,34 @@ class MainPanel(Frame):
             self._busy.reset()
  
     def editValidate(self, *dummy):
-        #value = self.twitText.get()
         actualLenghth=len(self.twitText.get())
         if actualLenghth>140:
             self.twitText.set(self.twitText.get()[:140])
         else:
             self.RemainCar["text"] =  _("%d character(s) left") % (140-actualLenghth)
+
+def _initTranslation():
+    """Translation stuff : init locale and get text"""       
+    gettext.install(APP_NAME)
+    #Get the local directory since we are not installing anything
+    locale_path = os.path.join(os.path.realpath(os.path.dirname(sys.argv[0])),"locale")
+    langs = []
+    lc, encoding = locale.getdefaultlocale()
+    if (lc): langs = [lc]
+    # Now lets get all of the supported languages on the system
+    language = os.environ.get('LANGUAGE', None)
+    if (language): langs += language.split(":")
+    langs += ["fr_FR", "en_US"]
+    gettext.bindtextdomain(APP_NAME, locale_path)
+    gettext.textdomain(APP_NAME)
+    langFr = gettext.translation('pwytter',locale_path,languages=['fr_FR'])
+    langFr.install()    
+    # Get the language to use
+#        self.lang = gettext.translation(APP_NAME, self.locale_path
+#            , languages=langs, fallback = True)
     
 if __name__ == "__main__":
-    gettext.install('pwytter')
-    #langFr = gettext.translation('pwytter', languages=['fr'])
-    #langFr.install()    
+    _initTranslation()
     rootTk = Tk()
     rootTk.title('Pwytter %s' % (__version__))
     rootTk.resizable(width=0, height=0) 
