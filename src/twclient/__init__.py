@@ -105,6 +105,7 @@ class TwClient(object):
                 user_url = ""
             self.texts.append({"name": s.user.screen_name.encode('latin-1','replace'),
                                "msg" : s.text.encode('latin-1','replace'),
+                               "msgunicode" : s.text,
                                "time": "(%s)" % (atime),
                                "user_url" : user_url
                               })

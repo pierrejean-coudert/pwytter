@@ -1,8 +1,10 @@
 # Release 0.7
-#TODO: UTF-8 message support
-#TODO: GUI I18N
+#TODO: GUI I18N 
+#TODO: I18N creation time, timeline name
 #TODO: loading splashcreen, and do not hide pwytter under other windows by default
 #TODO: Themable user interface
+#TODO: UTF-8 message support
+
 #TODO: Reduce friend image size / limit number of displayed friends
 #TODO: Setup.py: must be ok on linux
 #TODO: Autoreconnect if bad connection
