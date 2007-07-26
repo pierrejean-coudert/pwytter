@@ -40,7 +40,7 @@ setup(
   #package_data={'twclient': glob.glob('twclient/doc/*.*')},
   py_modules = ['pwytter','tkBalloon','pwParam','pwTools','pwSplashScreen'],
   data_files=[("text", glob.glob("*.txt")),
-#              ("ico",glob.glob("*.ico")),
+              ("locale",glob.glob("locale\\*.*")),
               ("media",glob.glob("media\\*.png")+glob.glob("media\\*.ico"))],
   #console=['pwytter.py']
   #

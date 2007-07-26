@@ -21,18 +21,16 @@ class PwytterParams(object):
     """
     def __init__(self):
         self._paramPath = 'cfg'
-        self._paramFileName = os.path.join(self._paramPath,'pwytter.xml')
+        self._paramFileName = os.path.join(self._paramPath,'pwytter.xml')        
+        self.values={}
+        self._resetDefaults()
         
-        self.values={'user': '',
-                     'password': '',
-                     'refresh_rate' : '',
-                     'nb_lines' : ''
-                    }
     def _resetDefaults(self):
         self.values['user'] = 'pwytterTest'
         self.values['password'] = 'pwytterTest'
         self.values['refresh_rate'] = '120'
         self.values['nb_lines'] = '4'
+        self.values['theme'] = 'white'
 
     def __getitem__(self, aKey):
         return self.values[aKey]
@@ -50,7 +48,8 @@ class PwytterParams(object):
                 self.values[val]=node[0].firstChild.data.strip()
             except Exception, e:
                 print '!! Exception in process_node_string'+str(e)
-                self.values[val]=''
+                #self.values[val]=''
+        print self.values
     
     def writeToXML(self):
         impl = dom.getDOMImplementation()

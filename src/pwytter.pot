@@ -1,0 +1,129 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR ORGANIZATION
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"POT-Creation-Date: 2007-07-26 11:43+W. Europe Standard Time\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: ENCODING\n"
+"Generated-By: pygettext.py 1.5\n"
+
+
+#: pwSplashScreen.py:50
+msgid "Pwytter"
+msgstr ""
+
+#: pwSplashScreen.py:54
+msgid "Loading..."
+msgstr ""
+
+#: pwSplashScreen.py:56
+msgid "Licence: GNU GPL v2"
+msgstr ""
+
+#: pwytter.py:60
+msgid "Enter your message here..."
+msgstr ""
+
+#: pwytter.py:64
+msgid "Enter your direct message here..."
+msgstr ""
+
+#: pwytter.py:179
+msgid "Parameters..."
+msgstr ""
+
+#: pwytter.py:192
+msgid "%s: %s %cLocation: %s"
+msgstr ""
+
+#: pwytter.py:211
+msgid "Pwytter web site..."
+msgstr ""
+
+#: pwytter.py:213
+msgid "Show friends"
+msgstr ""
+
+#: pwytter.py:215
+msgid "Hide friends"
+msgstr ""
+
+#: pwytter.py:216
+msgid "Current Time Unknown..."
+msgstr ""
+
+#: pwytter.py:217 pwytter.py:652
+msgid "Timeline: %s"
+msgstr ""
+
+#: pwytter.py:219
+msgid "Switch TimeLine"
+msgstr ""
+
+#: pwytter.py:222
+msgid "Refresh"
+msgstr ""
+
+#: pwytter.py:234 pwytter.py:252 pwytter.py:345
+msgid "Cancel"
+msgstr ""
+
+#: pwytter.py:235
+msgid "A new Pwytter release is available. You should upgrade now !"
+msgstr ""
+
+#: pwytter.py:239
+msgid "Update now..."
+msgstr ""
+
+#: pwytter.py:253
+msgid "Click here to create a Free Twitter Account..."
+msgstr ""
+
+#: pwytter.py:256
+msgid "User"
+msgstr ""
+
+#: pwytter.py:258
+msgid "Password"
+msgstr ""
+
+#: pwytter.py:261
+msgid "Refresh (s)"
+msgstr ""
+
+#: pwytter.py:263
+msgid "Lines"
+msgstr ""
+
+#: pwytter.py:266
+msgid "Apply"
+msgstr ""
+
+#: pwytter.py:325
+msgid "Direct Message..."
+msgstr ""
+
+#: pwytter.py:351
+msgid "Send"
+msgstr ""
+
+#: pwytter.py:453
+msgid "Following"
+msgstr ""
+
+#: pwytter.py:462
+msgid "Followers"
+msgstr ""
+
+#: pwytter.py:708
+msgid "%d character(s) left"
+msgstr ""
+
