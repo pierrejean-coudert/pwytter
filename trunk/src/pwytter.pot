@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"POT-Creation-Date: 2007-07-26 11:43+W. Europe Standard Time\n"
+"POT-Creation-Date: 2007-07-27 10:00+Romance Daylight Time\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -27,103 +27,103 @@ msgstr ""
 msgid "Licence: GNU GPL v2"
 msgstr ""
 
-#: pwytter.py:60
+#: pwytter.py:63
 msgid "Enter your message here..."
 msgstr ""
 
-#: pwytter.py:64
+#: pwytter.py:67
 msgid "Enter your direct message here..."
 msgstr ""
 
-#: pwytter.py:179
+#: pwytter.py:182
 msgid "Parameters..."
 msgstr ""
 
-#: pwytter.py:192
+#: pwytter.py:195
 msgid "%s: %s %cLocation: %s"
 msgstr ""
 
-#: pwytter.py:211
+#: pwytter.py:214
 msgid "Pwytter web site..."
 msgstr ""
 
-#: pwytter.py:213
+#: pwytter.py:216
 msgid "Show friends"
 msgstr ""
 
-#: pwytter.py:215
+#: pwytter.py:218
 msgid "Hide friends"
 msgstr ""
 
-#: pwytter.py:216
+#: pwytter.py:219
 msgid "Current Time Unknown..."
 msgstr ""
 
-#: pwytter.py:217 pwytter.py:652
+#: pwytter.py:220 pwytter.py:656
 msgid "Timeline: %s"
 msgstr ""
 
-#: pwytter.py:219
+#: pwytter.py:222
 msgid "Switch TimeLine"
 msgstr ""
 
-#: pwytter.py:222
+#: pwytter.py:225
 msgid "Refresh"
 msgstr ""
 
-#: pwytter.py:234 pwytter.py:252 pwytter.py:345
+#: pwytter.py:237 pwytter.py:255 pwytter.py:348
 msgid "Cancel"
 msgstr ""
 
-#: pwytter.py:235
+#: pwytter.py:238
 msgid "A new Pwytter release is available. You should upgrade now !"
 msgstr ""
 
-#: pwytter.py:239
+#: pwytter.py:242
 msgid "Update now..."
 msgstr ""
 
-#: pwytter.py:253
+#: pwytter.py:256
 msgid "Click here to create a Free Twitter Account..."
 msgstr ""
 
-#: pwytter.py:256
+#: pwytter.py:259
 msgid "User"
 msgstr ""
 
-#: pwytter.py:258
+#: pwytter.py:261
 msgid "Password"
 msgstr ""
 
-#: pwytter.py:261
+#: pwytter.py:264
 msgid "Refresh (s)"
 msgstr ""
 
-#: pwytter.py:263
+#: pwytter.py:266
 msgid "Lines"
 msgstr ""
 
-#: pwytter.py:266
+#: pwytter.py:269
 msgid "Apply"
 msgstr ""
 
-#: pwytter.py:325
+#: pwytter.py:328
 msgid "Direct Message..."
 msgstr ""
 
-#: pwytter.py:351
+#: pwytter.py:354 pwytter.py:594
 msgid "Send"
 msgstr ""
 
-#: pwytter.py:453
+#: pwytter.py:457
 msgid "Following"
 msgstr ""
 
-#: pwytter.py:462
+#: pwytter.py:466
 msgid "Followers"
 msgstr ""
 
-#: pwytter.py:708
+#: pwytter.py:712
 msgid "%d character(s) left"
 msgstr ""
 

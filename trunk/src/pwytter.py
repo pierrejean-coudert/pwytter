@@ -97,40 +97,6 @@ class MainPanel(Frame):
                 'widthTwit':62,
                 'widthDirectMsg':59
                 })
-#        if  self._params['theme']=="black":       
-#            self._display.update({
-#                'text#'     : "white",
-#                'bg#'       : "#1F242A",
-#                '1stLine#'  : "#484C4F",
-#                'line#'     : "#2F3237",
-#                'param#'    : "#585C5F",
-#                'timeline#' : "#484C4F",
-#                'me_bg#'    : "#2F3237", 
-#                'me_fg#'    : "#BBBBBB",
-#                'time#'     : "#BBBBBB",
-#                'message#'  : "#99CBFE",
-#                'messageUrl#': "#B9DBFF",
-#                'directMsg#': "#686C6F",
-#                'update#'   : "#FFBBBB",
-#                'twitEdit#' : "#2F3237"
-#                })
-#        else:
-#            self._display.update({
-#                'text#'     : "black",
-#                'bg#'       : "#FFFFFF",
-#                '1stLine#'  : "#F8F8F8",
-#                'line#'     : "#F0F0F0",
-#                'param#'    : "#E0E0E0",
-#                'timeline#' : "#D0D0D0",
-#                'me_bg#'    : "#F0F0F0", 
-#                'me_fg#'    : "#777777",
-#                'time#'     : "#888888",
-#                'message#'  : "#333333",
-#                'messageUrl#':"#333388",
-#                'directMsg#': "#E0E0E0",
-#                'update#'   : "#FFBBBB",
-#                'twitEdit#' : "#F0F0F0"
-#                })
         aTheme=pwTheme.pwTheme(self._params['theme'])
         aTheme.readFromFile()
         self._display.update(aTheme.values)
@@ -474,7 +440,7 @@ class MainPanel(Frame):
             self.tw.getFriends()
             i=0
             self._imagesFriendsLoaded = True
-            for fname in self.tw.Friends:
+            for fname in self.tw.Friends[:30]:
                 if i+1>len(self.FriendImages) :
                     self._createFriendImage(self.friendsInsideBox,i, "friend")
                 loaded, aImage= self.tw.imageFromCache(fname)
@@ -496,7 +462,7 @@ class MainPanel(Frame):
         try:
             self.tw.getFollowers()
             i=0
-            for fname in self.tw.Followers:
+            for fname in self.tw.Followers[:30]:
                 if i+1>len(self.FollowerImages) :
                     self._createFriendImage(self.followersInsideBox,i, "follower")
                 loaded, aImage= self.tw.imageFromCache(fname)
