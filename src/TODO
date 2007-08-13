@@ -4,6 +4,7 @@
 #TODO: loading splashcreen, and do not hide pwytter under other windows by default
 #TODO: Themable user interface
 #TODO: UTF-8 message support
+#TODO: Unescape HTML special chars
 
 #TODO: Reduce friend image size / limit number of displayed friends
 #TODO: Setup.py: must be ok on linux
