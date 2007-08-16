@@ -14,6 +14,7 @@ class TwitterCrawler(object):
     def __init__(self):
         print "Twitter User crawler"
         self.tw=twclient.TwClient('0.5', 'pwytter', 'pwytter123')
+        self.lastPublicScanTime=datetime.datetime.min
         
     def ConnectToDB(self):       
         self.con = sqlite.connect("users.sql")
@@ -32,11 +33,13 @@ class TwitterCrawler(object):
             self.con.execute("CREATE TABLE user(name VARCHAR(30) PRIMARY KEY, spiderdate TIMESTAMP)")
         except:
             pass
-        self.cur.execute("DELETE FROM user WHERE name=:who",{"who":u''})
-
         self.InitMinScanDate()
+
+    def ClearBadUsers(self):
+        self.cur.execute("DELETE FROM user WHERE name=:who",{"who":u''})
         
     def InitMinScanDate(self):
+        self.ClearBadUsers()
         try:
             self.cur.execute("SELECT MIN(spiderdate) FROM user")
             self.minScanDate=self.cur.fetchone()[0]
@@ -67,21 +70,21 @@ class TwitterCrawler(object):
             aUser= u''
             while aUser == u'':
                 aUser= self.cur.fetchone()[0]
-            print 'Next to Scan',aUser,'len:',len(aUser)
+            print 'Scanning',aUser
         except Exception,e:
-            print 'SelectNextUserToSpid',str(e)
+            print '!SelectNextUserToCrawl:',str(e)
             aUser=None
         return aUser
     
     def AddFriends(self):
-        friendsIgnoreCount= 7014
+        friendsIgnoreCount= 14010
         friendNames = ['pwytter']
         friends = None
         while not friends:
             try:
                 friends=self.tw.api.GetFriends()
             except Exception,e:
-                print str(e)
+                print "!AddFriend:",str(e)
                 
         for f in friends:
             friendNames.append(f.screen_name.encode('latin-1','replace'))
@@ -101,7 +104,7 @@ class TwitterCrawler(object):
                     for wait in range(56):
                         time.sleep(1)
                 except Exception,e:
-                    print str(e)
+                    print "!AddFriend:",str(e)
 
     def ScanUserFriends(self, aName):
             friends = None
@@ -110,8 +113,8 @@ class TwitterCrawler(object):
                 try:        
                     friends=self.tw.api.GetFriends(aName)
                 except Exception,e:
-                    print 'ScanUserFriends error:',str(e)
-                    print 'Try #',retry
+                    print '!ScanUserFriends:',str(e)
+                    print ' Try #',retry
                 retry += 1
             if friends:
                 for f in friends:
@@ -119,11 +122,20 @@ class TwitterCrawler(object):
                     self.AddUser(friendName)
             self.cur.execute('UPDATE user SET spiderdate=:when WHERE name=:who',{"who":aName, "when":datetime.datetime.now()})
             self.con.commit()
+
+
+    def CrawlPublicTimeline(self):
+        if datetime.datetime.now()-self.lastPublicScanTime> datetime.timedelta(seconds=40):
+            self.lastPublicScanTime=datetime.datetime.now()
+            print "-> Public TimeLineScan"
+            for s in self.tw.api.GetPublicTimeline():
+                self.AddUser(s.user.screen_name.encode('latin-1','replace'))
         
     def CrawlUsers(self):
         self.AddUser("pwytter")
         while True:
             try:
+                self.CrawlPublicTimeline()
                 username= self.SelectNextUserToCrawl()
                 if username:
                     self.ScanUserFriends(username)
