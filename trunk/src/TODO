@@ -1,8 +1,8 @@
 # Release 0.7
-#TODO: GUI I18N 
-#TODO: I18N creation time, timeline name
+#TODO: language selection in parameters
+#TODO: I18N creation time, timeline name, theme name
 #TODO: loading splashcreen, and do not hide pwytter under other windows by default
-#TODO: Themable user interface
+#TODO: Dynamic Theme reload
 #TODO: UTF-8 message support
 #TODO: Unescape HTML special chars
 
@@ -15,7 +15,10 @@
 #TODO: reference pwytter in python cheesecake
 
 #DONE: Better edit line handling : car count, erase "enter your message here"
-#DONE: Convert End of Line to Linux
+#DONE: Convert Python source End of Line to Linux
+#DONE: Themable user interface
+#DONE: GUI I18N 
+#DONE: Theme chooser in parameters
 
 # Release 0.8
 #TODO: Use SetupTools

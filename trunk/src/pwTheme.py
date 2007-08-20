@@ -12,14 +12,35 @@
 #   GNU General Public License for more details.
 
 import os
+import glob
 
 class pwTheme(object):
+    """
+    Usage:
+    th=pwTheme('blue')
+    th.readFromFile()
+    print th.themeList
+    print th.values
+    """
     def __init__(self, aName="black"):
         self._themePath = 'theme'
-        self._themeFile = os.path.join(self._themePath, aName+'.pwt')        
+        self.themeList = [os.path.splitext(os.path.basename(theme))[0] for theme in \
+                           glob.glob(os.path.join(self._themePath, '*.pwt'))]
         self.values={}
         self._initDefault()
+        self.setTheme(aName)
 
+    def setTheme(self, aName):
+        if aName in self.themeList:
+            self.themeName = aName
+        else:
+            self.themeName = self.themeList[0]
+        self._themeFile = os.path.join(self._themePath, self.themeName+'.pwt') 
+        try:
+            self._readFromFile()
+        except Exception, e:
+            print "Error reading theme", aName,":",str(e)
+        
     def _initDefault(self):
         self.values={
             'text#'     : "white",
@@ -38,7 +59,7 @@ class pwTheme(object):
             'twitEdit#' : "#2F3237"
             }
         
-    def readFromFile(self):
+    def _readFromFile(self):
         f = open(self._themeFile,'r')
         for line in f.readlines():
             color, value = line.split(':')
@@ -51,7 +72,3 @@ class pwTheme(object):
     def __setitem__(self, aKey, value):
         self.values[aKey] = value
             
-if __name__ == "__main__":
-    th=pwTheme('blue')
-    th.readFromFile()
-    print th.values

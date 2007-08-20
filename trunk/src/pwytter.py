@@ -52,24 +52,8 @@ class MainPanel(Frame):
         self._needToShowParameters = False
         self._busy = pwTools.BusyManager(master)
         self._params = pwParam.PwytterParams()
-        try:
-            self._params.readFromXML()
-        except:
-            self._needToShowParameters = True
-        
-        self.tw=twclient.TwClient(__version__, self._params['user'], self._params['password'])       
-        self._applyParameters()
 
-        self._defaultTwitText = _('Enter your message here...')
-        self.twitText = StringVar()
-        self.twitText.set(self._defaultTwitText)
-        self.directText = StringVar()
-        self.directText.set(_('Enter your direct message here...'))
-        self.userVar = StringVar()
-        self.passwordVar = StringVar()
-        self.refreshVar = IntVar()
-        self.linesVar = IntVar()
-        Frame.__init__(self, master)
+        self.Theme = None
         self._display={
             'fontName':('Helvetica',8,'bold'),
             'fontMsg':('Helvetica',8,'bold'),
@@ -97,9 +81,28 @@ class MainPanel(Frame):
                 'widthTwit':62,
                 'widthDirectMsg':59
                 })
-        aTheme=pwTheme.pwTheme(self._params['theme'])
-        aTheme.readFromFile()
-        self._display.update(aTheme.values)
+
+        self._loadTheme(self._params['theme'])
+
+        try:
+            self._params.readFromXML()
+        except:
+            self._needToShowParameters = True
+        self._setLanguage('fr_FR')
+        
+        self.tw=twclient.TwClient(__version__, self._params['user'], self._params['password'])       
+        self._applyParameters()
+
+        self._defaultTwitText = _('Enter your message here...')
+        self.twitText = StringVar()
+        self.twitText.set(self._defaultTwitText)
+        self.directText = StringVar()
+        self.directText.set(_('Enter your direct message here...'))
+        self.userVar = StringVar()
+        self.passwordVar = StringVar()
+        self.refreshVar = IntVar()
+        self.linesVar = IntVar()
+        Frame.__init__(self, master)
         
         self._bg=self._display['bg#']
         self['bg']=self._bg
@@ -112,10 +115,37 @@ class MainPanel(Frame):
             self._showParameters()            
         self._refreshTime = 0
 
+    def _setLanguage(self, locale_name='en_US'):
+        #Get the local directory since we are not installing anything
+        locale_path = os.path.join(os.path.realpath(os.path.dirname(sys.argv[0])),"locale")
+        langs = []
+        lc, encoding = locale.getdefaultlocale()
+        if (lc): langs = [lc]
+        # Now lets get all of the supported languages on the system
+        language = os.environ.get('LANGUAGE', None)
+        if (language): langs += language.split(":")
+        langs += ["fr_FR", "en_US"]
+        gettext.bindtextdomain(APP_NAME, locale_path)
+        gettext.textdomain(APP_NAME)
+
+        langFr = gettext.translation('pwytter',locale_path,languages=[locale_name])
+        langFr.install()    
+        # Get the language to use
+    #        self.lang = gettext.translation(APP_NAME, self.locale_path
+    #            , languages=langs, fallback = True)
+    
+    def _loadTheme(self, aName):
+        if self.Theme:
+          self.Theme.setTheme(aName)
+        else:
+          self.Theme=pwTheme.pwTheme(aName)
+        self._display.update(self.Theme.values)
+
     def _applyParameters(self):
         self._refreshRate = int(self._params['refresh_rate'])
         self._TwitLines = int(self._params['nb_lines'])
         self.tw.login(self._params['user'], self._params['password'])
+        self._loadTheme(self._params['theme'])
         
     def _imagefromfile(self,name):
         if name not in self._imageFile.keys() :
@@ -233,7 +263,17 @@ class MainPanel(Frame):
         self.LinesEntry = Entry(self.ParamInsideBox, textvariable=self.linesVar)
         self.BtnBox=Frame(self.ParamInsideBox, bg=param_bg)
         self.ApplyBtn=Button(self.BtnBox, text=_("Apply"), command=self._saveParameters)
-        
+
+        self.ThemeLbl=Label(self.ParamInsideBox, text=_("Theme"), bg=param_bg)
+        self.themeVar = StringVar(self.ParamInsideBox)
+        self.themeVar.set(self.Theme.themeName) # default value
+        self.ThemeBox = OptionMenu(self.ParamInsideBox, self.themeVar, *self.Theme.themeList)
+
+        self.LanguageLbl=Label(self.ParamInsideBox, text=_("Language"), bg=param_bg)
+        self.LanguageVar = StringVar(self.ParamInsideBox)
+        self.LanguageVar.set("one") # default value
+        self.LanguageBox = OptionMenu(self.ParamInsideBox, self.LanguageVar, "one", "two", "three")
+
         self.ParamCancel.grid(row=0,column=0,padx=5,pady=5,sticky=NW)
         self.CreateAccountLbl.bind('<1>', self._createAccountClick)
         self.CreateAccountLbl.grid(row=0,column=1, columnspan=3,padx=5,pady=5)
@@ -245,7 +285,11 @@ class MainPanel(Frame):
         self.refreshEntry.grid(row=2, column=1,padx=5,pady=5)
         self.LinesLbl.grid(row=2,column=2,padx=5,pady=5,sticky=W)
         self.LinesEntry.grid(row=2, column=3,padx=5,pady=5)
-        self.BtnBox.grid(row=3, column=3, columnspan=4, sticky=EW)
+        self.ThemeLbl.grid(row=3, column=0, padx=5, pady=5, sticky=W)   
+        self.ThemeBox.grid(row=3, column=1, padx=5, pady=5, sticky=W)      
+        self.LanguageLbl.grid(row=3, column=2, padx=5, pady=5, sticky=W)   
+        self.LanguageBox.grid(row=3, column=3, padx=5, pady=5, sticky=W)      
+        self.BtnBox.grid(row=4, column=3, columnspan=4, sticky=EW)
         self.ApplyBtn.pack(padx=5,pady=5,side="right")
        
     def _showParameters(self,par=None):
@@ -265,6 +309,7 @@ class MainPanel(Frame):
         self._params['password'] = self.passwordVar.get()
         self._params['refresh_rate'] = self.refreshVar.get()
         self._params['nb_lines']= self.linesVar.get()
+        self._params['theme']= self.themeVar.get()
         self._params.writeToXML()
         self._applyParameters()
         self._hideParameters()
@@ -680,23 +725,7 @@ class MainPanel(Frame):
 def _initTranslation():
     """Translation stuff : init locale and get text"""       
     gettext.install(APP_NAME)
-    #Get the local directory since we are not installing anything
-    locale_path = os.path.join(os.path.realpath(os.path.dirname(sys.argv[0])),"locale")
-    langs = []
-    lc, encoding = locale.getdefaultlocale()
-    if (lc): langs = [lc]
-    # Now lets get all of the supported languages on the system
-    language = os.environ.get('LANGUAGE', None)
-    if (language): langs += language.split(":")
-    langs += ["fr_FR", "en_US"]
-    gettext.bindtextdomain(APP_NAME, locale_path)
-    gettext.textdomain(APP_NAME)
-    langFr = gettext.translation('pwytter',locale_path,languages=['fr_FR'])
-    langFr.install()    
-    # Get the language to use
-#        self.lang = gettext.translation(APP_NAME, self.locale_path
-#            , languages=langs, fallback = True)
-    
+       
 if __name__ == "__main__":
     _initTranslation()
     rootTk = Tk()
