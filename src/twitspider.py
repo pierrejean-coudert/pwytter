@@ -9,6 +9,8 @@ import twclient
 from pysqlite2 import dbapi2 as sqlite
 import datetime
 import threading
+import urllib2
+import re
 
 class TwitterCrawler(object):
     def __init__(self):
@@ -61,8 +63,6 @@ class TwitterCrawler(object):
             print '+ Adding',aName
             self.cur.execute('INSERT INTO user (name, spiderdate) VALUES (:who,:when)',{"who":aName, "when":datetime.datetime.min})
             self.con.commit()
-#        else:
-#            print '- Already in:',aName
     
     def SelectNextUserToCrawl(self):
         self.cur.execute("SELECT name FROM user WHERE spiderdate=:when LIMIT 5",{"when":self.minScanDate})
@@ -70,14 +70,13 @@ class TwitterCrawler(object):
             aUser= u''
             while aUser == u'':
                 aUser= self.cur.fetchone()[0]
-            print 'Scanning',aUser
         except Exception,e:
             print '!SelectNextUserToCrawl:',str(e)
             aUser=None
         return aUser
     
     def AddFriends(self):
-        friendsIgnoreCount= 14010
+        friendsIgnoreCount= 19169
         friendNames = ['pwytter']
         friends = None
         while not friends:
@@ -100,7 +99,8 @@ class TwitterCrawler(object):
             if aName not in friendNames:
                 try :
                     self.tw.api.CreateFriendship(aName)
-                    print "**** Add friend:",aName
+                    friendsIgnoreCount +=1
+                    print "**** Add friend:",aName,"No:",friendsIgnoreCount
                     for wait in range(56):
                         time.sleep(1)
                 except Exception,e:
@@ -125,11 +125,16 @@ class TwitterCrawler(object):
 
 
     def CrawlPublicTimeline(self):
-        if datetime.datetime.now()-self.lastPublicScanTime> datetime.timedelta(seconds=40):
+        if datetime.datetime.now()-self.lastPublicScanTime> datetime.timedelta(seconds=5):
             self.lastPublicScanTime=datetime.datetime.now()
             print "-> Public TimeLineScan"
-            for s in self.tw.api.GetPublicTimeline():
-                self.AddUser(s.user.screen_name.encode('latin-1','replace'))
+
+            s = urllib2.urlopen("http://twitter.com/").read()   
+            for u in re.findall('<strong><a href="http://twitter\.com/.+">(.+)</a></strong>', s):
+                self.AddUser(u)
+        
+            #for s in self.tw.api.GetPublicTimeline():
+            #    self.AddUser(s.user.screen_name.encode('latin-1','replace'))
         
     def CrawlUsers(self):
         self.AddUser("pwytter")
@@ -138,10 +143,11 @@ class TwitterCrawler(object):
                 self.CrawlPublicTimeline()
                 username= self.SelectNextUserToCrawl()
                 if username:
+                    print '-> Scanning',username
                     self.ScanUserFriends(username)
                     count,toscan=self.UserCount(),self.UserToScanCount() 
                     scanned=count-toscan
-                    print "Scanned:",scanned, 'To Scan:',toscan, 'Total:',count, "Ratio:",1.0*toscan/scanned
+                    print "   Scanned:",scanned, 'To Scan:',toscan, 'Total:',count, "Ratio:",1.0*toscan/scanned
                 else:
                     self.InitMinScanDate()
             except Exception,e:
