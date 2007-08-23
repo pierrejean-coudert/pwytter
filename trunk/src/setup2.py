@@ -40,7 +40,10 @@ if sys.platform == 'darwin':
         app = [mainscript],
         # Cross-platform applications generally expect sys.argv to
         # be used for opening files.
-        options = dict(py2app = dict(argv_emulation=True),
+        options = dict(py2app = dict(argv_emulation=True,
+                                     resources = ["theme","locale","media"],
+                                     #distdir = 'MacBinaries'
+                                     ),
                        plist = dict(CFBundleName='Pwytter',
                                    #CFBundleIconFile='Pwytter.icns',
                                    #CFBundleDocumentTypes=[
@@ -63,12 +66,9 @@ if sys.platform == 'darwin':
                                     # We're not apple-scriptable
                                    NSAppleScriptEnabled='No',
                                   ),
-                       resources = [("text", glob.glob("*.txt")),
-                                    ("theme",glob.glob("theme\\*.pwt")),
-                                    ("locale",glob.glob("locale\\*.*")),
-                                    ("media",glob.glob("media\\*.png")+glob.glob("media\\*.ico"))]
                        ),
     )
+
 elif sys.platform == 'win32':
     import py2exe
     extra_options = dict(
