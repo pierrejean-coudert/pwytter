@@ -31,7 +31,7 @@ class PwytterParams(object):
         self.values['refresh_rate'] = '120'
         self.values['nb_lines'] = '4'
         self.values['theme'] = 'white'
-        self.values['language'] = 'english'
+        self.values['language'] = 'English'
 
     def __getitem__(self, aKey):
         return self.values[aKey]

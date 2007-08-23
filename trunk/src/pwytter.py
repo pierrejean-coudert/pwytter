@@ -81,15 +81,17 @@ class MainPanel(Frame):
                 'widthTwit':62,
                 'widthDirectMsg':59
                 })
-
         self._loadTheme(self._params['theme'])
+
+        self._languages={"English":"en_US",
+                         "French":"fr_FR"
+                        }
 
         try:
             self._params.readFromXML()
         except:
             self._needToShowParameters = True
-        self._setLanguage('fr_FR')
-        
+                
         self.tw=twclient.TwClient(__version__, self._params['user'], self._params['password'])       
         self._applyParameters()
 
@@ -110,12 +112,12 @@ class MainPanel(Frame):
         self._createWidgets()
         self._refreshMe()
         if not self.tw.VersionOK:
-            self._showUpdate()
+            self._showUpdatePwytter()
         if self._needToShowParameters:
             self._showParameters()            
         self._refreshTime = 0
 
-    def _setLanguage(self, locale_name='en_US'):
+    def _setLanguage(self, aLanguage='English'):
         #Get the local directory since we are not installing anything
         locale_path = os.path.join(os.path.realpath(os.path.dirname(sys.argv[0])),"locale")
         langs = []
@@ -128,7 +130,11 @@ class MainPanel(Frame):
         gettext.bindtextdomain(APP_NAME, locale_path)
         gettext.textdomain(APP_NAME)
 
-        langFr = gettext.translation('pwytter',locale_path,languages=[locale_name])
+        if aLanguage in self._languages:
+            self._currentLanguage=aLanguage
+        else:
+            self._currentLanguage='English'
+        langFr = gettext.translation('pwytter',locale_path,languages=[self._languages[self._currentLanguage]])
         langFr.install()    
         # Get the language to use
     #        self.lang = gettext.translation(APP_NAME, self.locale_path
@@ -146,6 +152,8 @@ class MainPanel(Frame):
         self._TwitLines = int(self._params['nb_lines'])
         self.tw.login(self._params['user'], self._params['password'])
         self._loadTheme(self._params['theme'])
+        self._setLanguage(self._params['language'])
+
         
     def _imagefromfile(self,name):
         if name not in self._imageFile.keys() :
@@ -270,9 +278,9 @@ class MainPanel(Frame):
         self.ThemeBox = OptionMenu(self.ParamInsideBox, self.themeVar, *self.Theme.themeList)
 
         self.LanguageLbl=Label(self.ParamInsideBox, text=_("Language"), bg=param_bg)
-        self.LanguageVar = StringVar(self.ParamInsideBox)
-        self.LanguageVar.set("one") # default value
-        self.LanguageBox = OptionMenu(self.ParamInsideBox, self.LanguageVar, "one", "two", "three")
+        self.languageVar = StringVar(self.ParamInsideBox)
+        self.languageVar.set(self._currentLanguage) # default value
+        self.LanguageBox = OptionMenu(self.ParamInsideBox, self.languageVar, *self._languages.keys())
 
         self.ParamCancel.grid(row=0,column=0,padx=5,pady=5,sticky=NW)
         self.CreateAccountLbl.bind('<1>', self._createAccountClick)
@@ -310,6 +318,7 @@ class MainPanel(Frame):
         self._params['refresh_rate'] = self.refreshVar.get()
         self._params['nb_lines']= self.linesVar.get()
         self._params['theme']= self.themeVar.get()
+        self._params['language']= self.languageVar.get()
         self._params.writeToXML()
         self._applyParameters()
         self._hideParameters()
@@ -542,7 +551,7 @@ class MainPanel(Frame):
         self.HideFriends.grid_forget()
         self.ShowFriends.grid(row=0,column=1, sticky="E")
 
-    def _showUpdate(self,par=None):
+    def _showUpdatePwytter(self,par=None):
         self.UpdateEmptyBox.grid_forget()
         self.UpdateInsideBox.grid(row=0,column=0)
 
