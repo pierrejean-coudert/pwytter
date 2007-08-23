@@ -76,7 +76,7 @@ class TwitterCrawler(object):
         return aUser
     
     def AddFriends(self):
-        friendsIgnoreCount= 19169
+        friendsIgnoreCount= 21967
         friendNames = ['pwytter']
         friends = None
         while not friends:
