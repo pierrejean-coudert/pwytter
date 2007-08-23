@@ -30,6 +30,8 @@ from setuptools import setup
 
 import sys
 import glob
+from pwytter import __version__ as VERSION
+
 mainscript = 'pwytter.py'
 
 if sys.platform == 'darwin':
@@ -39,8 +41,30 @@ if sys.platform == 'darwin':
         # Cross-platform applications generally expect sys.argv to
         # be used for opening files.
         options = dict(py2app = dict(argv_emulation=True),
-                       plist = dict(),
+                       plist = dict(CFBundleName='Pwytter',
+                                   #CFBundleIconFile='Pwytter.icns',
+                                   #CFBundleDocumentTypes=[
+                                   #     dict(
+                                   #         CFBundleTypeName=DB_FILE_TYPE,
+                                   #         CFBundleTypeRole='Editor',
+                                   #         NSDocumentClass='PackageDatabase',
+                                   #         # CFBundleTypeIconFile='Package Database.icns',
+                                   #         CFBundleTypeExtensions = ['packman', 'plist' ],
+                                   #         CFBundleTypeOSTypes=[],
+                                   #     ),
+                                   # ],
+                                   CFBundleGetInfoString=VERSION+', Pierre-Jean Coudert 2007, GNU GPL Licence',
+                                   CFBundleIdentifier='com.pwytter',
+                                   CFBundleShortVersionString=VERSION,
+                                   CFBundleVersion=VERSION,
+                                   # We need at least Panther, it may work on Jaguar but I've not yet
+                                   # verified if it should work.
+                                   LSMinimumSystemVersion='10.3.0',
+                                    # We're not apple-scriptable
+                                   NSAppleScriptEnabled='No',
+                                  ),
                        resources = [("text", glob.glob("*.txt")),
+                                    ("theme",glob.glob("theme\\*.pwt")),
                                     ("locale",glob.glob("locale\\*.*")),
                                     ("media",glob.glob("media\\*.png")+glob.glob("media\\*.ico"))]
                        ),
@@ -63,8 +87,6 @@ else:
     )
 
 
-from pwytter import __version__ as VERSION
-
 setup(  
   name = "pwytter",
   version = VERSION,
@@ -78,6 +100,7 @@ setup(
   py_modules = ['pwytter','tkBalloon','pwParam','pwTools','pwSplashScreen', 'pwTheme'],
   data_files=[("text", glob.glob("*.txt")),
               ("locale",glob.glob("locale\\*.*")),
+              ("theme",glob.glob("theme\\*.pwt")),
               ("media",glob.glob("media\\*.png")+glob.glob("media\\*.ico"))],
   #
   #This next part is for the Cheese Shop.
