@@ -6,7 +6,7 @@
 #TODO: UTF-8 message support
 #TODO: Unescape HTML special chars
 
-#TODO: Reduce friend image size / limit number of displayed friends
+#TODO: Reduce friend image size / limit number of displayed friends / Paging
 #TODO: Setup.py: must be ok on linux
 #TODO: Autoreconnect if bad connection
 #TODO: Mac version: py2app
