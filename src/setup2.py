@@ -29,6 +29,7 @@ ez_setup.use_setuptools()
 from setuptools import setup
 
 import sys
+import glob
 mainscript = 'pwytter.py'
 
 if sys.platform == 'darwin':
@@ -61,12 +62,6 @@ else:
         scripts=[mainscript],
     )
 
-#import os
-#if os.name=='nt':
-#    import py2exe
-import glob
-#PIL specific 
-#import Image
 
 from pwytter import __version__ as VERSION
 
