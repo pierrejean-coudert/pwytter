@@ -33,17 +33,22 @@ mainscript = 'pwytter.py'
 
 if sys.platform == 'darwin':
     extra_options = dict(
-        setup_requires=['py2app'],
-        app=[mainscript],
+        setup_requires = ['py2app'],
+        app = [mainscript],
         # Cross-platform applications generally expect sys.argv to
         # be used for opening files.
-        options=dict(py2app=dict(argv_emulation=True)),
+        options = dict(py2app = dict(argv_emulation=True),
+                       plist = dict(),
+                       resources = [("text", glob.glob("*.txt")),
+                                    ("locale",glob.glob("locale\\*.*")),
+                                    ("media",glob.glob("media\\*.png")+glob.glob("media\\*.ico"))]
+                       ),
     )
 elif sys.platform == 'win32':
     import py2exe
     extra_options = dict(
-        setup_requires=['py2exe'],
-        app=[mainscript],
+        setup_requires = ['py2exe'],
+        app = [mainscript],
     windows = [
         {"script": mainscript,
          "icon_resources": [(1, "media\\pwytter.ico")]
@@ -88,6 +93,7 @@ setup(
   license='GPL 2',
   platforms=['any'],
   url='http://www.pwytter.com',
+  download_url='http://www.pwytter.com/download/',
   keywords='twitter client python tkinter',
 
   classifiers = [
