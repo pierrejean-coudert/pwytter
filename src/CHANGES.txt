@@ -1,3 +1,6 @@
+2007-08-xx
+  * Release 0.7
+
 2007-07-23
   * Release 0.6
   * Send direct message
