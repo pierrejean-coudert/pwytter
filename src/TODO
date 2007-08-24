@@ -2,7 +2,6 @@
 #TODO: remove simplejson from dist
 #TODO: move twitspider / sql to directory, remove from sdist
 #TODO: reorganize source tree : bat directory, setup outside rsc, ...
-#TODO: I18N creation time, timeline name, theme name
 
 #TODO: I18N creation time, timeline name, theme name
 #TODO: language selection : dynamic refresh

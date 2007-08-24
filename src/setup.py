@@ -48,7 +48,7 @@ if sys.platform == 'darwin':
             ),
             plist = dict(
                 CFBundleName='Pwytter',
-                #CFBundleIconFile='Pwytter.icns',
+                CFBundleIconFile='media/Pwytter.icns',
                 #CFBundleDocumentTypes=[
                 #     dict(
                 #         CFBundleTypeName=DB_FILE_TYPE,
