@@ -1,11 +1,10 @@
 # Release 0.7
+#TODO: include "locale" directory structure with py2exe
 #TODO: remove simplejson from dist
 #TODO: move twitspider / sql to directory, remove from sdist
 #TODO: reorganize source tree : bat directory, setup outside rsc, ...
 
 #TODO: I18N creation time, timeline name, theme name
-#TODO: language selection : dynamic refresh
-#TODO: Dynamic Theme reload
 #TODO: Unescape HTML special chars
 
 #TODO: Reduce friend image size / limit number of displayed friends / Paging
@@ -19,7 +18,7 @@
 #DONE: Better edit line handling : car count, erase "enter your message here"
 #DONE: Convert Python source End of Line to Linux
 #DONE: Themable user interface
-#DONE: GUI I18N 
+#DONE: GUI I18N : English, French
 #DONE: Theme chooser in parameters
 #DONE: Mac version: py2app
 #DONE: Use SetupTools
@@ -27,6 +26,8 @@
 #DONE: UTF-8 message support
 
 # Release 0.8
+#TODO: handle a cache in the filesystem for quick startup
+#TODO: network error recovery (standby recovery)
 #TODO: Single WIN32 Setup with InnoSetup
 #TODO: Hide error message (icon with message in Hint)
 #TODO: Show Direct messages
@@ -35,7 +36,6 @@
 #TODO: Replies
 #TODO: Notifications, Mac Growl integration ( http://growl.info/documentation/developer/python-support.php, http://aaronland.info/python/twitter/twnotifier/, ...
 #TODO: onTop user information dialog : name, links, directmessage, add as friend, ...
-#TODO: handle a cache in the filesystem for quick startup
 #TODO: detect replies in messages (@xxx) in provide a link
 
 # Later

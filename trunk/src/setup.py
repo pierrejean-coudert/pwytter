@@ -28,11 +28,19 @@ import ez_setup
 ez_setup.use_setuptools()
 from setuptools import setup
 
-import sys
-import glob
+import os, sys
+import glob, fnmatch
 from pwytter import __version__ as VERSION
 
 mainscript = 'pwytter.py'
+
+def rec_glob(path,*masks):
+    l=[]
+    for root, dirs, files in os.walk(path):
+        for m in masks:
+            l=l+ glob.glob(os.path.join(root,m))
+    return l
+
 
 if sys.platform == 'darwin':
     extra_options = dict(
@@ -48,7 +56,7 @@ if sys.platform == 'darwin':
             ),
             plist = dict(
                 CFBundleName='Pwytter',
-                CFBundleIconFile='media/Pwytter.icns',
+                CFBundleIconFile='media/pwytter.icns',
                 #CFBundleDocumentTypes=[
                 #     dict(
                 #         CFBundleTypeName=DB_FILE_TYPE,
@@ -93,16 +101,20 @@ setup(
   name = "pwytter",
   version = VERSION,
 
-  install_requires = ["simplejson", "PIL"],
+  #install_requires = ["simplejson", "PIL"],
   #packages
   packages=['twclient'],
-  package_dir={'twclient': 'twclient'},
+  package_dir={'twclient': 'twclient',
+               'simplejson': 'twclient/simplejson'},
   #package_data={'twclient': glob.glob('twclient/doc/*.*')},
   py_modules = ['pwytter','tkBalloon','pwParam','pwTools','pwSplashScreen', 'pwTheme'],
   data_files=[("text", glob.glob("*.txt")),
-              ("locale",glob.glob("locale\\*.*")),
-              ("theme",glob.glob("theme\\*.pwt")),
-              ("media",glob.glob("media\\*.png")+glob.glob("media\\*.ico"))],
+              ("locale", rec_glob("locale","*.po","*.mo")),
+              ("theme", glob.glob("theme\\*.pwt")),
+              ("media", glob.glob("media\\*.png")
+                        + glob.glob("media\\*.ico")
+                        + glob.glob("media\\*.icns"))
+              ],
   #
   #This next part is for the Cheese Shop.
   author='Pierre-Jean Coudert',
