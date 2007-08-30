@@ -24,6 +24,13 @@ import Queue
 import threading
 from PIL import Image, ImageTk
 
+import re
+from htmlentitydefs import name2codepoint
+
+def htmlentitydecode(s):
+    return re.sub('&(%s);' % '|'.join(name2codepoint), 
+            lambda m: unichr(name2codepoint[m.group(1)]), s)
+
 class TwClient(object):
     def __init__(self, aVersion, aUser, aPassword):
         self.user, self.password = aUser, aPassword      
@@ -105,7 +112,7 @@ class TwClient(object):
                 user_url = ""
             self.texts.append({"name": s.user.screen_name.encode('latin-1','replace'),
                                "msg" : s.text.encode('latin-1','replace'),
-                               "msgunicode" : s.text,
+                               "msgunicode" : htmlentitydecode(s.text),
                                "time": "(%s)" % (atime),
                                "user_url" : user_url
                               })

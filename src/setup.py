@@ -36,10 +36,16 @@ mainscript = 'pwytter.py'
 
 def rec_glob(path,*masks):
     l=[]
+    d={}
     for root, dirs, files in os.walk(path):
         for m in masks:
             l=l+ glob.glob(os.path.join(root,m))
-    return l
+    for f in l:
+        p,n= os.path.split(f)
+        if p not in d.keys():
+            d[p]=[]
+        d[p]=d[p]+[f]
+    return d
 
 
 if sys.platform == 'darwin':
@@ -96,7 +102,6 @@ else:
         scripts=[mainscript],
     )
 
-
 setup(  
   name = "pwytter",
   version = VERSION,
@@ -109,12 +114,12 @@ setup(
   #package_data={'twclient': glob.glob('twclient/doc/*.*')},
   py_modules = ['pwytter','tkBalloon','pwParam','pwTools','pwSplashScreen', 'pwTheme'],
   data_files=[("text", glob.glob("*.txt")),
-              ("locale", rec_glob("locale","*.po","*.mo")),
               ("theme", glob.glob("theme\\*.pwt")),
               ("media", glob.glob("media\\*.png")
                         + glob.glob("media\\*.ico")
                         + glob.glob("media\\*.icns"))
-              ],
+              ]
+              +rec_glob("locale","*.po","*.mo").items(),
   #
   #This next part is for the Cheese Shop.
   author='Pierre-Jean Coudert',
