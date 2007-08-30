@@ -467,9 +467,9 @@ class MainPanel(Frame):
         self._imagesLoaded=True
         i=0
         for i in range(min(self._TwitLines,len(self.tw.texts))):
-            self._theme_Line(self.Lines[i], i)
             if i+1>len(self.Lines) :
                 self.Lines.append(self._createLine(self.LinesBox, i))
+            self._theme_Line(self.Lines[i], i)
             
             name = self.tw.texts[i]["name"]
             loaded, aImage= self.tw.imageFromCache(name)

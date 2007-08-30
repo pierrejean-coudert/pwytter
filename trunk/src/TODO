@@ -1,19 +1,10 @@
 # Release 0.7
-#TODO: include "locale" directory structure with py2exe
 #TODO: remove simplejson from dist
 #TODO: move twitspider / sql to directory, remove from sdist
 #TODO: reorganize source tree : bat directory, setup outside rsc, ...
+#TODO: Setup.py: must be ok on linux
 
 #TODO: I18N creation time, timeline name, theme name
-#TODO: Unescape HTML special chars
-
-#TODO: Reduce friend image size / limit number of displayed friends / Paging
-#TODO: Setup.py: must be ok on linux
-#TODO: Autoreconnect if bad connection
-#TODO: Mac version: Remove console, add icon
-#TODO: tkBalloon on Mac OS X: Should be displayed on top. try tix balloons
-#TODO: make a python-twitter patch : 'source':'pwytter' in PostUpdate
-#TODO: reference pwytter in python cheesecake
 
 #DONE: Better edit line handling : car count, erase "enter your message here"
 #DONE: Convert Python source End of Line to Linux
@@ -23,9 +14,14 @@
 #DONE: Mac version: py2app
 #DONE: Use SetupTools
 #DONE: loading splashcreen
-#DONE: UTF-8 message support
+#DONE: UTF-8 message support and unescape HTML entities
+#DONE: reference pwytter in python cheesecake
 
 # Release 0.8
+#TODO: make a python-twitter patch : 'source':'pwytter' in PostUpdate
+#TODO: Mac version: Remove console, add icon
+#TODO: tkBalloon on Mac OS X: Should be displayed on top. try tix balloons
+#TODO: Reduce friend image size / limit number of displayed friends / Paging
 #TODO: handle a cache in the filesystem for quick startup
 #TODO: network error recovery (standby recovery)
 #TODO: Single WIN32 Setup with InnoSetup
