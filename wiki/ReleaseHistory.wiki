@@ -1,3 +1,15 @@
+2007-08-31
+  * Release 0.7
+  * Splashcreen at startup
+  * GUI Internationalization. English, French translations included
+  * Themable user interface, Theme chooser in parameters, 3 Themes included
+  * Mac App version with py2app
+  * UTF-8 message support and unescape HTML entities
+  * Better edit line handling : car count, erase "enter your message here"
+  * Convert python sources "End of Line" to linux
+  * setup.py now uses SetupTools
+  * pwytter registered in python cheesecake
+
 2007-07-23
   * Release 0.6
   * Send direct message
