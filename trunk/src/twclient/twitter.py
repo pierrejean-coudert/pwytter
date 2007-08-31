@@ -91,7 +91,8 @@ class Status(object):
     Returns:
       The time this status message was posted, in seconds since the epoch.
     '''
-    return time.mktime(time.strptime(self.created_at, '%a %b %d %H:%M:%S +0000 %Y'))
+    #added +' GMT' to avaoid daylight saving errors
+    return time.mktime(time.strptime(self.created_at+' GMT', '%a %b %d %H:%M:%S +0000 %Y %Z'))
 
   created_at_in_seconds = property(GetCreatedAtInSeconds,
                                    doc="The time this status message was "
@@ -143,23 +144,23 @@ class Status(object):
     '''
     fudge = 1.25
     delta  = int(self.now) - int(self.created_at_in_seconds)
-
-    if delta < (1 * fudge):
-      return 'about a second ago'
-    elif delta < (60 * (1/fudge)):
-      return 'about %d seconds ago' % (delta)
-    elif delta < (60 * fudge):
-      return 'about a minute ago'
-    elif delta < (60 * 60 * (1/fudge)):
-      return 'about %d minutes ago' % (delta / 60)
-    elif delta < (60 * 60 * fudge):
-      return 'about an hour ago'
-    elif delta < (60 * 60 * 24 * (1/fudge)):
-      return 'about %d hours ago' % (delta / (60 * 60))
-    elif delta < (60 * 60 * 24 * fudge):
-      return 'about a day ago'
+    print "delta", delta ,self.now, self.created_at_in_seconds
+    if delta < 2:
+      return _('about a second ago')
+    elif delta < 60:
+      return _('about %d seconds ago') % (delta)
+    elif delta < (60 * 2):
+      return _('about a minute ago')
+    elif delta < (60 * 60):
+      return _('about %d minutes ago') % (delta / 60)
+    elif delta < (60 * 60 * 2):
+      return _('about an hour ago')
+    elif delta < (60 * 60 * 24):
+      return _('about %d hours ago') % (delta / (60 * 60))
+    elif delta < (60 * 60 * 24 *2):
+      return _('about a day ago')
     else:
-      return 'about %d days ago' % (delta / (60 * 60 * 24))
+      return _('about %d days ago') % (delta / (60 * 60 * 24))
 
   relative_created_at = property(GetRelativeCreatedAt,
                                  doc='Get a human readable string representing'
@@ -197,6 +198,7 @@ class Status(object):
     '''
     if self._now is None:
       self._now = time.mktime(time.gmtime())
+    print "now",time.gmtime(),self._now
     return self._now
 
   def SetNow(self, now):

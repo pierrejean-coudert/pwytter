@@ -290,39 +290,39 @@ class MainPanel(Frame):
                               bg=update_bg)
         self.UpdateGo.config(bg=update_bg, text=_("Update now..."))
 
-    def _createParameterBox(self, aParent):
+    def _create_parameterBox(self, aParent):
         param_bg=self._display['param#']        
-        self.ParamEmpyBox = Frame(aParent, bg=self._bg)
-        self.ParamInsideBox = Frame(aParent, width=500, bg=param_bg)
+        self.ParamEmpyBox = Frame(aParent)
+        self.ParamInsideBox = Frame(aParent, width=500)
         
         self.ParamCancel = ClickableImage(self.ParamInsideBox, \
                                         "cross.png", self._hideParameters, 
                                         param_bg,"parcancel", _('Cancel'))
-        self.CreateAccountLbl=Label(self.ParamInsideBox, text= _("Click here to create a Free Twitter Account..."), 
-                                    bg=param_bg, font=self._display['fontLink'],
-                                    cursor="hand2", fg=self._display['text#'])
-        self.UserLbl=Label(self.ParamInsideBox, text=_("User"), bg=param_bg)
+        self.CreateAccountLbl=Label(self.ParamInsideBox, font=self._display['fontLink'],
+                                    cursor="hand2")
+        self.UserLbl=Label(self.ParamInsideBox)
         self.UserEntry = Entry(self.ParamInsideBox,textvariable=self.userVar)
-        self.PasswordLbl=Label(self.ParamInsideBox, text=_("Password"), bg=param_bg)
+        self.PasswordLbl=Label(self.ParamInsideBox)
         self.PasswordEntry = Entry(self.ParamInsideBox, textvariable=self.passwordVar,
                                    show='*')
-        self.RefreshLbl=Label(self.ParamInsideBox, text=_("Refresh (s)"), bg=param_bg)
+        self.RefreshLbl=Label(self.ParamInsideBox)
         self.refreshEntry = Entry(self.ParamInsideBox, textvariable=self.refreshVar)
-        self.LinesLbl=Label(self.ParamInsideBox, text=_("Lines"), bg=param_bg)
+        self.LinesLbl=Label(self.ParamInsideBox)
         self.LinesEntry = Entry(self.ParamInsideBox, textvariable=self.linesVar)
-        self.BtnBox=Frame(self.ParamInsideBox, bg=param_bg)
-        self.ApplyBtn=Button(self.BtnBox, text=_("Apply"), command=self._saveParameters)
+        self.BtnBox=Frame(self.ParamInsideBox)
+        self.ApplyBtn=Button(self.BtnBox, command=self._saveParameters)
 
-        self.ThemeLbl=Label(self.ParamInsideBox, text=_("Theme"), bg=param_bg)
+        self.ThemeLbl=Label(self.ParamInsideBox)
         self.themeVar = StringVar(self.ParamInsideBox)
         self.themeVar.set(self.Theme.themeName) # default value
         self.ThemeBox = OptionMenu(self.ParamInsideBox, self.themeVar, *self.Theme.themeList)
 
-        self.LanguageLbl=Label(self.ParamInsideBox, text=_("Language"), bg=param_bg)
+        self.LanguageLbl=Label(self.ParamInsideBox)
         self.languageVar = StringVar(self.ParamInsideBox)
         self.languageVar.set(self._currentLanguage) # default value
         self.LanguageBox = OptionMenu(self.ParamInsideBox, self.languageVar, *self._languages.keys())
 
+        self._theme_parameterBox()
         self.ParamCancel.grid(row=0,column=0,padx=5,pady=5,sticky=NW)
         self.CreateAccountLbl.bind('<1>', self._createAccountClick)
         self.CreateAccountLbl.grid(row=0,column=1, columnspan=3,padx=5,pady=5)
@@ -341,6 +341,23 @@ class MainPanel(Frame):
         self.BtnBox.grid(row=4, column=3, columnspan=4, sticky=EW)
         self.ApplyBtn.pack(padx=5,pady=5,side="right")
        
+    def _theme_parameterBox(self):
+        param_bg=self._display['param#']        
+        self.ParamEmpyBox.config(bg=self._bg)
+        self.ParamInsideBox.config(bg=param_bg)
+        
+        self.ParamCancel.config(bg=param_bg,text=_('Cancel'))
+        self.CreateAccountLbl.config(text= _("Click here to create a Free Twitter Account..."), 
+                                    bg=param_bg, fg=self._display['text#'])
+        self.UserLbl.config(text=_("User"), bg=param_bg)
+        self.PasswordLbl.config(text=_("Password"), bg=param_bg)
+        self.RefreshLbl.config(text=_("Refresh (s)"), bg=param_bg)
+        self.LinesLbl.config(text=_("Lines"), bg=param_bg)
+        self.BtnBox.config(bg=param_bg)
+        self.ApplyBtn.config(text=_("Apply"))
+        self.ThemeLbl.config(text=_("Theme"), bg=param_bg)
+        self.LanguageLbl.config(text=_("Language"), bg=param_bg)
+
     def _showParameters(self,par=None):
         self.userVar.set(self._params['user'])
         self.passwordVar.set(self._params['password'])
@@ -365,6 +382,7 @@ class MainPanel(Frame):
         self._hideParameters()
         
         self._theme_widgets()
+        self._theme_parameterBox()
         self._theme_RefreshBox()
         self._theme_friendsBox()
         self._theme_updateBox()        
@@ -664,7 +682,7 @@ class MainPanel(Frame):
         self._create_mySelfBox(self.MainZone)
         self._create_RefreshBox(self.MainZone)
         self.ParameterBox = Frame(self.MainZone)
-        self._createParameterBox(self.ParameterBox)
+        self._create_parameterBox(self.ParameterBox)
         self.LinesBox= Frame(self.MainZone) 
         self.Lines=[]       
         for i in range(self._TwitLines):           

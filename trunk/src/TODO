@@ -1,24 +1,12 @@
-# Release 0.7
+# Release 0.8
 #TODO: remove simplejson from dist
-#TODO: move twitspider / sql to directory, remove from sdist
 #TODO: reorganize source tree : bat directory, setup outside rsc, ...
 #TODO: Setup.py: must be ok on linux
-
-#TODO: I18N creation time, timeline name, theme name
-
-#DONE: Better edit line handling : car count, erase "enter your message here"
-#DONE: Convert Python source End of Line to Linux
-#DONE: Themable user interface
-#DONE: GUI I18N : English, French
-#DONE: Theme chooser in parameters
-#DONE: Mac version: py2app
-#DONE: Use SetupTools
-#DONE: loading splashcreen
-#DONE: UTF-8 message support and unescape HTML entities
-#DONE: reference pwytter in python cheesecake
-
-# Release 0.8
+#TODO: Handle favorites
+#TODO: I18N timeline name, theme name
 #TODO: make a python-twitter patch : 'source':'pwytter' in PostUpdate
+#TODO: make a python-twitter patch : gettext
+
 #TODO: Mac version: Remove console, add icon
 #TODO: tkBalloon on Mac OS X: Should be displayed on top. try tix balloons
 #TODO: Reduce friend image size / limit number of displayed friends / Paging
@@ -33,6 +21,7 @@
 #TODO: Notifications, Mac Growl integration ( http://growl.info/documentation/developer/python-support.php, http://aaronland.info/python/twitter/twnotifier/, ...
 #TODO: onTop user information dialog : name, links, directmessage, add as friend, ...
 #TODO: detect replies in messages (@xxx) in provide a link
+#TODO: switching timeline should be a select menu (or suppress the “timeline” word, and put “me”, “my friends”, “everybody” along each other)
 
 # Later
 #TODO: multiple accounts as in http://funkatron.com/index.php/site/spaz_a_twitter_client_for_mac_os_x_windows_and_linux/
@@ -43,6 +32,23 @@
 #TODO: Create / delete friendship
 #TODO: “?” help button presenting : 1) whats twitter 2) why use twitter 3) how to use pwytter 3.1) especially how to create an account
 
-#Suggestions
-#switching timeline should be a select menu (or suppress the “timeline” word, and put “me”, “my friends”, “everybody” along each other)
-# “xxx caracters remaning” should be in gray and “Characters available: xxx”
+#Create new release
+- build src dist
+- build py2exe
+- build by2app
+
+- upload on google hosting
+- change google hosting links
+- change pwytter.com links
+
+- upload version.txt
+- upload meta.xml
+
+- write an announce on pwytter.com
+- write an announce on pwytter/twitter account
+
+- register on pypi
+- register on freshmeat
+
+
+
