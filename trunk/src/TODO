@@ -33,12 +33,15 @@
 #TODO: “?” help button presenting : 1) whats twitter 2) why use twitter 3) how to use pwytter 3.1) especially how to create an account
 
 #Create new release
+- update TODO.txt and CHANGES.txt
+- update SVN
 - build src dist
 - build py2exe
 - build by2app
 
 - upload on google hosting
 - change google hosting links
+- update Release notes on google hosting
 - change pwytter.com links
 
 - upload version.txt
