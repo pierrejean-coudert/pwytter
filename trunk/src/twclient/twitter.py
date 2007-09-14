@@ -5,9 +5,10 @@
 '''A library that provides a python interface to the Twitter API'''
 
 __author__ = 'dewitt@google.com'
-__version__ = '0.4'
+__version__ = '0.5'
 
 
+import base64
 import md5
 import os
 import simplejson
@@ -91,8 +92,7 @@ class Status(object):
     Returns:
       The time this status message was posted, in seconds since the epoch.
     '''
-    #added +' GMT' to avaoid daylight saving errors
-    return time.mktime(time.strptime(self.created_at+' GMT', '%a %b %d %H:%M:%S +0000 %Y %Z'))
+    return time.mktime(time.strptime(self.created_at, '%a %b %d %H:%M:%S +0000 %Y'))
 
   created_at_in_seconds = property(GetCreatedAtInSeconds,
                                    doc="The time this status message was "
@@ -144,23 +144,23 @@ class Status(object):
     '''
     fudge = 1.25
     delta  = int(self.now) - int(self.created_at_in_seconds)
-    print "delta", delta ,self.now, self.created_at_in_seconds
-    if delta < 2:
-      return _('about a second ago')
-    elif delta < 60:
-      return _('about %d seconds ago') % (delta)
-    elif delta < (60 * 2):
-      return _('about a minute ago')
-    elif delta < (60 * 60):
-      return _('about %d minutes ago') % (delta / 60)
-    elif delta < (60 * 60 * 2):
-      return _('about an hour ago')
-    elif delta < (60 * 60 * 24):
-      return _('about %d hours ago') % (delta / (60 * 60))
-    elif delta < (60 * 60 * 24 *2):
-      return _('about a day ago')
+
+    if delta < (1 * fudge):
+      return 'about a second ago'
+    elif delta < (60 * (1/fudge)):
+      return 'about %d seconds ago' % (delta)
+    elif delta < (60 * fudge):
+      return 'about a minute ago'
+    elif delta < (60 * 60 * (1/fudge)):
+      return 'about %d minutes ago' % (delta / 60)
+    elif delta < (60 * 60 * fudge):
+      return 'about an hour ago'
+    elif delta < (60 * 60 * 24 * (1/fudge)):
+      return 'about %d hours ago' % (delta / (60 * 60))
+    elif delta < (60 * 60 * 24 * fudge):
+      return 'about a day ago'
     else:
-      return _('about %d days ago') % (delta / (60 * 60 * 24))
+      return 'about %d days ago' % (delta / (60 * 60 * 24))
 
   relative_created_at = property(GetRelativeCreatedAt,
                                  doc='Get a human readable string representing'
@@ -198,7 +198,6 @@ class Status(object):
     '''
     if self._now is None:
       self._now = time.mktime(time.gmtime())
-    print "now",time.gmtime(),self._now
     return self._now
 
   def SetNow(self, now):
@@ -885,20 +884,24 @@ class Api(object):
 
   _API_REALM = 'Twitter API'
 
-  def __init__(self, username=None, password=None, input_encoding=None):
+  def __init__(self,
+               username=None,
+               password=None,
+               input_encoding=None,
+               request_headers=None):
     '''Instantiate a new twitter.Api object.
 
     Args:
       username: The username of the twitter account.  [optional]
       password: The password for the twitter account. [optional]
-      input_encoding: The encoding used to encode strings in the input. [optional]
+      input_encoding: The encoding used to encode input strings. [optional]
+      request_header: A dictionary of additional HTTP request headers. [optional]
     '''
     self._cache = _FileCache()
     self._urllib = urllib2
     self._cache_timeout = Api.DEFAULT_CACHE_TIMEOUT
-    self._user_agent = 'Python-urllib/%s (python-twitter/%s)' % \
-                       (self._urllib.__version__, twitter.__version__)
-    self._x_twitter_header = None
+    self._InitializeRequestHeaders(request_headers)
+    self._InitializeUserAgent()
     self._input_encoding = input_encoding
     self.SetCredentials(username, password)
 
@@ -1047,7 +1050,7 @@ class Api(object):
     if len(text) > 140:
       raise TwitterError("Text must be less than or equal to 140 characters.")
     url = 'http://twitter.com/statuses/update.json'
-    data = {'status': text,'source':'pwytter'}
+    data = {'status': text}
     json = self._FetchUrl(url, post_data=data)
     data = simplejson.loads(json)
     return Status.NewFromJsonDict(data)
@@ -1168,8 +1171,6 @@ class Api(object):
     Returns:
       A twitter.DirectMessage instance representing the message posted
     '''
-    if len(text) > 140:
-      raise TwitterError("Text must be less than or equal to 140 characters.")
     if not self._username:
       raise TwitterError("The twitter.Api instance must be authenticated.")
     url = 'http://twitter.com/direct_messages/new.json'
@@ -1272,19 +1273,25 @@ class Api(object):
     Args:
       user_agent: a string that should be send to the server as the User-agent
     '''
-    self._user_agent = user_agent
+    self._request_headers['User-Agent'] = user_agent
 
-  def SetXTwitterHeader(self, client, url, version):
-    '''Add a X-Twitter header that would be send to the server
+  def SetXTwitterHeaders(self, client, url, version):
+    '''Set the X-Twitter HTTP headers that will be sent to the server.
 
     Args:
-      client:  client name as a string. Will be send to the server as the X-Twitter-Client
-      url:     url of the meta.xml as a string. Will be send to the server as the X-Twitter-Client-URL
-      version: client version as a string. Will be send to the server as the X-Twitter-Client-Version
-      '''
-    self._x_twitter_header={'X-Twitter-Client' : client,
-                            'X-Twitter-Client-URL' : url,
-                            'X-Twitter-Client-Version' : version}
+      client:
+         The client name as a string.  Will be sent to the server as
+         the 'X-Twitter-Client' header.
+      url:
+         The URL of the meta.xml as a string.  Will be sent to the server
+         as the 'X-Twitter-Client-URL' header.
+      version:
+         The client version as a string.  Will be sent to the server
+         as the 'X-Twitter-Client-Version' header.
+    '''
+    self._request_headers['X-Twitter-Client'] = client
+    self._request_headers['X-Twitter-Client-URL'] = url
+    self._request_headers['X-Twitter-Client-Version'] = version
 
   def _BuildUrl(self, url, path_elements=None, extra_params=None):
     # Break url into consituent parts
@@ -1310,19 +1317,36 @@ class Api(object):
     # Return the rebuilt URL
     return urlparse.urlunparse((scheme, netloc, path, params, query, fragment))
 
+  def _InitializeRequestHeaders(self, request_headers):
+    if request_headers:
+      self._request_headers = request_headers
+    else:
+      self._request_headers = {}
+
+  def _InitializeUserAgent(self):
+    user_agent = 'Python-urllib/%s (python-twitter/%s)' % \
+                 (self._urllib.__version__, twitter.__version__)
+    self.SetUserAgent(user_agent)
+
+  def _AddAuthorizationHeader(self, username, password):
+    if username and password:
+      basic_auth = base64.encodestring('%s:%s' % (username, password))[:-1]
+      self._request_headers['Authorization'] = 'Basic %s' % basic_auth
+
+  def _RemoveAuthorizationHeader(self):
+    if self._request_headers and 'Authorization' in self._request_headers:
+      del self._request_headers['Authorization']
+
   def _GetOpener(self, url, username=None, password=None):
     if username and password:
+      self._AddAuthorizationHeader(username, password)
       handler = self._urllib.HTTPBasicAuthHandler()
       (scheme, netloc, path, params, query, fragment) = urlparse.urlparse(url)
       handler.add_password(Api._API_REALM, netloc, username, password)
       opener = self._urllib.build_opener(handler)
     else:
       opener = self._urllib.build_opener()
-    opener.addheaders = [('User-agent', self._user_agent)]
-    if self._x_twitter_header:
-      opener.addheaders.append(('X-Twitter-Client', self._x_twitter_header['X-Twitter-Client']))
-      opener.addheaders.append(('X-Twitter-Client-URL', self._x_twitter_header['X-Twitter-Client-URL']))
-      opener.addheaders.append(('X-Twitter-Client-Version', self._x_twitter_header['X-Twitter-Client-Version']))
+    opener.addheaders = self._request_headers.items()
     return opener
 
   def _Encode(self, s):
@@ -1421,8 +1445,6 @@ class _FileCacheError(Exception):
 
 class _FileCache(object):
 
-  DEFAULT_ROOT_DIRECTORY = os.path.join(tempfile.gettempdir(), 'python.cache')
-
   DEPTH = 3
 
   def __init__(self,root_directory=None):
@@ -1468,9 +1490,22 @@ class _FileCache(object):
     else:
       return None
 
+  def _GetUsername(self):
+    '''Attempt to find the username in a cross-platform fashion.'''
+    return os.getenv('USER') or \
+        os.getenv('LOGNAME') or \
+        os.getenv('USERNAME') or \
+        os.getlogin() or \
+        'nobody'
+
+  def _GetTmpCachePath(self):
+    username = self._GetUsername()
+    cache_directory = 'python.cache_' + username
+    return os.path.join(tempfile.gettempdir(), cache_directory)
+
   def _InitializeRootDirectory(self, root_directory):
     if not root_directory:
-      root_directory = _FileCache.DEFAULT_ROOT_DIRECTORY
+      root_directory = self._GetTmpCachePath()
     root_directory = os.path.abspath(root_directory)
     if not os.path.exists(root_directory):
       os.mkdir(root_directory)
