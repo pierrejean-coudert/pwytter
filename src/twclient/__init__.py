@@ -35,8 +35,8 @@ class TwClient(object):
     def __init__(self, aVersion, aUser, aPassword):
         self.user, self.password = aUser, aPassword      
         self.api = twitter.Api(self.user,self.password)
-        self.api.SetCache(None)
-        self.api.SetXTwitterHeader('pwytter', 'http://www.pwytter.com/files/meta.xml', aVersion)       
+        self.api.SetXTwitterHeaders('pwytter', 'http://www.pwytter.com/files/meta.xml', aVersion)       
+        self.api.SetSource('pwytter')       
 
         self._imageLoading = Image.open(os.path.join("media",'loading.png'))
         self._imageLoading.thumbnail((32,32),Image.ANTIALIAS)
@@ -149,7 +149,6 @@ class TwClient(object):
         returnImage = Image.open(StringIO.StringIO(urllib2.urlopen(imageurl).read()))
         returnImage.thumbnail((32,32),Image.ANTIALIAS)
         self._imageQueue.put((aUserName,returnImage))
-        #print "image loaded:",aUserName, auser
         #self._userQueue.task_done()
 
     def _imagesToCache(self):
@@ -176,7 +175,6 @@ class TwClient(object):
             
     def _addUserToCache(self, aUser):
         if aUser.screen_name not in self._usercache.keys() :  
-            #print "add user to cache:",aUser.screen_name
             self._usercache[aUser.screen_name]=aUser
             self._imagesToCache()
             self._requestImage(aUser.screen_name)

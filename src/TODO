@@ -1,11 +1,15 @@
 # Release 0.8
+#TODO: anti-aliased font on ubuntu
+#TODO: refreshtime in minutes
 #TODO: remove simplejson from dist
 #TODO: reorganize source tree : bat directory, setup outside rsc, ...
 #TODO: Setup.py: must be ok on linux
 #TODO: Handle favorites
 #TODO: I18N timeline name, theme name
+
 #TODO: make a python-twitter patch : 'source':'pwytter' in PostUpdate
 #TODO: make a python-twitter patch : gettext
+#TODO: make a python-twitter patch : utc time
 
 #TODO: Mac version: Remove console, add icon
 #TODO: tkBalloon on Mac OS X: Should be displayed on top. try tix balloons
@@ -22,6 +26,9 @@
 #TODO: onTop user information dialog : name, links, directmessage, add as friend, ...
 #TODO: detect replies in messages (@xxx) in provide a link
 #TODO: switching timeline should be a select menu (or suppress the “timeline” word, and put “me”, “my friends”, “everybody” along each other)
+
+#DONE: use python-witter 0.5
+
 
 # Later
 #TODO: multiple accounts as in http://funkatron.com/index.php/site/spaz_a_twitter_client_for_mac_os_x_windows_and_linux/
