@@ -92,7 +92,8 @@ class Status(object):
     Returns:
       The time this status message was posted, in seconds since the epoch.
     '''
-    return time.mktime(time.strptime(self.created_at, '%a %b %d %H:%M:%S +0000 %Y'))
+    #added +' GMT' to avaoid daylight saving errors
+    return time.mktime(time.strptime(self.created_at+' GMT', '%a %b %d %H:%M:%S +0000 %Y %Z'))
 
   created_at_in_seconds = property(GetCreatedAtInSeconds,
                                    doc="The time this status message was "
@@ -142,25 +143,23 @@ class Status(object):
     Returns:
       A human readable string representing the posting time
     '''
-    fudge = 1.25
     delta  = int(self.now) - int(self.created_at_in_seconds)
-
-    if delta < (1 * fudge):
-      return 'about a second ago'
-    elif delta < (60 * (1/fudge)):
-      return 'about %d seconds ago' % (delta)
-    elif delta < (60 * fudge):
-      return 'about a minute ago'
-    elif delta < (60 * 60 * (1/fudge)):
-      return 'about %d minutes ago' % (delta / 60)
-    elif delta < (60 * 60 * fudge):
-      return 'about an hour ago'
-    elif delta < (60 * 60 * 24 * (1/fudge)):
-      return 'about %d hours ago' % (delta / (60 * 60))
-    elif delta < (60 * 60 * 24 * fudge):
-      return 'about a day ago'
+    if delta < 2:
+      return _('about a second ago')
+    elif delta < 60:
+      return _('about %d seconds ago') % (delta)
+    elif delta < (60 * 2):
+      return _('about a minute ago')
+    elif delta < (60 * 60):
+      return _('about %d minutes ago') % (delta / 60)
+    elif delta < (60 * 60 * 2):
+      return _('about an hour ago')
+    elif delta < (60 * 60 * 24):
+      return _('about %d hours ago') % (delta / (60 * 60))
+    elif delta < (60 * 60 * 24 *2):
+      return _('about a day ago')
     else:
-      return 'about %d days ago' % (delta / (60 * 60 * 24))
+      return _('about %d days ago') % (delta / (60 * 60 * 24))
 
   relative_created_at = property(GetRelativeCreatedAt,
                                  doc='Get a human readable string representing'
@@ -902,6 +901,7 @@ class Api(object):
     self._cache_timeout = Api.DEFAULT_CACHE_TIMEOUT
     self._InitializeRequestHeaders(request_headers)
     self._InitializeUserAgent()
+    self._InitializeJSONParameters()
     self._input_encoding = input_encoding
     self.SetCredentials(username, password)
 
@@ -1051,6 +1051,7 @@ class Api(object):
       raise TwitterError("Text must be less than or equal to 140 characters.")
     url = 'http://twitter.com/statuses/update.json'
     data = {'status': text}
+    data.update(self._json_param)
     json = self._FetchUrl(url, post_data=data)
     data = simplejson.loads(json)
     return Status.NewFromJsonDict(data)
@@ -1292,6 +1293,17 @@ class Api(object):
     self._request_headers['X-Twitter-Client'] = client
     self._request_headers['X-Twitter-Client-URL'] = url
     self._request_headers['X-Twitter-Client-Version'] = version
+    
+  def SetSource(self, source):
+    ''' Set the source parameters used to display the "from source" with 
+        each status on Twitter web site.
+        
+    Args:
+      source:
+        The source name as a string.  Will be sent to the server as
+         the 'source' JSON parameter.
+    '''
+    self._json_param['source'] = source
 
   def _BuildUrl(self, url, path_elements=None, extra_params=None):
     # Break url into consituent parts
@@ -1327,6 +1339,9 @@ class Api(object):
     user_agent = 'Python-urllib/%s (python-twitter/%s)' % \
                  (self._urllib.__version__, twitter.__version__)
     self.SetUserAgent(user_agent)
+
+  def _InitializeJSONParameters(self):
+    self._json_param = {}
 
   def _AddAuthorizationHeader(self, username, password):
     if username and password:
