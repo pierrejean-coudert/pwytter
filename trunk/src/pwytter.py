@@ -110,7 +110,10 @@ class MainPanel(Frame):
         self._loadTheme(self._params['theme'])
 
         self._languages={"English":"en_US",
-                         "French":"fr_FR"
+                         "French":"fr_FR",
+                         "Italian":"it_IT",
+                         "Romanian":"ro_RO",
+                         "Serbian":"sr_SR"
                         }
 
         try:
@@ -151,7 +154,7 @@ class MainPanel(Frame):
         # Now lets get all of the supported languages on the system
         language = os.environ.get('LANGUAGE', None)
         if (language): langs += language.split(":")
-        langs += ["fr_FR", "en_US"]
+        langs += ["fr_FR", "en_US", "it_IT", "ro_RO", "sr_SR"]
         gettext.bindtextdomain(APP_NAME, locale_path)
         gettext.textdomain(APP_NAME)
 
