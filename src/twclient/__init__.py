@@ -100,11 +100,12 @@ class TwClient(object):
         self.texts=[]
         for s in self._statuses :
             self._addUserToCache(s.user)
-            try:
-                atime= s.relative_created_at.encode('latin-1','replace')
-            except Exception, e:
-                print "Time conversion error:",e
-                atime = "..."
+            atime= s.relative_created_at
+#            try:
+#                atime= s.relative_created_at.encode('latin-1','replace')
+#            except Exception, e:
+#                print "Time conversion error:",e
+#                atime = "..."
             print s
             try :
                 user_url = s.user.url.encode('latin-1','replace')
