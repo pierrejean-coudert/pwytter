@@ -29,7 +29,7 @@
 #TODO: onTop user information dialog : name, links, directmessage, add as friend, ...
 #TODO: detect replies in messages (@xxx) in provide a link
 
-#DONE: use python-witter 0.5
+#DONE: use python-witter 0.5 with cache
 #DONE: Simplified Chinese translation : eQuw acKman <ackman dot c at gmail dot com>
 #DONE: Traditional Chinese translation : Weizhong Yang <zonble at gmail dot com>
 #DONE: German translation : Yseult <b dot kreissl at gmail dot com>  
