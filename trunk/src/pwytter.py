@@ -109,9 +109,12 @@ class MainPanel(Frame):
                 })
         self._loadTheme(self._params['theme'])
 
-        self._languages={"English":"en_US",
+        self._languages={"Chinese Traditional":"zh_TW",
+                         "English":"en_US",
                          "French":"fr_FR",
+                         "German":"de_DE",
                          "Italian":"it_IT",
+                         "Japanese":"ja_JP",
                          "Polish":"pl_PL",
                          "Romanian":"ro_RO",
                          "Serbian":"sr_RS"
@@ -324,7 +327,9 @@ class MainPanel(Frame):
         self.LanguageLbl=Label(self.ParamInsideBox)
         self.languageVar = StringVar(self.ParamInsideBox)
         self.languageVar.set(self._currentLanguage) # default value
-        self.LanguageBox = OptionMenu(self.ParamInsideBox, self.languageVar, *self._languages.keys())
+        sorted_languages= self._languages.keys()
+        sorted_languages.sort()        
+        self.LanguageBox = OptionMenu(self.ParamInsideBox, self.languageVar, *sorted_languages)
 
         self._theme_parameterBox()
         self.ParamCancel.grid(row=0,column=0,padx=5,pady=5,sticky=NW)

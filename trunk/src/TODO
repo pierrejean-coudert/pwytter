@@ -1,6 +1,12 @@
 # Release 0.8
+#TODO: add timelines : direct messages, replies
 #TODO: anti-aliased font on ubuntu
 #TODO: refreshtime in minutes
+#TODO: handle a cache in the filesystem for quick startup
+#TODO: network error recovery (standby recovery)
+#TODO: Single WIN32 Setup with InnoSetup
+#TODO: switching timeline should be a select menu (or suppress the “timeline” word, and put “me”, “my friends”, “everybody” along each other)
+
 #TODO: remove simplejson from dist
 #TODO: reorganize source tree : bat directory, setup outside rsc, ...
 #TODO: Setup.py: must be ok on linux
@@ -14,9 +20,6 @@
 #TODO: Mac version: Remove console, add icon
 #TODO: tkBalloon on Mac OS X: Should be displayed on top. try tix balloons
 #TODO: Reduce friend image size / limit number of displayed friends / Paging
-#TODO: handle a cache in the filesystem for quick startup
-#TODO: network error recovery (standby recovery)
-#TODO: Single WIN32 Setup with InnoSetup
 #TODO: Hide error message (icon with message in Hint)
 #TODO: Show Direct messages
 #TODO: download only the required number of messages
@@ -25,10 +28,12 @@
 #TODO: Notifications, Mac Growl integration ( http://growl.info/documentation/developer/python-support.php, http://aaronland.info/python/twitter/twnotifier/, ...
 #TODO: onTop user information dialog : name, links, directmessage, add as friend, ...
 #TODO: detect replies in messages (@xxx) in provide a link
-#TODO: switching timeline should be a select menu (or suppress the “timeline” word, and put “me”, “my friends”, “everybody” along each other)
 
 #DONE: use python-witter 0.5
+#DONE: Traditional Chinese translation : Weizhong Yang <zonble at gmail dot com>
+#DONE: German translation : Yseult <b dot kreissl at gmail dot com>  
 #DONE: Italian translation : Barbara aka Black Cat <theblackcat at gmail dot com> 
+#DONE: Japanese translation : Yusuke Yamamoto <yusuke at mac dot com>
 #DONE: Polish translation : Pawel Solyga <pawel dot solyga at gmail dot com>
 #DONE: Romanian translation : Claudiu Antohi <claudiu at wip dot ro>
 #DONE: Serbian translation : Milos Topic <topicm at gmail dot com> 
