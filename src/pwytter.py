@@ -109,7 +109,8 @@ class MainPanel(Frame):
                 })
         self._loadTheme(self._params['theme'])
 
-        self._languages={"Chinese Traditional":"zh_TW",
+        self._languages={"Chinese Simplified":"zh_CN",
+                         "Chinese Traditional":"zh_TW",                         
                          "English":"en_US",
                          "French":"fr_FR",
                          "German":"de_DE",
