@@ -54,8 +54,8 @@ class TwClient(object):
         self._imageQueue=Queue.Queue()
         self._userQueue=Queue.Queue()
         
-        self._timeLines=("Public","User","Friends")
-        self._currentTimeLine = 1
+        self.timeLines=("Public","User","Friends","Replies")
+        self._currentTimeLine = "Friends"
         
         self.VersionOK = self._checkversion(aVersion)
         
@@ -79,19 +79,20 @@ class TwClient(object):
         print "My details",self.me
         return loaded
 
-    def nextTimeLine(self):
-        self._currentTimeLine +=1
-        if self._currentTimeLine>=len(self._timeLines):
-            self._currentTimeLine = 0
+    def setTimeLine(self, timelineName):
+        if timelineName in self.timeLines:
+            self._currentTimeLine = timelineName
 
     def timeLineName(self):
-        return self._timeLines[self._currentTimeLine]
+        return self._currentTimeLine
        
     def _getCurrentTimeLine(self):
-        if self._timeLines[self._currentTimeLine]=="Public":
+        if self._currentTimeLine=="Public":
             self._statuses = self.api.GetPublicTimeline()
-        elif self._timeLines[self._currentTimeLine]=="User":
+        elif self._currentTimeLine=="User":
             self._statuses = self.api.GetUserTimeline(self.user)
+        elif self._currentTimeLine=="Replies":
+            self._statuses = self.api.GetReplies()
         else :
             self._statuses = self.api.GetFriendsTimeline()
             

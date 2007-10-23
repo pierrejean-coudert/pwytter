@@ -109,19 +109,19 @@ class MainPanel(Frame):
                 })
         self._loadTheme(self._params['theme'])
 
-        self._languages={"Chinese Simplified":"zh_CN",
-                         "Chinese Traditional":"zh_TW",                         
-                         "English":"en_US",
-                         "French":"fr_FR",
-                         "German":"de_DE",
-                         "Italian":"it_IT",
-                         "Japanese":"ja_JP",
-                         "Polish":"pl_PL",
-                         "Portuguese":"pt_BR",
-                         "Romanian":"ro_RO",
-                         "Serbian":"sr_RS",
-                         "Spanish":"es_ES",
-                         "Swedish":"sv_SE"
+        self._languages={"Chinese Simplified": {"locale":"zh_CN", "flag":"cn.gif"},
+                         "Chinese Traditional": {"locale":"zh_TW", "flag":"tw.gif"},
+                         "English": {"locale":"en_US", "flag":"us.gif"},
+                         "French": {"locale":"fr_FR", "flag":"fr.gif"},
+                         "German": {"locale":"de_DE", "flag":"de.gif"},
+                         "Italian": {"locale":"it_IT", "flag":"it.gif"},
+                         "Japanese": {"locale":"ja_JP", "flag":"jp.gif"},
+                         "Polish": {"locale":"pl_PL", "flag":"pl.gif"},
+                         "Portuguese": {"locale":"pt_BR", "flag":"br.gif"},
+                         "Romanian": {"locale":"ro_RO", "flag":"ro.gif"},
+                         "Serbian": {"locale":"sr_RS", "flag":"rs.gif"},
+                         "Spanish": {"locale":"es_ES", "flag":"es.gif"},
+                         "Swedish": {"locale":"sv_SE", "flag":"se.gif"}
                         }
 
         try:
@@ -141,6 +141,8 @@ class MainPanel(Frame):
         self.passwordVar = StringVar()
         self.refreshVar = IntVar()
         self.linesVar = IntVar()
+        self.timeLineVar= StringVar()
+        self.timeLineVar.set(self.tw.timeLineName())
         
         self._bg=self._display['bg#']
         self['bg']=self._bg
@@ -162,16 +164,16 @@ class MainPanel(Frame):
         # Now lets get all of the supported languages on the system
         language = os.environ.get('LANGUAGE', None)
         if (language): langs += language.split(":")
-        langs += self._languages.values()
+        langs = langs + [alang['locale'] for alang in self._languages.values()]
         gettext.bindtextdomain(APP_NAME, locale_path)
         gettext.textdomain(APP_NAME)
 
-        if aLanguage in self._languages:
+        if aLanguage in self._languages.keys():
             self._currentLanguage=aLanguage
         else:
             self._currentLanguage='English'
         try:
-            langFr = gettext.translation('pwytter',locale_path,languages=[self._languages[self._currentLanguage]])
+            langFr = gettext.translation('pwytter',locale_path,languages=[self._languages[self._currentLanguage]['locale']])
             langFr.install()    
         except Exception,e:
             print str(e)
@@ -254,7 +256,13 @@ class MainPanel(Frame):
                                         self._hideFriends,self._bg, "frie1",_("Hide friends"))
         self.Time = Label(self.refreshBox)
         self.TimeLine = Label(self.refreshBox, cursor = 'hand2')
-        self.TimeLineHint=tkBalloon.Balloon(self.TimeLine, _("Switch TimeLine"))
+        self.TimeLineHint=tkBalloon.Balloon(self.TimeLine, _("Switch TimeLine"))       
+        self.timeLineVar.trace("w", self._timeLineMenuClick)
+        self.TimeLineMenu = Menu(rootTk, tearoff=0)
+        for tl in self.tw.timeLines:
+            self.TimeLineMenu.add_radiobutton(label=tl, 
+                                          variable = self.timeLineVar)
+        
         self.Refresh = ClickableImage(self.refreshBox, "arrow_refresh.png", 
                                         self.manualRefresh,self._bg, "refr0", _("Refresh"))
         self._theme_RefreshBox()
@@ -323,17 +331,31 @@ class MainPanel(Frame):
         self.BtnBox=Frame(self.ParamInsideBox)
         self.ApplyBtn=Button(self.BtnBox, command=self._saveParameters)
 
+
         self.ThemeLbl=Label(self.ParamInsideBox)
         self.themeVar = StringVar(self.ParamInsideBox)
         self.themeVar.set(self.Theme.themeName) # default value
         self.ThemeBox = OptionMenu(self.ParamInsideBox, self.themeVar, *self.Theme.themeList)
+       # self.ThemeBox.configure(indicatoron=0, compound='right', image=self._arrow)
 
         self.LanguageLbl=Label(self.ParamInsideBox)
         self.languageVar = StringVar(self.ParamInsideBox)
         self.languageVar.set(self._currentLanguage) # default value
         sorted_languages= self._languages.keys()
         sorted_languages.sort()        
-        self.LanguageBox = OptionMenu(self.ParamInsideBox, self.languageVar, *sorted_languages)
+
+        self._arrow = ImageTk.PhotoImage(imagefromfile("arrow_down.png"))
+        self.LanguageResultLbl=Label(self.ParamInsideBox, textvariable=self.languageVar,
+                                     compound='right', image=self._arrow, cursor = 'hand2',
+                                     bd=1, relief="raised")
+        
+        self.LanguageMenu = Menu(rootTk, tearoff=0)
+        for lang in sorted_languages:
+            self._languages[lang]['flag_image'] = ImageTk.PhotoImage(imagefromfile(self._languages[lang]['flag']))
+            self.LanguageMenu.add_radiobutton(label=lang, compound='left', 
+                                  image=self._languages[lang]['flag_image'],
+                                  variable=self.languageVar)
+        self.LanguageResultLbl.bind('<1>', self._languagePopupClick)
 
         self._theme_parameterBox()
         self.ParamCancel.grid(row=0,column=0,padx=5,pady=5,sticky=NW)
@@ -350,7 +372,7 @@ class MainPanel(Frame):
         self.ThemeLbl.grid(row=3, column=0, padx=5, pady=5, sticky=W)   
         self.ThemeBox.grid(row=3, column=1, padx=5, pady=5, sticky=W)      
         self.LanguageLbl.grid(row=3, column=2, padx=5, pady=5, sticky=W)   
-        self.LanguageBox.grid(row=3, column=3, padx=5, pady=5, sticky=W)      
+        self.LanguageResultLbl.grid(row=3, column=3, padx=5, pady=5, ipadx=2, sticky=W)      
         self.BtnBox.grid(row=4, column=3, columnspan=4, sticky=EW)
         self.ApplyBtn.pack(padx=5,pady=5,side="right")
        
@@ -779,15 +801,23 @@ class MainPanel(Frame):
         userurl = self.tw.texts[lineIndex]["user_url"]
         if userurl != "": self._openweb(userurl)
 
-    def _timeLineClick(self,par=None):
+    def _timeLineClick(self,event=None):
+        if event:
+            self.TimeLineMenu.post(event.x_root, event.y_root)
+            
+    def _timeLineMenuClick(self,*dummy):       
         self._busy.set()
         try:
-            self.tw.nextTimeLine()
+            self.tw.setTimeLine(self.timeLineVar.get())            
             print "Switch to Timeline:",self.tw.timeLineName()
             self.TimeLine["text"] = _("Timeline: %s") %(self.tw.timeLineName())
             self._refreshTwitZone()
         finally:
             self._busy.reset()
+            
+    def _languagePopupClick(self,event=None):
+        if event:
+            self.LanguageMenu.post(event.x_root, event.y_root)
   
     def _refreshTwitZone(self):
         timestr = time.strftime("%a, %d %b %Y %H:%M:%S", time.localtime())
