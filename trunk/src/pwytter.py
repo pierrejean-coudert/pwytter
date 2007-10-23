@@ -117,8 +117,11 @@ class MainPanel(Frame):
                          "Italian":"it_IT",
                          "Japanese":"ja_JP",
                          "Polish":"pl_PL",
+                         "Portuguese":"pt_BR",
                          "Romanian":"ro_RO",
-                         "Serbian":"sr_RS"
+                         "Serbian":"sr_RS",
+                         "Spanish":"es_ES",
+                         "Swedish":"sv_SE"
                         }
 
         try:
