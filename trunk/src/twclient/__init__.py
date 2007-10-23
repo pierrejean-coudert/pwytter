@@ -54,7 +54,7 @@ class TwClient(object):
         self._imageQueue=Queue.Queue()
         self._userQueue=Queue.Queue()
         
-        self.timeLines=("Public","User","Friends","Replies")
+        self.timeLines=("Public","User","Friends","Replies","Direct")
         self._currentTimeLine = "Friends"
         
         self.VersionOK = self._checkversion(aVersion)
@@ -93,9 +93,26 @@ class TwClient(object):
             self._statuses = self.api.GetUserTimeline(self.user)
         elif self._currentTimeLine=="Replies":
             self._statuses = self.api.GetReplies()
+        elif self._currentTimeLine=="Direct":
+            self._statuses = self.getDirectsAsStatuses()
         else :
             self._statuses = self.api.GetFriendsTimeline()
             
+    def getDirectsAsStatuses(self):
+        """ return a DirectMessages list as a Statuses list
+        """
+        directs=self.api.GetDirectMessages()
+        statuses=[]
+        for direct in directs:
+            auser=self.api.GetUser(direct.sender_id)
+            status = twitter.Status(               
+               created_at=direct.created_at,
+               id=direct.id,
+               text=direct.text,
+               user=auser)
+            statuses += [status]
+        return statuses
+        
     def refresh(self):
         self._getCurrentTimeLine()
         self.texts=[]

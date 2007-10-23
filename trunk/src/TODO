@@ -1,5 +1,4 @@
 # Release 0.8
-#TODO: add timelines : direct messages
 #TODO: handle a cache in the filesystem for quick startup
 #TODO: anti-aliased font on ubuntu
 #TODO: refreshtime in minutes
@@ -29,7 +28,7 @@
 #TODO: detect replies in messages (@xxx) in provide a link
 
 #DONE: use python-witter 0.5 with cache
-#DONE: added "Replies" timeline
+#DONE: added "Replies" and "Direct Messages" timelines
 #DONE: added a popup menu to choose timeline
 #DONE: added flags in language popup menu
 #DONE: Simplified Chinese translation : eQuw acKman <ackman dot c at gmail dot com>
