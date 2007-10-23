@@ -1,11 +1,10 @@
 # Release 0.8
-#TODO: add timelines : direct messages, replies
+#TODO: add timelines : direct messages
+#TODO: handle a cache in the filesystem for quick startup
 #TODO: anti-aliased font on ubuntu
 #TODO: refreshtime in minutes
-#TODO: handle a cache in the filesystem for quick startup
 #TODO: network error recovery (standby recovery)
 #TODO: Single WIN32 Setup with InnoSetup
-#TODO: switching timeline should be a select menu (or suppress the “timeline” word, and put “me”, “my friends”, “everybody” along each other)
 
 #TODO: remove simplejson from dist
 #TODO: reorganize source tree : bat directory, setup outside rsc, ...
@@ -30,6 +29,9 @@
 #TODO: detect replies in messages (@xxx) in provide a link
 
 #DONE: use python-witter 0.5 with cache
+#DONE: added "Replies" timeline
+#DONE: added a popup menu to choose timeline
+#DONE: added flags in language popup menu
 #DONE: Simplified Chinese translation : eQuw acKman <ackman dot c at gmail dot com>
 #DONE: Traditional Chinese translation : Weizhong Yang <zonble at gmail dot com>
 #DONE: German translation : Yseult <b dot kreissl at gmail dot com>  
@@ -38,7 +40,6 @@
 #DONE: Polish translation : Pawel Solyga <pawel dot solyga at gmail dot com>
 #DONE: Romanian translation : Claudiu Antohi <claudiu at wip dot ro>
 #DONE: Serbian translation : Milos Topic <topicm at gmail dot com> 
-
 #DONE: Swedish translation : Jonas Nockert <jonasnockert at gmail dot com> 
 #DONE: Spanish translation : Jorge Rangel <jarg1985 at gmail dot com> 
 #DONE: Portuguese translation : brunoric <brunoric at gmail dot com> 
