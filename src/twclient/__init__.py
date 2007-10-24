@@ -117,10 +117,11 @@ class TwClient(object):
         elif self._currentTimeLine=="Direct":
             self._statuses = self.getDirectsAsStatuses()
         elif self._currentTimeLine=="Composite":
-            self._statuses = self.StatusesToExt(self.api.GetFriendsTimeline()
-                                                + self.api.GetReplies(),'standard') \
-                                               + self.getDirectsAsStatuses()
-            self._statuses.sort(key=ExtStatus.GetCreatedAt)
+            self._statuses = self.StatusesToExt(self.api.GetFriendsTimeline(),'standard') \
+                                + self.StatusesToExt(self.api.GetReplies(),'reply') \
+                                + self.getDirectsAsStatuses()
+            self._statuses.sort(key=ExtStatus.GetCreatedAtInSeconds,
+                                reverse=True)
         else :
             self._statuses = self.StatusesToExt(self.api.GetFriendsTimeline(),'standard')
 

@@ -1,7 +1,7 @@
-#!/usr/bin/python
 #
 #   Author : Pierre-Jean Coudert
 #
+#!/usr/bin/python
 #   This program is free software; you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
 #   the Free Software Foundation; version 2 of the License.
@@ -119,6 +119,7 @@ class MainPanel(Frame):
                          "Polish": {"locale":"pl_PL", "flag":"pl.gif"},
                          "Portuguese": {"locale":"pt_BR", "flag":"br.gif"},
                          "Romanian": {"locale":"ro_RO", "flag":"ro.gif"},
+                         "Russian":  {"locale":"ru_RU", "flag":"ru.gif"},
                          "Serbian": {"locale":"sr_RS", "flag":"rs.gif"},
                          "Spanish": {"locale":"es_ES", "flag":"es.gif"},
                          "Swedish": {"locale":"sv_SE", "flag":"se.gif"}
@@ -351,10 +352,13 @@ class MainPanel(Frame):
         
         self.LanguageMenu = Menu(rootTk, tearoff=0)
         for lang in sorted_languages:
-            self._languages[lang]['flag_image'] = ImageTk.PhotoImage(imagefromfile(self._languages[lang]['flag']))
-            self.LanguageMenu.add_radiobutton(label=lang, compound='left', 
-                                  image=self._languages[lang]['flag_image'],
-                                  variable=self.languageVar)
+            if sys.platform == "darwin":
+                self.LanguageMenu.add_radiobutton(label=lang, variable=self.languageVar)
+            else:
+                self._languages[lang]['flag_image'] = ImageTk.PhotoImage(imagefromfile(self._languages[lang]['flag']))
+                self.LanguageMenu.add_radiobutton(label=lang, compound='left', 
+                                                  image=self._languages[lang]['flag_image'],
+                                                  variable=self.languageVar)
         self.LanguageResultLbl.bind('<1>', self._languagePopupClick)
 
         self._theme_parameterBox()
