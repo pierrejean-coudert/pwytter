@@ -4,11 +4,15 @@
 #TODO: refreshtime in minutes
 #TODO: network error recovery (standby recovery)
 #TODO: Single WIN32 Setup with InnoSetup
+#TODO: Change line color for replies and direct messages
+#TODO: Add a mixed timeline
+#TODO: detect replies in messages (@xxx) in provide a link
+#TODO: Handle favorites
+#TODO: Resize + Scroll to chnage number of lines
 
 #TODO: remove simplejson from dist
 #TODO: reorganize source tree : bat directory, setup outside rsc, ...
 #TODO: Setup.py: must be ok on linux
-#TODO: Handle favorites
 #TODO: I18N timeline name, theme name
 
 #TODO: make a python-twitter patch : 'source':'pwytter' in PostUpdate
@@ -19,13 +23,10 @@
 #TODO: tkBalloon on Mac OS X: Should be displayed on top. try tix balloons
 #TODO: Reduce friend image size / limit number of displayed friends / Paging
 #TODO: Hide error message (icon with message in Hint)
-#TODO: Show Direct messages
 #TODO: download only the required number of messages
 #TODO: Design an Icon
-#TODO: Replies
 #TODO: Notifications, Mac Growl integration ( http://growl.info/documentation/developer/python-support.php, http://aaronland.info/python/twitter/twnotifier/, ...
 #TODO: onTop user information dialog : name, links, directmessage, add as friend, ...
-#TODO: detect replies in messages (@xxx) in provide a link
 
 #DONE: use python-witter 0.5 with cache
 #DONE: added "Replies" and "Direct Messages" timelines
