@@ -493,11 +493,15 @@ class MainPanel(Frame):
         self._theme_Line(aLine, i)
         return aLine
 
-    def _theme_Line(self, aLine, index):
+    def _theme_Line(self, aLine, index, type='standard'):
         if index==0: 
             linecolor = self._display['1stLine#']
         else:
             linecolor = self._display['line#']
+        if type == 'direct':
+            linecolor = "#EECCCC"
+        if type == 'reply':
+            linecolor = "#EEEECC"
         aLine['Box'].config(bg=linecolor)
         aLine['NameBox'].config(bg=linecolor)
         aLine['Name'].config(bg=linecolor, fg=self._display['text#'])
@@ -516,13 +520,13 @@ class MainPanel(Frame):
         aLine['DirectEdit'].config(bg=self._bg, fg=self._display['text#'])
         aLine['DirectSend'].config(bg=directColor, text=_('Send'))
  
-    def _displaylines(self, par=None):
+    def _refresh_lines(self, par=None):
         self._imagesLoaded=True
         i=0
         for i in range(min(self._TwitLines,len(self.tw.texts))):
             if i+1>len(self.Lines) :
                 self.Lines.append(self._createLine(self.LinesBox, i))
-            self._theme_Line(self.Lines[i], i)
+            self._theme_Line(self.Lines[i], i, self.tw.texts[i]['type'])
             
             name = self.tw.texts[i]["name"]
             loaded, aImage= self.tw.imageFromCache(name)
@@ -824,7 +828,7 @@ class MainPanel(Frame):
         self.Time["text"]= timestr
         try:
             self.tw.refresh()
-            self._displaylines()
+            self._refresh_lines()
         except Exception, e :
             self.Time["text"]=textwrap.fill("Refresh error: "+timestr+" >> "+str(e), 50, break_long_words=True)           
 #        finally:
@@ -836,10 +840,10 @@ class MainPanel(Frame):
                 self._refreshTwitZone()
                 self._refreshTime = time.time()
             if not self._imagesLoaded :
-                self._displaylines()
+                self._refresh_lines()
             if self._needToRefreshMe:
                 self._refresh_mySelfBox()
-                self._displaylines()
+                self._refresh_lines()
             if not self._imagesFriendsLoaded :
                 self._refresh_friendsBox()
         finally:

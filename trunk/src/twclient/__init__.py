@@ -30,6 +30,27 @@ from htmlentitydefs import name2codepoint
 def htmlentitydecode(s):
     return re.sub('&(%s);' % '|'.join(name2codepoint), 
             lambda m: unichr(name2codepoint[m.group(1)]), s)
+    
+StatusType = ['standard', 'reply', 'direct']    
+
+class ExtStatus(twitter.Status):
+    def __init__(self, created_at=None, id=None, text=None,
+                 user=None, now=None, type='standard'):
+        twitter.Status.__init__(self,created_at,id,text,user,now)
+        self._type = type        
+        
+    def GetType(self):
+        '''Get the type of this status.
+        '''
+        return self._type
+
+    def SetType(self, type):
+        '''Set the type of this status.
+        '''
+        self._type = type
+
+    type = property(GetType, SetType,
+                    doc='The type of this status.')        
 
 class TwClient(object):
     def __init__(self, aVersion, aUser, aPassword):
@@ -54,7 +75,7 @@ class TwClient(object):
         self._imageQueue=Queue.Queue()
         self._userQueue=Queue.Queue()
         
-        self.timeLines=("Public","User","Friends","Replies","Direct")
+        self.timeLines=("User","Friends","Replies","Direct","Composite","Public")
         self._currentTimeLine = "Friends"
         
         self.VersionOK = self._checkversion(aVersion)
@@ -88,28 +109,48 @@ class TwClient(object):
        
     def _getCurrentTimeLine(self):
         if self._currentTimeLine=="Public":
-            self._statuses = self.api.GetPublicTimeline()
+            self._statuses = self.StatusesToExt(self.api.GetPublicTimeline(),'standard')
         elif self._currentTimeLine=="User":
-            self._statuses = self.api.GetUserTimeline(self.user)
+            self._statuses = self.StatusesToExt(self.api.GetUserTimeline(self.user),'standard')
         elif self._currentTimeLine=="Replies":
-            self._statuses = self.api.GetReplies()
+            self._statuses = self.StatusesToExt(self.api.GetReplies(),'reply')
         elif self._currentTimeLine=="Direct":
             self._statuses = self.getDirectsAsStatuses()
+        elif self._currentTimeLine=="Composite":
+            self._statuses = self.StatusesToExt(self.api.GetFriendsTimeline()
+                                                + self.api.GetReplies(),'standard') \
+                                               + self.getDirectsAsStatuses()
+            self._statuses.sort(key=ExtStatus.GetCreatedAt)
         else :
-            self._statuses = self.api.GetFriendsTimeline()
+            self._statuses = self.StatusesToExt(self.api.GetFriendsTimeline(),'standard')
+
+    def StatusesToExt(self, aTimeline, aType):
+        """ return a status list as a ExtStatus list
+        """
+        statuses=[]
+        for status in aTimeline:
+            extstatus = ExtStatus(               
+               created_at=status.created_at,
+               id=status.id,
+               text=status.text,
+               user=status.user,
+               type=aType)
+            statuses += [extstatus]
+        return statuses
             
     def getDirectsAsStatuses(self):
-        """ return a DirectMessages list as a Statuses list
+        """ return a DirectMessages list as a ExtStatus list
         """
         directs=self.api.GetDirectMessages()
         statuses=[]
         for direct in directs:
             auser=self.api.GetUser(direct.sender_id)
-            status = twitter.Status(               
+            status = ExtStatus(               
                created_at=direct.created_at,
                id=direct.id,
                text=direct.text,
-               user=auser)
+               user=auser,
+               type='direct')
             statuses += [status]
         return statuses
         
@@ -133,6 +174,7 @@ class TwClient(object):
                                "msg" : s.text.encode('latin-1','replace'),
                                "msgunicode" : htmlentitydecode(s.text),
                                "time": "(%s)" % (atime),
+                               "type" : s.type,
                                "user_url" : user_url
                               })
                     
