@@ -429,7 +429,7 @@ class MainPanel(Frame):
         self._refresh_mySelfBox()       
         self.manualRefresh()
 
-    def _createLine(self, aParent, i):
+    def _create_Line(self, aParent, i):
         linecolor = self._display['line#']
         aLine={}
         aLine['Box']      = Frame(aParent)
@@ -457,6 +457,9 @@ class MainPanel(Frame):
         aLine['UserUrlHint']=  tkBalloon.Balloon(aLine['UserUrl'])
         aLine['UserUrlInvalid']= ClickableImage(aLine['IconBox'], \
                                         "world_nb.png", None, linecolor,"iurl"+str(i))        
+        aLine['Reply'] = ClickableImage(aLine['IconBox'], \
+                                        "arrow_undo.png", self._replyToMessage, linecolor,"repl"+str(i),
+                                        _('Reply to this message...'))
         aLine['Msg']      = Label(aLine['Box'],text="...", name=str(i),\
                                   font=self._display['fontMsg'],\
                                   width=self._display['widthMsg'])
@@ -484,12 +487,13 @@ class MainPanel(Frame):
         aLine['Name'].grid(row=0,column=0, sticky='W',padx=1)
         aLine['Time'].grid(row=0,column=1, sticky='W') 
         aLine['IconBox'].grid(row=0,column=2, sticky='E') 
+        aLine['Reply'].grid(row=0,column=0, rowspan=1, sticky='E')
         aLine['Direct'].grid_forget()
-        aLine['DirectInvalid'].grid(row=0,column=0, rowspan=1, sticky='W')
-        aLine['Favorite'].grid(row=0,column=1, rowspan=1, sticky='E')
-        aLine['UserUrl'].grid(row=0,column=2, sticky='E')
+        aLine['DirectInvalid'].grid(row=0,column=1, rowspan=1, sticky='W')
+        aLine['Favorite'].grid(row=0,column=2, rowspan=1, sticky='E')
+        aLine['UserUrl'].grid(row=0,column=3, sticky='E')
         aLine['UserUrl'].grid_forget()           
-        aLine['UserUrlInvalid'].grid(row=0,column=2, sticky='E')
+        aLine['UserUrlInvalid'].grid(row=0,column=3, sticky='E')
         aLine['Msg'].grid(row=1,column=1,columnspan=2,rowspan=1, sticky='W',padx=1)
         aLine['Box'].grid(row=i,sticky=W,padx=0, pady=2, ipadx=1, ipady=1)
         aLine['DirectBox'].grid_forget()
@@ -503,9 +507,9 @@ class MainPanel(Frame):
         else:
             linecolor = self._display['line#']
         if type == 'direct':
-            linecolor = "#EECCCC"
+            linecolor = self._display['directLine#']
         if type == 'reply':
-            linecolor = "#EEEECC"
+            linecolor = self._display['replyLine#']
         aLine['Box'].config(bg=linecolor)
         aLine['NameBox'].config(bg=linecolor)
         aLine['Name'].config(bg=linecolor, fg=self._display['text#'])
@@ -516,6 +520,7 @@ class MainPanel(Frame):
         aLine['Favorite'].config(bg=linecolor)
         aLine['UserUrl'].config(bg=linecolor)
         aLine['UserUrlInvalid'].config(bg=linecolor)
+        aLine['Reply'].config(bg=linecolor)
         aLine['Msg'].config(bg=linecolor, fg=self._display['message#'])
         directColor = self._display['directMsg#']
         aLine['DirectBox'].config(bg=directColor)
@@ -529,7 +534,7 @@ class MainPanel(Frame):
         i=0
         for i in range(min(self._TwitLines,len(self.tw.texts))):
             if i+1>len(self.Lines) :
-                self.Lines.append(self._createLine(self.LinesBox, i))
+                self.Lines.append(self._create_Line(self.LinesBox, i))
             self._theme_Line(self.Lines[i], i, self.tw.texts[i]['type'])
             
             name = self.tw.texts[i]["name"]
@@ -545,10 +550,10 @@ class MainPanel(Frame):
             self.Lines[i]['Time']["text"]= self.tw.texts[i]["time"]
             if name==self.MyName["text"]:
                 self.Lines[i]['Direct'].grid_forget()
-                self.Lines[i]['DirectInvalid'].grid(row=0,column=0, rowspan=1, sticky='W')
+                self.Lines[i]['DirectInvalid'].grid(row=0,column=1, rowspan=1, sticky='W')
             else:
                 self.Lines[i]['DirectInvalid'].grid_forget()
-                self.Lines[i]['Direct'].grid(row=0,column=0, rowspan=1, sticky='W')
+                self.Lines[i]['Direct'].grid(row=0,column=1, rowspan=1, sticky='W')
             initText=self.tw.texts[i]["msg"].decode('latin-1','replace')
             #self.Lines[i]['Msg']["text"]=textwrap.fill(initText, 70, break_long_words=True)
             self.Lines[i]['Msg']["text"]=textwrap.fill(self.tw.texts[i]["msgunicode"], 70, break_long_words=True)           
@@ -571,13 +576,13 @@ class MainPanel(Frame):
                 self.Lines[i]['UserUrl'].bind('<1>', None)
                 self.Lines[i]['UserUrl']["cursor"] = ''    
                 self.Lines[i]['UserUrl'].grid_forget()           
-                self.Lines[i]['UserUrlInvalid'].grid(row=0, column=2, sticky='E')
+                self.Lines[i]['UserUrlInvalid'].grid(row=0, column=3, sticky='E')
             else:
                 self.Lines[i]['UserUrl'].bind('<1>', self._userUrlClick)
                 self.Lines[i]['UserUrl']["cursor"] = 'hand2'
                 self.Lines[i]['UserUrlHint'].settext(self.tw.texts[i]["user_url"])
                 self.Lines[i]['UserUrlInvalid'].grid_forget() 
-                self.Lines[i]['UserUrl'].grid(row=0, column=2, sticky='E')
+                self.Lines[i]['UserUrl'].grid(row=0, column=3, sticky='E')
                 self.Lines[i]['UserUrl'].grid()
             self.Lines[i]['Box'].grid(row=i,sticky=W,padx=0, pady=2, ipadx=1, ipady=1)
         for i in range(i+1,len(self.Lines)):
@@ -707,6 +712,10 @@ class MainPanel(Frame):
         lineIndex= int(par.widget.winfo_name()[4:])
         self.Lines[lineIndex]['DirectBox'].grid_forget()
         self.Lines[lineIndex]['DirectBoxEmpty'].grid(row=2,column=0,columnspan=3,rowspan=1, sticky='W',padx=1)
+
+    def _replyToMessage(self,par=None):
+        lineIndex= int(par.widget.winfo_name()[4:])
+        self.twitText.set('@'+self.tw.texts[lineIndex]["name"]+" ")
         
     def _sendDirectMessage(self,par=None):
         self._busy.set()
@@ -729,7 +738,7 @@ class MainPanel(Frame):
         self.LinesBox= Frame(self.MainZone) 
         self.Lines=[]       
         for i in range(self._TwitLines):           
-            self.Lines.append(self._createLine(self.LinesBox, i))
+            self.Lines.append(self._create_Line(self.LinesBox, i))
         self.EditParentBox = Frame(self.MainZone, bg=self._bg)
         self.RemainCar = Label(self.EditParentBox,text="...")
         self.editBox = Frame(self.EditParentBox)

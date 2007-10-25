@@ -47,6 +47,8 @@ class pwTheme(object):
             'bg#'       : "#1F242A",
             '1stLine#'  : "#484C4F",
             'line#'     : "#2F3237",
+            'directLine#': "#FFCCCC",
+            'replyLine#' : "#FFFFCC",
             'param#'    : "#585C5F",
             'timeline#' : "#484C4F",
             'me_bg#'    : "#2F3237", 
