@@ -1,6 +1,7 @@
 # Release 0.8
 #TODO: add newly sended tweet in cache for immediate display
-#TODO: Handle favorites, deffered loading
+#TODO: generic deffered loading (favorites, images, ...)
+#TODO: check mac / linux themes
 #TODO: remove duplicates from composite timeline
 #TODO: improve SplashScreen
 
@@ -24,6 +25,7 @@
 #TODO: Notifications, Mac Growl integration ( http://growl.info/documentation/developer/python-support.php, http://aaronland.info/python/twitter/twnotifier/, ...
 #TODO: onTop user information dialog : name, links, directmessage, add as friend, ...
 
+#DONE: Handle favorites
 #DONE: added a filesystem cache for quick ressource loading at startup (images, users, favorites)
 #DONE: use python-witter 0.5 with cache
 #DONE: added "Replies" and "Direct Messages" timelines
