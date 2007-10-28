@@ -450,6 +450,9 @@ class MainPanel(Frame):
         aLine['DirectInvalid']   = ClickableImage(aLine['IconBox'], \
                                         "arrow_nb.png", None, linecolor,"drci"+str(i))
         aLine['Favorite'] = ClickableImage(aLine['IconBox'], \
+                                        "asterisk_yellow.png", self._unsetFavoriteClick, linecolor,"unfa"+str(i),
+                                        _("UnFavorite"))
+        aLine['FavoriteGray'] = ClickableImage(aLine['IconBox'], \
                                         "asterisk_nb.png", self._setFavoriteClick, linecolor,"favo"+str(i),
                                         _("Favorite"))
         aLine['UserUrl']  = ClickableImage(aLine['IconBox'], \
@@ -490,7 +493,8 @@ class MainPanel(Frame):
         aLine['Reply'].grid(row=0,column=0, rowspan=1, sticky='E')
         aLine['Direct'].grid_forget()
         aLine['DirectInvalid'].grid(row=0,column=1, rowspan=1, sticky='W')
-        aLine['Favorite'].grid(row=0,column=2, rowspan=1, sticky='E')
+        aLine['Favorite'].grid_forget()
+        aLine['FavoriteGray'].grid(row=0,column=2, rowspan=1, sticky='E')
         aLine['UserUrl'].grid(row=0,column=3, sticky='E')
         aLine['UserUrl'].grid_forget()           
         aLine['UserUrlInvalid'].grid(row=0,column=3, sticky='E')
@@ -518,6 +522,7 @@ class MainPanel(Frame):
         aLine['Direct'].config(bg=linecolor,text=_('Direct Message...'))
         aLine['DirectInvalid'].config(bg=linecolor)
         aLine['Favorite'].config(bg=linecolor)
+        aLine['FavoriteGray'].config(bg=linecolor)
         aLine['UserUrl'].config(bg=linecolor)
         aLine['UserUrlInvalid'].config(bg=linecolor)
         aLine['Reply'].config(bg=linecolor)
@@ -584,6 +589,14 @@ class MainPanel(Frame):
                 self.Lines[i]['UserUrlInvalid'].grid_forget() 
                 self.Lines[i]['UserUrl'].grid(row=0, column=3, sticky='E')
                 self.Lines[i]['UserUrl'].grid()
+            if self.tw.texts[i]["favorite"]:
+                self.Lines[i]['FavoriteGray'].grid_forget()
+                self.Lines[i]['Favorite'].grid(row=0,column=2, rowspan=1, sticky='E')
+            else:
+                self.Lines[i]['Favorite'].grid_forget()
+                self.Lines[i]['FavoriteGray'].grid(row=0,column=2, rowspan=1, sticky='E')
+
+                
             self.Lines[i]['Box'].grid(row=i,sticky=W,padx=0, pady=2, ipadx=1, ipady=1)
         for i in range(i+1,len(self.Lines)):
             self.Lines[i]['Box'].grid_forget()
@@ -823,7 +836,18 @@ class MainPanel(Frame):
     def _setFavoriteClick(self,par=None):
         lineIndex= int(par.widget.winfo_name()[4:])
         print "Set Favo id",self.tw.texts[lineIndex]["id"]
-        print self.tw.createFavorite(self.tw.texts[lineIndex]["id"])
+        self.tw.createFavorite(self.tw.texts[lineIndex]["name"],
+                               self.tw.texts[lineIndex]["id"])
+        self.tw.texts[lineIndex]["favorite"]=True
+        self._refresh_lines()
+
+    def _unsetFavoriteClick(self,par=None):
+        lineIndex= int(par.widget.winfo_name()[4:])
+        print "UnSet Favo id",self.tw.texts[lineIndex]["id"]
+        self.tw.destroyFavorite(self.tw.texts[lineIndex]["name"],
+                                self.tw.texts[lineIndex]["id"])
+        self.tw.texts[lineIndex]["favorite"]=False
+        self._refresh_lines()
 
     def _timeLineClick(self,event=None):
         if event:

@@ -24,6 +24,7 @@ import os.path
 import Queue
 import threading
 import simplejson
+import time
 from PIL import Image, ImageTk
 
 import re
@@ -150,17 +151,25 @@ class TwClient(object):
     def getDirectsAsStatuses(self):
         """ return a DirectMessages list as a ExtStatus list
         """
-        directs=self.api.GetDirectMessages()
         statuses=[]
-        for direct in directs:
-            auser=self.api.GetUser(direct.sender_id)
-            status = ExtStatus(               
-               created_at=direct.created_at,
-               id=direct.id,
-               text=direct.text,
-               user=auser,
-               type='direct')
-            statuses += [status]
+        try:
+            directs=self.api.GetDirectMessages()
+            for direct in directs:
+                print "want to load :",direct.sender_screen_name
+                try :
+                    auser=self.userFromCache(direct.sender_screen_name)
+                except :
+                    auser=self.userFromCache('Pwytter')
+                
+                extstatus = ExtStatus(               
+                   created_at=direct.created_at,
+                   id=direct.id,
+                   text=direct.text,
+                   user=auser,
+                   type='direct')
+                statuses += [extstatus]
+        except Exception, e:
+            print str(e)
         return statuses
 
 
@@ -188,7 +197,7 @@ class TwClient(object):
 #        data = simplejson.loads(json)
 #        return [Status.NewFromJsonDict(x) for x in data]
 
-    def createFavorite(self, id):
+    def createFavorite(self, screen_name, id):
         '''Favorites the status specified in the ID parameter as the authenticating user.  
     
         The twitter.Api instance must be authenticated and thee
@@ -208,6 +217,11 @@ class TwClient(object):
         #url = 'http://twitter.com/favorites/create/%s.json' % id
         url = 'http://twitter.com/favourings/create/%s' % id
         json = self.api._FetchUrl(url)
+
+        #update cache 
+        url = 'http://twitter.com/%s/statuses/%s ' % (screen_name, id)
+        self._cache.Set(url,str(True))
+        
         #data = simplejson.loads(json)
         return None #Status.NewFromJsonDict(data)
 
@@ -240,7 +254,7 @@ class TwClient(object):
             favorited = (favocache == "True")
         return favorited 
 
-    def destroyFavorite(self, id):
+    def destroyFavorite(self, screen_name,  id):
         '''Un-favorites the status specified in the ID parameter as the authenticating user.
     
         The twitter.Api instance must be authenticated and thee
@@ -260,6 +274,11 @@ class TwClient(object):
         #url = 'http://twitter.com/favorites/destroy/%s.json' % id
         url = 'http://twitter.com/favourings/destroy/%s' % id
         json = self.api._FetchUrl(url)
+
+        #update cache 
+        url = 'http://twitter.com/%s/statuses/%s ' % (screen_name, id)
+        self._cache.Set(url,str(False))
+
         #data = simplejson.loads(json)
         return None #Status.NewFromJsonDict(data)
 
@@ -280,6 +299,11 @@ class TwClient(object):
                 user_url = s.user.url.encode('latin-1','replace')
             except Exception, e:
                 user_url = ""
+                
+            favorited= False          
+            if s.type <> 'direct':
+                favorited = self.isFavorite(s.user.screen_name, s.id)
+                print favorited
             self.texts.append({"name": s.user.screen_name.encode('latin-1','replace'),
                                "id": s.id,
                                "msg" : s.text.encode('latin-1','replace'),
@@ -287,12 +311,9 @@ class TwClient(object):
                                "time": "(%s)" % (atime),
                                "type" : s.type,
                                "user_url" : user_url,
-                               "favorite" : False,
-                               "favorite_updated" : False
+                               "favorite" : favorited,
+                               "favorite_updated" : True
                               })
-            if self.texts[-1]['type'] <> 'direct':
-                pass
-                print s.id,self.isFavorite(s.user.screen_name, s.id)
                     
     def sendText(self,aText):
         self._statuses = self.api.PostUpdate(aText)
@@ -322,7 +343,7 @@ class TwClient(object):
         auser = self.userFromCache(aUserName)
         if not auser :                
             return None
-        imageurl = auser.profile_image_url #.encode('latin-1')        
+        imageurl = auser.profile_image_url.encode('latin-1','replace')        
         LoadedImage=self._cache.GetUrl(imageurl, timeout=3600*24)
         returnImage = Image.open(StringIO.StringIO(LoadedImage))
         returnImage.thumbnail((32,32),Image.ANTIALIAS)
