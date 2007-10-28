@@ -17,15 +17,20 @@
 """
 
 import twitter
+import pwCache
 import urllib2
 import StringIO
 import os.path
 import Queue
 import threading
+import simplejson
 from PIL import Image, ImageTk
 
 import re
 from htmlentitydefs import name2codepoint
+
+class TwClientError(Exception):
+  '''Base class for TwClient errors'''
 
 def htmlentitydecode(s):
     return re.sub('&(%s);' % '|'.join(name2codepoint), 
@@ -59,6 +64,7 @@ class TwClient(object):
         self.api.SetXTwitterHeaders('pwytter', 'http://www.pwytter.com/files/meta.xml', aVersion)       
         self.api.SetSource('pwytter')       
 
+        self._cache= pwCache.PwytterCache()
         self._imageLoading = Image.open(os.path.join("media",'loading.png'))
         self._imageLoading.thumbnail((32,32),Image.ANTIALIAS)
                        
@@ -75,7 +81,7 @@ class TwClient(object):
         self._imageQueue=Queue.Queue()
         self._userQueue=Queue.Queue()
         
-        self.timeLines=("User","Friends","Replies","Direct","Composite","Public")
+        self.timeLines=("User","Friends","Replies","Direct", "Composite","Public")
         self._currentTimeLine = "Friends"
         
         self.VersionOK = self._checkversion(aVersion)
@@ -116,6 +122,8 @@ class TwClient(object):
             self._statuses = self.StatusesToExt(self.api.GetReplies(),'reply')
         elif self._currentTimeLine=="Direct":
             self._statuses = self.getDirectsAsStatuses()
+#        elif self._currentTimeLine=="Favorites":
+#            self._statuses = self.StatusesToExt(self.api.GetFavorites(self.user),'standard')                       
         elif self._currentTimeLine=="Composite":
             self._statuses = self.StatusesToExt(self.api.GetFriendsTimeline(),'standard') \
                                 + self.StatusesToExt(self.api.GetReplies(),'reply') \
@@ -154,6 +162,107 @@ class TwClient(object):
                type='direct')
             statuses += [status]
         return statuses
+
+
+#    def getFavorites(self, user=None):
+#        '''Fetch the sequence of favorited twitter.Status messages for a user
+#    
+#        The twitter.Api instance must be authenticated if the user is private.
+#    
+#        Args:
+#          user:
+#            Specifies the ID or screen name of the user for whom to return
+#            the friends_timeline.  If unspecified, the username and password
+#            must be set in the twitter.Api instance.  [optional]
+#    
+#        Returns:
+#          A sequence of twitter.Status instances, one for each message
+#        '''
+#        url = 'http://twitter.com/favorites.json'
+#        if not user and not self._username:
+#          raise TwitterError("User must be specified if API is not authenticated.")
+#        parameters = {}
+#        if user:
+#          parameters['id'] = user
+#        json = self.api._FetchUrl(url, parameters=parameters)
+#        data = simplejson.loads(json)
+#        return [Status.NewFromJsonDict(x) for x in data]
+
+    def createFavorite(self, id):
+        '''Favorites the status specified in the ID parameter as the authenticating user.  
+    
+        The twitter.Api instance must be authenticated and thee
+        authenticating user must be the author of the specified status.
+    
+        Args:
+          id: The numerical ID of the status you're trying to favorite.
+    
+        Returns:
+          A twitter.Status instance representing the status message
+        '''
+        try:
+          if id:
+            int(id)
+        except:
+          raise TwClientError("id must be an integer")
+        #url = 'http://twitter.com/favorites/create/%s.json' % id
+        url = 'http://twitter.com/favourings/create/%s' % id
+        json = self.api._FetchUrl(url)
+        #data = simplejson.loads(json)
+        return None #Status.NewFromJsonDict(data)
+
+    def isFavorite(self, screen_name, id):
+        '''Favorites the status specified in the ID parameter as the authenticating user.  
+    
+        The twitter.Api instance must be authenticated and thee
+        authenticating user must be the author of the specified status.
+    
+        Args:
+          screen_name :
+          id: The numerical ID of the status you're trying to favorite.
+    
+        Returns:
+          A twitter.Status instance representing the status message
+        '''
+        try:
+          if id:
+            int(id)
+        except:
+          raise TwClientError("id must be an integer")
+        url = 'http://twitter.com/%s/statuses/%s ' % (screen_name, id)
+        favocache = self._cache.GetTimeout(url,3600*24)
+        if not favocache:
+            html = self.api._FetchUrl(url)
+            favorited = html.find('Icon_star_full') > 0
+            print str(favorited)
+            self._cache.Set(url,str(favorited))
+        else :
+            favorited = (favocache == "True")
+        return favorited 
+
+    def destroyFavorite(self, id):
+        '''Un-favorites the status specified in the ID parameter as the authenticating user.
+    
+        The twitter.Api instance must be authenticated and thee
+        authenticating user must be the author of the specified status.
+    
+        Args:
+          id: The numerical ID of the status you're trying to favorite.
+    
+        Returns:
+          A twitter.Status instance representing the un-favorited status message
+        '''
+        try:
+          if id:
+            int(id)
+        except:
+          raise TwClientError("id must be an integer")
+        #url = 'http://twitter.com/favorites/destroy/%s.json' % id
+        url = 'http://twitter.com/favourings/destroy/%s' % id
+        json = self.api._FetchUrl(url)
+        #data = simplejson.loads(json)
+        return None #Status.NewFromJsonDict(data)
+
         
     def refresh(self):
         self._getCurrentTimeLine()
@@ -172,12 +281,18 @@ class TwClient(object):
             except Exception, e:
                 user_url = ""
             self.texts.append({"name": s.user.screen_name.encode('latin-1','replace'),
+                               "id": s.id,
                                "msg" : s.text.encode('latin-1','replace'),
                                "msgunicode" : htmlentitydecode(s.text),
                                "time": "(%s)" % (atime),
                                "type" : s.type,
-                               "user_url" : user_url
+                               "user_url" : user_url,
+                               "favorite" : False,
+                               "favorite_updated" : False
                               })
+            if self.texts[-1]['type'] <> 'direct':
+                pass
+                print s.id,self.isFavorite(s.user.screen_name, s.id)
                     
     def sendText(self,aText):
         self._statuses = self.api.PostUpdate(aText)
@@ -207,8 +322,9 @@ class TwClient(object):
         auser = self.userFromCache(aUserName)
         if not auser :                
             return None
-        imageurl = auser.profile_image_url.encode('latin-1')
-        returnImage = Image.open(StringIO.StringIO(urllib2.urlopen(imageurl).read()))
+        imageurl = auser.profile_image_url #.encode('latin-1')        
+        LoadedImage=self._cache.GetUrl(imageurl, timeout=3600*24)
+        returnImage = Image.open(StringIO.StringIO(LoadedImage))
         returnImage.thumbnail((32,32),Image.ANTIALIAS)
         self._imageQueue.put((aUserName,returnImage))
         #self._userQueue.task_done()
@@ -241,10 +357,16 @@ class TwClient(object):
             self._imagesToCache()
             self._requestImage(aUser.screen_name)
         
-    def userFromCache(self,name):
+    def userFromCache(self, name):
         if name not in self._usercache.keys() :  
-            print "load user:", name
-            aUser=self.api.GetUser(name)  
+            userDict = self._cache.GetTimeout('user//'+name, timeout = 3600)
+            if userDict :
+                aUser = twitter.User.NewFromJsonDict(simplejson.loads(userDict))
+                print "load from cache user:", name
+            else:
+                aUser = self.api.GetUser(name)  
+                self._cache.Set('user//'+name,aUser.AsJsonString())
+                print "load from api user:", name            
             self._addUserToCache(aUser)       
             return aUser
         else :     
