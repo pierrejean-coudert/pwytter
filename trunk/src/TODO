@@ -1,18 +1,15 @@
 # Release 0.8
-#TODO: improve SplashScreen
+#TODO: add newly sended tweet in cache for immediate display
+#TODO: Handle favorites, deffered loading
 #TODO: remove duplicates from composite timeline
+#TODO: improve SplashScreen
+
 #TODO: memorize current timeline in parameters
-#TODO: handle a cache in the filesystem for quick startup
-#TODO: anti-aliased font on ubuntu
 #TODO: refreshtime in minutes
+#TODO: anti-aliased font on ubuntu
 #TODO: network error recovery (standby recovery)
 #TODO: Single WIN32 Setup with InnoSetup
-#TODO: Change line color for replies and direct messages
-#TODO: Add a mixed timeline
-#TODO: detect replies in messages (@xxx) in provide a link
-#TODO: Handle favorites
 #TODO: Resize + Scroll to chnage number of lines
-
 #TODO: remove simplejson from dist
 #TODO: reorganize source tree : bat directory, setup outside rsc, ...
 #TODO: Setup.py: must be ok on linux
@@ -27,8 +24,11 @@
 #TODO: Notifications, Mac Growl integration ( http://growl.info/documentation/developer/python-support.php, http://aaronland.info/python/twitter/twnotifier/, ...
 #TODO: onTop user information dialog : name, links, directmessage, add as friend, ...
 
+#DONE: added a filesystem cache for quick ressource loading at startup (images, users, favorites)
 #DONE: use python-witter 0.5 with cache
 #DONE: added "Replies" and "Direct Messages" timelines
+#DONE: added "Composite" timelines
+#DONE: Changed line color for replies and direct messages
 #DONE: added a Reply icon button in the message : add @name automatically
 #DONE: added a popup menu to choose timeline
 #DONE: added flags in language popup menu
@@ -47,6 +47,7 @@
 #DONE: Russian translation : Bloodcarter <bloodcarter at gmail dot com>
 
 # Later
+#TODO: Jaiku client
 #TODO: multiple accounts as in http://funkatron.com/index.php/site/spaz_a_twitter_client_for_mac_os_x_windows_and_linux/
 #TODO: setup.py : auto install twitter.py, simplejson, PIL
 #TODO: POP3/IMAP client : http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/52299

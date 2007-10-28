@@ -450,8 +450,8 @@ class MainPanel(Frame):
         aLine['DirectInvalid']   = ClickableImage(aLine['IconBox'], \
                                         "arrow_nb.png", None, linecolor,"drci"+str(i))
         aLine['Favorite'] = ClickableImage(aLine['IconBox'], \
-                                        "asterisk_nb.png", self.manualRefresh, linecolor,"favo"+str(i))
-        aLine['FavoriteHint']= tkBalloon.Balloon(aLine['Favorite'],"Favorite")
+                                        "asterisk_nb.png", self._setFavoriteClick, linecolor,"favo"+str(i),
+                                        _("Favorite"))
         aLine['UserUrl']  = ClickableImage(aLine['IconBox'], \
                                         "world_go.png", self._userUrlClick, linecolor,"uurl"+str(i))
         aLine['UserUrlHint']=  tkBalloon.Balloon(aLine['UserUrl'])
@@ -716,6 +716,8 @@ class MainPanel(Frame):
     def _replyToMessage(self,par=None):
         lineIndex= int(par.widget.winfo_name()[4:])
         self.twitText.set('@'+self.tw.texts[lineIndex]["name"]+" ")
+        self.TwitEdit.icursor(140)
+        self.TwitEdit.focus_set()
         
     def _sendDirectMessage(self,par=None):
         self._busy.set()
@@ -818,6 +820,11 @@ class MainPanel(Frame):
         userurl = self.tw.texts[lineIndex]["user_url"]
         if userurl != "": self._openweb(userurl)
 
+    def _setFavoriteClick(self,par=None):
+        lineIndex= int(par.widget.winfo_name()[4:])
+        print "Set Favo id",self.tw.texts[lineIndex]["id"]
+        print self.tw.createFavorite(self.tw.texts[lineIndex]["id"])
+
     def _timeLineClick(self,event=None):
         if event:
             self.TimeLineMenu.post(event.x_root, event.y_root)
@@ -868,6 +875,7 @@ class MainPanel(Frame):
             self.tw.sendText(self.twitText.get())
             self.twitText.set('')
             self._refreshTwitZone()
+            self.editValidate()
         finally:
             self._busy.reset()
         
@@ -883,11 +891,18 @@ class MainPanel(Frame):
             self._busy.reset()
  
     def editValidate(self, *dummy):
-        actualLenghth=len(self.twitText.get())
-        if actualLenghth>140:
+        text = self.twitText.get()
+        actualLength=len(text)
+        if (actualLength>0) and (text[0]=='@') :
+            self.TwitEdit.config(bg= self._display['replyLine#'],
+                                 fg=self._display['text#'])
+        else:
+            self.TwitEdit.config(bg=self._display['twitEdit#'], 
+                                 fg=self._display['text#'])
+        if actualLength>140:
             self.twitText.set(self.twitText.get()[:140])
         else:
-            self.RemainCar["text"] =  _("%d character(s) left") % (140-actualLenghth)
+            self.RemainCar["text"] =  _("%d character(s) left") % (140-actualLength)
 
 def _initTranslation():
     """Translation stuff : init locale and get text"""       
