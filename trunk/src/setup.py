@@ -116,6 +116,7 @@ setup(
   data_files=[("text", glob.glob("*.txt")),
               ("theme", glob.glob("theme\\*.pwt")),
               ("media", glob.glob("media\\*.png")
+                        + glob.glob("media\\*.gif")
                         + glob.glob("media\\*.ico")
                         + glob.glob("media\\*.icns"))
               ]
