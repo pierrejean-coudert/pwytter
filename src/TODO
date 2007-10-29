@@ -1,6 +1,5 @@
 # Release 0.8
 #TODO: add newly sended tweet in cache for immediate display
-#TODO: generic deffered loading (favorites, images, ...)
 #TODO: check mac / linux themes
 #TODO: remove duplicates from composite timeline
 #TODO: improve SplashScreen
@@ -27,6 +26,7 @@
 
 #DONE: Handle favorites
 #DONE: added a filesystem cache for quick ressource loading at startup (images, users, favorites)
+#DONE: added a generic defered url loader (favorites, images, ...)
 #DONE: use python-witter 0.5 with cache
 #DONE: added "Replies" and "Direct Messages" timelines
 #DONE: added "Composite" timelines

@@ -21,7 +21,7 @@ except:
     sys.path.append(join(abspath(dirname(sys.path[0])), 'twclient'))  
         
 __author__ = 'Pierre-Jean Coudert <coudert@free.fr>'
-__version__ = '0.7'
+__version__ = '0.8'
 APP_NAME = "pwytter"
 
 from Tkinter import *
@@ -589,15 +589,18 @@ class MainPanel(Frame):
                 self.Lines[i]['UserUrlInvalid'].grid_forget() 
                 self.Lines[i]['UserUrl'].grid(row=0, column=3, sticky='E')
                 self.Lines[i]['UserUrl'].grid()
+
+            self._imagesLoaded = self._imagesLoaded \
+                                 and self.tw.texts[i]["favorite_updated"]                       
             if self.tw.texts[i]["favorite"]:
                 self.Lines[i]['FavoriteGray'].grid_forget()
                 self.Lines[i]['Favorite'].grid(row=0,column=2, rowspan=1, sticky='E')
             else:
                 self.Lines[i]['Favorite'].grid_forget()
                 self.Lines[i]['FavoriteGray'].grid(row=0,column=2, rowspan=1, sticky='E')
-
                 
             self.Lines[i]['Box'].grid(row=i,sticky=W,padx=0, pady=2, ipadx=1, ipady=1)
+
         for i in range(i+1,len(self.Lines)):
             self.Lines[i]['Box'].grid_forget()
     
@@ -884,6 +887,7 @@ class MainPanel(Frame):
                 self._refreshTwitZone()
                 self._refreshTime = time.time()
             if not self._imagesLoaded :
+                self.tw.refresh()
                 self._refresh_lines()
             if self._needToRefreshMe:
                 self._refresh_mySelfBox()
