@@ -18,6 +18,8 @@ import md5
 import tempfile
 import time
 import urllib2
+import Queue
+import threading
 
 
 class PwytterCacheError(Exception):
@@ -81,12 +83,15 @@ class PwytterCache(object):
     else:
       return None
 
-  def GetUrl(self, url, timeout=0):
+  def GetUrl(self, url, timeout=0, urlReader=None):
       #LoadedImage=self._cache.Remove(imageurl)
       last_cached = self.GetCachedTime(url)
       # If the cached version is outdated then fetch another and store it
       if not last_cached or time.time() >= last_cached + timeout:
-          data=urllib2.urlopen(url).read()
+          if urlReader:
+              data=urlReader(url)
+          else:
+              data=urllib2.urlopen(url).read()
           self.Set(url,data)
       else:
           data=self.Get(url)
@@ -124,4 +129,62 @@ class PwytterCache(object):
 
   def _GetPrefix(self,hashed_key):
     return os.path.sep.join(hashed_key[0:PwytterCache.DEPTH])
+    
+    
+class PwDeferedLoader(object):
+    """ An ansynchronous URL loader. It uses URL Filesystem caching
+        It can use an _NewObjectFromURL function to create an object from the data
+        This object is cached in a dict (url,object) in memory
+    """
+    def __init__(self, NewObjectFromURL=None, notAvailableObject=None, 
+                 timeout=3600, urlReader=None):
+        self._NewObjectFromURL = NewObjectFromURL
+        self._notAvailableObject = notAvailableObject
+        self._timeout = timeout
+        self._urlReader = urlReader
+        self._urlQueue = Queue.Queue()
+        self._objectQueue = Queue.Queue()
+        self._urlCache = PwytterCache()
+        self._dataCache = {}
+        self._requestedUrls = []
+        
+    def _threadLoadData(self):
+        data_url=self._urlQueue.get()
+        data=self._urlCache.GetUrl(data_url, 
+                                   timeout = self._timeout, 
+                                   urlReader = self._urlReader)        
+        if self._NewObjectFromURL:
+            dataObject= self._NewObjectFromURL(data)
+            self._objectQueue.put((data_url, dataObject))
+        else:
+            self._objectQueue.put((data_url, data))       
+        #self._objectQueue.task_done()
+
+    def _dataToCache(self):
+        while not self._objectQueue.empty():
+            data_url,dataObject = self._objectQueue.get() 
+            self._dataCache[data_url]=dataObject
+            #self._dataCache.task_done()
+
+    def _requestData(self, url):
+        if url not in self._requestedUrls:
+            self._requestedUrls.append(url)
+            self._urlQueue.put(url)
+            t = threading.Thread(None,self._threadLoadData)
+            t.setDaemon(True)
+            t.start() 
+            
+    def getData(self,url):
+        """  getData returns the object/data corresponding to url
+             >>>>  (True, Object)
+             If the requested URL is currently loading (in a separate thread) 
+               getData returns then notAvailableObject object/data
+             >>>>  (False, notAvailableObject)           
+        """
+        self._dataToCache()
+        if url not in self._dataCache.keys() :
+            self._requestData(url)
+            return False, self._notAvailableObject
+        else :     
+            return True, self._dataCache[url]
     

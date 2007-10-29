@@ -68,23 +68,23 @@ class TwClient(object):
         self._cache= pwCache.PwytterCache()
         self._imageLoading = Image.open(os.path.join("media",'loading.png'))
         self._imageLoading.thumbnail((32,32),Image.ANTIALIAS)
-                       
+        self._imageLoader=pwCache.PwDeferedLoader(NewObjectFromURL=self.ConvertImage, 
+                                                    notAvailableObject=self._imageLoading, 
+                                                    timeout=3600*24)
+
+        self._favoriteLoader=pwCache.PwDeferedLoader(NewObjectFromURL=self.ConvertFavoriteHTML, 
+                                                    notAvailableObject=False, 
+                                                    timeout=3600*24,
+                                                    urlReader= self.api._FetchUrl)
         self._statuses =[]
         self.texts = []
         self._friends = []
         self.Friends=[]
         self._followers = []
         self.Followers=[]
-        #Cache
         self._usercache={}
-        self._imagecache={}        
-        self._requestedImageList=[]
-        self._imageQueue=Queue.Queue()
-        self._userQueue=Queue.Queue()
-        
         self.timeLines=("User","Friends","Replies","Direct", "Composite","Public")
-        self._currentTimeLine = "Friends"
-        
+        self._currentTimeLine = "Friends"       
         self.VersionOK = self._checkversion(aVersion)
         
     def _checkversion(self, aVersion):
@@ -205,25 +205,17 @@ class TwClient(object):
     
         Args:
           id: The numerical ID of the status you're trying to favorite.
-    
-        Returns:
-          A twitter.Status instance representing the status message
         '''
         try:
           if id:
             int(id)
         except:
           raise TwClientError("id must be an integer")
-        #url = 'http://twitter.com/favorites/create/%s.json' % id
         url = 'http://twitter.com/favourings/create/%s' % id
         json = self.api._FetchUrl(url)
-
         #update cache 
         url = 'http://twitter.com/%s/statuses/%s ' % (screen_name, id)
         self._cache.Set(url,str(True))
-        
-        #data = simplejson.loads(json)
-        return None #Status.NewFromJsonDict(data)
 
     def isFavorite(self, screen_name, id):
         '''Favorites the status specified in the ID parameter as the authenticating user.  
@@ -236,7 +228,7 @@ class TwClient(object):
           id: The numerical ID of the status you're trying to favorite.
     
         Returns:
-          A twitter.Status instance representing the status message
+          loaded, favorited
         '''
         try:
           if id:
@@ -244,16 +236,11 @@ class TwClient(object):
         except:
           raise TwClientError("id must be an integer")
         url = 'http://twitter.com/%s/statuses/%s ' % (screen_name, id)
-        favocache = self._cache.GetTimeout(url,3600*24)
-        if not favocache:
-            html = self.api._FetchUrl(url)
-            favorited = html.find('Icon_star_full') > 0
-            print str(favorited)
-            self._cache.Set(url,str(favorited))
-        else :
-            favorited = (favocache == "True")
-        return favorited 
+        return self._favoriteLoader.getData(url) 
 
+    def ConvertFavoriteHTML(self, data):
+        return data.find('Icon_star_full') > 0
+        
     def destroyFavorite(self, screen_name,  id):
         '''Un-favorites the status specified in the ID parameter as the authenticating user.
     
@@ -262,26 +249,17 @@ class TwClient(object):
     
         Args:
           id: The numerical ID of the status you're trying to favorite.
-    
-        Returns:
-          A twitter.Status instance representing the un-favorited status message
         '''
         try:
           if id:
             int(id)
         except:
           raise TwClientError("id must be an integer")
-        #url = 'http://twitter.com/favorites/destroy/%s.json' % id
         url = 'http://twitter.com/favourings/destroy/%s' % id
         json = self.api._FetchUrl(url)
-
         #update cache 
         url = 'http://twitter.com/%s/statuses/%s ' % (screen_name, id)
         self._cache.Set(url,str(False))
-
-        #data = simplejson.loads(json)
-        return None #Status.NewFromJsonDict(data)
-
         
     def refresh(self):
         self._getCurrentTimeLine()
@@ -300,10 +278,10 @@ class TwClient(object):
             except Exception, e:
                 user_url = ""
                 
-            favorited= False          
+            loaded, favorited = False, False
             if s.type <> 'direct':
-                favorited = self.isFavorite(s.user.screen_name, s.id)
-                print favorited
+                loaded, favorited = self.isFavorite(s.user.screen_name, s.id)
+                print "loaded",loaded, "favorited", favorited
             self.texts.append({"name": s.user.screen_name.encode('latin-1','replace'),
                                "id": s.id,
                                "msg" : s.text.encode('latin-1','replace'),
@@ -312,7 +290,7 @@ class TwClient(object):
                                "type" : s.type,
                                "user_url" : user_url,
                                "favorite" : favorited,
-                               "favorite_updated" : True
+                               "favorite_updated" : loaded
                               })
                     
     def sendText(self,aText):
@@ -337,46 +315,21 @@ class TwClient(object):
             fName= f.screen_name.encode('latin-1','replace')
             self.Followers.append(fName)
             
-    def _threadLoadUserImage(self):
-        aUserName=self._userQueue.get()
-        print "load image:",aUserName
-        auser = self.userFromCache(aUserName)
-        if not auser :                
-            return None
-        imageurl = auser.profile_image_url.encode('latin-1','replace')        
-        LoadedImage=self._cache.GetUrl(imageurl, timeout=3600*24)
-        returnImage = Image.open(StringIO.StringIO(LoadedImage))
+    def ConvertImage(self,image):
+        returnImage = Image.open(StringIO.StringIO(image))
         returnImage.thumbnail((32,32),Image.ANTIALIAS)
-        self._imageQueue.put((aUserName,returnImage))
-        #self._userQueue.task_done()
-
-    def _imagesToCache(self):
-        while not self._imageQueue.empty():
-            aName,aImage = self._imageQueue.get() 
-            self._imagecache[aName]=aImage
-            #self._imageQueue.task_done()
-
-    def _requestImage(self, aUserName):
-        if aUserName not in self._requestedImageList:
-            self._requestedImageList.append(aUserName)
-            self._userQueue.put(aUserName)
-            t = threading.Thread(None,self._threadLoadUserImage)
-            t.setDaemon(True)
-            t.start() 
-            
+        return returnImage
+    
     def imageFromCache(self,name):
-        self._imagesToCache()
-        if name not in self._imagecache.keys() :
-            self._requestImage(name)
+        auser = self.userFromCache(name)
+        if not auser :                
             return False, self._imageLoading
-        else :     
-            return True, self._imagecache[name]
-            
+        imageurl = auser.profile_image_url.encode('latin-1','replace')        
+        return self._imageLoader.getData(imageurl)
+           
     def _addUserToCache(self, aUser):
         if aUser.screen_name not in self._usercache.keys() :  
             self._usercache[aUser.screen_name]=aUser
-            self._imagesToCache()
-            self._requestImage(aUser.screen_name)
         
     def userFromCache(self, name):
         if name not in self._usercache.keys() :  
