@@ -1,4 +1,6 @@
 # Release 0.8
+#TODO: handle exception and timeout in deferred url loading
+#TODO: handle deferred timeline loading
 #TODO: add newly sended tweet in cache for immediate display
 #TODO: check mac / linux themes
 #TODO: remove duplicates from composite timeline

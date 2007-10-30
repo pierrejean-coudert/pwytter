@@ -499,7 +499,7 @@ class MainPanel(Frame):
         aLine['UserUrl'].grid_forget()           
         aLine['UserUrlInvalid'].grid(row=0,column=3, sticky='E')
         aLine['Msg'].grid(row=1,column=1,columnspan=2,rowspan=1, sticky='W',padx=1)
-        aLine['Box'].grid(row=i,sticky=W,padx=0, pady=2, ipadx=1, ipady=1)
+        aLine['Box'].grid(row=i,sticky=W,padx=0, pady=1, ipadx=1, ipady=1)
         aLine['DirectBox'].grid_forget()
         aLine['DirectBoxEmpty'].grid(row=2,column=0,columnspan=3,rowspan=1, sticky='W',padx=1)
         self._theme_Line(aLine, i)
@@ -599,7 +599,7 @@ class MainPanel(Frame):
                 self.Lines[i]['Favorite'].grid_forget()
                 self.Lines[i]['FavoriteGray'].grid(row=0,column=2, rowspan=1, sticky='E')
                 
-            self.Lines[i]['Box'].grid(row=i,sticky=W,padx=0, pady=2, ipadx=1, ipady=1)
+            self.Lines[i]['Box'].grid(row=i,sticky=W,padx=0, pady=1, ipadx=1, ipady=1)
 
         for i in range(i+1,len(self.Lines)):
             self.Lines[i]['Box'].grid_forget()
