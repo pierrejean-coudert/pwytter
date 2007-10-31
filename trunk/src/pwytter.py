@@ -34,7 +34,6 @@ import pwTheme
 import time
 import webbrowser
 import textwrap
-from urlparse import urlparse,urlunparse
 import os
 import os.path
 from PIL import Image, ImageTk
@@ -534,7 +533,7 @@ class MainPanel(Frame):
         aLine['DirectEdit'].config(bg=self._bg, fg=self._display['text#'])
         aLine['DirectSend'].config(bg=directColor, text=_('Send'))
  
-    def _refresh_lines(self, par=None):
+    def _refresh_lines(self, par=None):      
         self._imagesLoaded=True
         i=0
         for i in range(min(self._TwitLines,len(self.tw.texts))):
@@ -559,20 +558,16 @@ class MainPanel(Frame):
             else:
                 self.Lines[i]['DirectInvalid'].grid_forget()
                 self.Lines[i]['Direct'].grid(row=0,column=1, rowspan=1, sticky='W')
-            initText=self.tw.texts[i]["msg"].decode('latin-1','replace')
-            #self.Lines[i]['Msg']["text"]=textwrap.fill(initText, 70, break_long_words=True)
+
             self.Lines[i]['Msg']["text"]=textwrap.fill(self.tw.texts[i]["msgunicode"], 70, break_long_words=True)           
-            urlstart = initText.find("http://")
-            if urlstart > -1 :
-                self.tw.texts[i]["url"] = urlunparse(urlparse(initText[urlstart:])).split('"')[0]
+
+            if self.tw.texts[i]["url"]<>'' :
                 self.Lines[i]['Msg'].bind('<1>', self._urlClick)
                 self.Lines[i]['Msg']["cursor"] = 'hand2'
                 self.Lines[i]['Msg']["fg"] = self._display['messageUrl#']
                 self.Lines[i]['MsgHint'].settext(self.tw.texts[i]["url"])
                 self.Lines[i]['MsgHint'].enable()
-                print "url detected:",self.tw.texts[i]["url"]
             else:
-                self.tw.texts[i]["url"] = ''
                 self.Lines[i]['Msg'].bind('<1>', None)
                 self.Lines[i]['Msg']["cursor"] = ''
                 self.Lines[i]['Msg']["fg"] = self._display['message#']
@@ -603,6 +598,7 @@ class MainPanel(Frame):
 
         for i in range(i+1,len(self.Lines)):
             self.Lines[i]['Box'].grid_forget()
+
     
     def _createFriendImage(self, aParent, index, type):   
         aFriend={}

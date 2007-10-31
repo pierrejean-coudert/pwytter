@@ -142,6 +142,7 @@ class PwDeferedLoader(object):
         self._notAvailableObject = notAvailableObject
         self._timeout = timeout
         self._urlReader = urlReader
+        
         self._urlQueue = Queue.Queue()
         self._objectQueue = Queue.Queue()
         self._urlCache = PwytterCache()
@@ -187,4 +188,5 @@ class PwDeferedLoader(object):
             return False, self._notAvailableObject
         else :     
             return True, self._dataCache[url]
-    
+
+        

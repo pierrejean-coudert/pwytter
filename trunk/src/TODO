@@ -4,8 +4,8 @@
 #TODO: add newly sended tweet in cache for immediate display
 #TODO: check mac / linux themes
 #TODO: remove duplicates from composite timeline
-#TODO: improve SplashScreen
 
+#TODO: improve SplashScreen
 #TODO: memorize current timeline in parameters
 #TODO: refreshtime in minutes
 #TODO: anti-aliased font on ubuntu
@@ -49,6 +49,8 @@
 #DONE: Spanish translation : Jorge Rangel <jarg1985 at gmail dot com> 
 #DONE: Portuguese translation : brunoric <brunoric at gmail dot com> 
 #DONE: Russian translation : Bloodcarter <bloodcarter at gmail dot com>
+
+#DONE: Bug corrected in url detection
 
 # Later
 #TODO: Jaiku client
