@@ -25,6 +25,7 @@ import Queue
 import threading
 import simplejson
 import time
+from urlparse import urlparse,urlunparse
 from PIL import Image, ImageTk
 
 import re
@@ -36,6 +37,16 @@ class TwClientError(Exception):
 def htmlentitydecode(s):
     return re.sub('&(%s);' % '|'.join(name2codepoint), 
             lambda m: unichr(name2codepoint[m.group(1)]), s)
+
+def urlExtract(msg):
+    urlstart = msg.find("http://")
+    if urlstart > -1 :
+        msgurl = msg[urlstart:].split(' ')[0]
+        urlDetected = urlunparse(urlparse(msgurl)).split('"')[0]
+        print "url detected:", urlDetected
+    else:
+        urlDetected = ''
+    return urlDetected
     
 StatusType = ['standard', 'reply', 'direct']    
 
@@ -57,6 +68,58 @@ class ExtStatus(twitter.Status):
 
     type = property(GetType, SetType,
                     doc='The type of this status.')        
+
+class PwDeferedTimeline(object):
+    """ An ansynchronous URL loader. It uses URL Filesystem caching
+        It can use an _NewObjectFromURL function to create an object from the data
+        This object is cached in a dict (url,object) in memory
+    """
+    def __init__(self, pwClient=None, timeout=500):
+        self._pwClient = pwClient
+        self._notAvailableTimeLine = notAvailableObject
+        self._timeout = timeout
+        
+        self._urlQueue = Queue.Queue()
+        self._objectQueue = Queue.Queue()
+        self._urlCache = PwytterCache()
+        self._dataCache = {}
+        self._requestedUrls = []
+        
+    def _threadLoadData(self):
+        timeline=self._urlQueue.get()
+        data=self._pwClient()._getCurrentTimeLine()
+        self._objectQueue.put((data_url, data))       
+        #self._objectQueue.task_done()
+
+    def _dataToCache(self):
+        while not self._objectQueue.empty():
+            timeline,dataObject = self._objectQueue.get() 
+            self._dataCache[timeline]=dataObject
+            #self._dataCache.task_done()
+
+    def _requestData(self, timeline):
+        if url not in self._requestedUrls:
+            self._requestedUrls.append(timeline)
+            self._urlQueue.put(timeline)
+            t = threading.Thread(None,self._threadLoadData)
+            t.setDaemon(True)
+            t.start() 
+            
+    def getData(self, timeline):
+        """  getData returns the object/data corresponding to url
+             >>>>  (True, Object)
+             If the requested URL is currently loading (in a separate thread) 
+               getData returns then notAvailableObject object/data
+             >>>>  (False, notAvailableObject)           
+        """
+        self._dataToCache()
+        if timeline not in self._dataCache.keys() :
+            self._requestData(timeline)
+            time.sleep(self._timeout)
+            self._dataToCache()
+            if timeline not in self._dataCache.keys() :
+               return False, self._notAvailableObject
+        return True, self._dataCache[timeline]
 
 class TwClient(object):
     def __init__(self, aVersion, aUser, aPassword):
@@ -155,12 +218,10 @@ class TwClient(object):
         try:
             directs=self.api.GetDirectMessages()
             for direct in directs:
-                print "want to load :",direct.sender_screen_name
                 try :
                     auser=self.userFromCache(direct.sender_screen_name)
                 except :
-                    auser=self.userFromCache('Pwytter')
-                
+                    auser=self.userFromCache('Pwytter')              
                 extstatus = ExtStatus(               
                    created_at=direct.created_at,
                    id=direct.id,
@@ -282,10 +343,13 @@ class TwClient(object):
             if s.type <> 'direct':
                 loaded, favorited = self.isFavorite(s.user.screen_name, s.id)
                 print "loaded",loaded, "favorited", favorited
+                
+            msg = htmlentitydecode(s.text).encode('latin-1','replace')                              
             self.texts.append({"name": s.user.screen_name.encode('latin-1','replace'),
                                "id": s.id,
-                               "msg" : s.text.encode('latin-1','replace'),
+                               "msg" : msg,
                                "msgunicode" : htmlentitydecode(s.text),
+                               "url" : urlExtract(msg),
                                "time": "(%s)" % (atime),
                                "type" : s.type,
                                "user_url" : user_url,
