@@ -44,7 +44,6 @@ _imageFile = {}
 def imagefromfile(name):
     global _imageFile
     if name not in _imageFile.keys() :
-        print "load file:",name
         _imageFile[name] = Image.open(os.path.join("media",name))
         _imageFile[name].thumbnail((16,16),Image.ANTIALIAS)
     return _imageFile[name]
@@ -75,6 +74,7 @@ class MainPanel(Frame):
         self._imagesLoaded = True
         self._imagesFriendsLoaded = True
         self._needToShowParameters = False
+        self._versionChecked = False
         self._busy = pwTools.BusyManager(master)
         self._params = pwParam.PwytterParams()
 
@@ -149,8 +149,7 @@ class MainPanel(Frame):
         self.pack(ipadx=2, ipady=2)
         self._create_widgets()
         self._refresh_mySelfBox()
-        if not self.tw.VersionOK:
-            self._showUpdatePwytter()
+        self._refresh_version()
         if self._needToShowParameters:
             self._showParameters()            
         self._refreshTime = 0
@@ -245,6 +244,12 @@ class MainPanel(Frame):
         except Exception, e:
             print "_refreshMe Exception:",str(e)
             self._needToRefreshMe = True
+
+    def _refresh_version(self):
+        self._versionChecked = self.tw.VersionChecked()
+        if self._versionChecked:
+            if not self.tw.VersionOK:
+                self._showUpdatePwytter()
 
     def _create_RefreshBox(self, parent):
         self.refreshBox = Frame(parent, width=500)
@@ -891,6 +896,8 @@ class MainPanel(Frame):
                 self._refresh_lines()
             if not self._imagesFriendsLoaded :
                 self._refresh_friendsBox()
+            if not self._versionChecked :
+                self._refresh_version()                
         finally:
             self.after(1000, self.timer)
 
@@ -934,6 +941,7 @@ def _initTranslation():
     gettext.install(APP_NAME)
        
 if __name__ == "__main__":
+    print "Starting Pwytter..."
     _initTranslation()
     rootTk = Tk()
     rootTk.title('Pwytter %s' % (__version__))
