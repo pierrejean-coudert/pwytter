@@ -69,57 +69,58 @@ class ExtStatus(twitter.Status):
     type = property(GetType, SetType,
                     doc='The type of this status.')        
 
-class PwDeferedTimeline(object):
+class PwDeferedTwitter(object):
     """ An ansynchronous URL loader. It uses URL Filesystem caching
         It can use an _NewObjectFromURL function to create an object from the data
         This object is cached in a dict (url,object) in memory
     """
     def __init__(self, pwClient=None, timeout=500):
-        self._pwClient = pwClient
-        self._notAvailableTimeLine = notAvailableObject
+        self._notAvailableObject = None
         self._timeout = timeout
-        
-        self._urlQueue = Queue.Queue()
+        self._keyQueue = Queue.Queue()
         self._objectQueue = Queue.Queue()
-        self._urlCache = PwytterCache()
         self._dataCache = {}
-        self._requestedUrls = []
+        self._requestedKeys = []
         
     def _threadLoadData(self):
-        timeline=self._urlQueue.get()
-        data=self._pwClient()._getCurrentTimeLine()
-        self._objectQueue.put((data_url, data))       
+        key, call = self._keyQueue.get()
+        needToCall = True
+        while needToCall:
+            try:
+                data = call()
+                needToCall = False
+            except Exception, e:
+                print "Deferred load error:", str(e)
+                needToCall = True
+        self._objectQueue.put((key, data))       
         #self._objectQueue.task_done()
 
     def _dataToCache(self):
         while not self._objectQueue.empty():
-            timeline,dataObject = self._objectQueue.get() 
-            self._dataCache[timeline]=dataObject
+            key,dataObject = self._objectQueue.get() 
+            self._dataCache[key]=dataObject
             #self._dataCache.task_done()
 
-    def _requestData(self, timeline):
-        if url not in self._requestedUrls:
-            self._requestedUrls.append(timeline)
-            self._urlQueue.put(timeline)
+    def _requestData(self, key, call):
+        if key not in self._requestedKeys:
+            self._requestedKeys.append(key)
+            self._keyQueue.put( (key,call) )
             t = threading.Thread(None,self._threadLoadData)
             t.setDaemon(True)
             t.start() 
             
-    def getData(self, timeline):
-        """  getData returns the object/data corresponding to url
+    def Get(self, key, call):
+        """  Get returns the object/data corresponding to call
              >>>>  (True, Object)
              If the requested URL is currently loading (in a separate thread) 
                getData returns then notAvailableObject object/data
              >>>>  (False, notAvailableObject)           
         """
         self._dataToCache()
-        if timeline not in self._dataCache.keys() :
-            self._requestData(timeline)
-            time.sleep(self._timeout)
-            self._dataToCache()
-            if timeline not in self._dataCache.keys() :
-               return False, self._notAvailableObject
-        return True, self._dataCache[timeline]
+        if key not in self._dataCache.keys() :
+            self._requestData(key,call)
+            return False, self._notAvailableObject
+        return True, self._dataCache[key]
 
 class TwClient(object):
     def __init__(self, aVersion, aUser, aPassword):
@@ -139,6 +140,8 @@ class TwClient(object):
                                                     notAvailableObject=False, 
                                                     timeout=3600*24,
                                                     urlReader= self.api._FetchUrl)
+        self._deferredLoader = PwDeferedTwitter()
+        
         self._statuses =[]
         self.texts = []
         self._friends = []
@@ -153,12 +156,12 @@ class TwClient(object):
     def _checkversion(self, aVersion):
         versionURL="http://www.pwytter.com/files/PWYTTER-VERSION.txt"
         try:
-            lastVersion= urllib2.urlopen(versionURL).read()
-            print 'lastVersion',lastVersion
+            lastVersion= float(urllib2.urlopen(versionURL).read())
+            print '>> Verified Pwytter last Version:',lastVersion
         except Exception,e:
             print "Unable to check Pwytter Version:",str(e)
             lastVersion = aVersion
-        return lastVersion == aVersion
+        return lastVersion <= float(aVersion)
         
     def login(self, aUser, aPassword):
         self.user, self.password = aUser, aPassword     
@@ -364,21 +367,25 @@ class TwClient(object):
         return self.api.PostDirectMessage(aUser, aText)
 
     def getFriends(self):
-        self._friends = self.api.GetFriends()
+        loaded, self._friends = self._deferredLoader.Get("friends",self.api.GetFriends)
         self.Friends=[]
-        for f in self._friends :
-            self._addUserToCache(f)
-            friendName= f.screen_name.encode('latin-1','replace')
-            self.Friends.append(friendName)
+        if loaded:
+            for f in self._friends :
+                self._addUserToCache(f)
+                friendName= f.screen_name.encode('latin-1','replace')
+                self.Friends.append(friendName)
+        return loaded
 
     def getFollowers(self):
-        self._followers = self.api.GetFollowers()
+        loaded, self._followers = self._deferredLoader.Get("followers",self.api.GetFollowers)
         self.Followers=[]
-        for f in self._followers :
-            self._addUserToCache(f)
-            fName= f.screen_name.encode('latin-1','replace')
-            self.Followers.append(fName)
-            
+        if loaded:
+            for f in self._followers :
+                self._addUserToCache(f)
+                fName= f.screen_name.encode('latin-1','replace')
+                self.Followers.append(fName)
+        return loaded
+                
     def ConvertImage(self,image):
         returnImage = Image.open(StringIO.StringIO(image))
         returnImage.thumbnail((32,32),Image.ANTIALIAS)
@@ -400,7 +407,6 @@ class TwClient(object):
             userDict = self._cache.GetTimeout('user//'+name, timeout = 3600)
             if userDict :
                 aUser = twitter.User.NewFromJsonDict(simplejson.loads(userDict))
-                print "load from cache user:", name
             else:
                 aUser = self.api.GetUser(name)  
                 self._cache.Set('user//'+name,aUser.AsJsonString())
