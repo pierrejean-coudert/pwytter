@@ -646,10 +646,11 @@ class MainPanel(Frame):
         self.FollowerTitle.config(text=_("Followers"), bg=self._bg, fg=self._display['text#'])
                 
     def _refresh_friendsBox(self):
+        self._imagesFriendsLoaded = True
         try:
-            self.tw.getFriends()
+            self._imagesFriendsLoaded = self._imagesFriendsLoaded and self.tw.getFriends()
             i=0
-            self._imagesFriendsLoaded = True
+
             for fname in self.tw.Friends[:30]:
                 if i+1>len(self.FriendImages) :
                     self._createFriendImage(self.friendsInsideBox,i, "friend")
@@ -670,7 +671,7 @@ class MainPanel(Frame):
             print str(e),"-> Can't get friends"
             
         try:
-            self.tw.getFollowers()
+            self._imagesFriendsLoaded = self._imagesFriendsLoaded and self.tw.getFollowers()
             i=0
             for fname in self.tw.Followers[:30]:
                 if i+1>len(self.FollowerImages) :

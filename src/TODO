@@ -1,6 +1,7 @@
 # Release 0.8
 #TODO: handle exception and timeout in deferred url loading
 #TODO: handle deferred timeline loading
+#TODO: handle deferred version loading
 #TODO: add newly sended tweet in cache for immediate display
 #TODO: check mac / linux themes
 #TODO: remove duplicates from composite timeline
@@ -27,6 +28,7 @@
 #TODO: onTop user information dialog : name, links, directmessage, add as friend, ...
 
 #DONE: Handle favorites
+#DONE: Deferred Friends loading for quick startup 
 #DONE: added a filesystem cache for quick ressource loading at startup (images, users, favorites)
 #DONE: added a generic defered url loader (favorites, images, ...)
 #DONE: use python-witter 0.5 with cache
