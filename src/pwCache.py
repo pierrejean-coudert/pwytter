@@ -151,9 +151,18 @@ class PwDeferedLoader(object):
         
     def _threadLoadData(self):
         data_url=self._urlQueue.get()
-        data=self._urlCache.GetUrl(data_url, 
-                                   timeout = self._timeout, 
-                                   urlReader = self._urlReader)        
+        needToLoad = True
+        while needToLoad:
+            try:
+                data=self._urlCache.GetUrl(data_url, 
+                                           timeout = self._timeout, 
+                                           urlReader = self._urlReader)        
+                needToLoad = False
+            except Exception, e:
+                print "PwDeferedLoader error:", str(e)
+                time.sleep(1000)
+                needToLoad = True
+                       
         if self._NewObjectFromURL:
             dataObject= self._NewObjectFromURL(data)
             self._objectQueue.put((data_url, dataObject))

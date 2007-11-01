@@ -1,7 +1,5 @@
-# Release 0.8
-#TODO: handle exception and timeout in deferred url loading
-#TODO: handle deferred timeline loading
-#TODO: handle deferred version loading
+# Release 0.9
+#TODO: deferred timeline loading
 #TODO: add newly sended tweet in cache for immediate display
 #TODO: check mac / linux themes
 #TODO: remove duplicates from composite timeline
@@ -26,33 +24,6 @@
 #TODO: Design an Icon
 #TODO: Notifications, Mac Growl integration ( http://growl.info/documentation/developer/python-support.php, http://aaronland.info/python/twitter/twnotifier/, ...
 #TODO: onTop user information dialog : name, links, directmessage, add as friend, ...
-
-#DONE: Handle favorites
-#DONE: Deferred Friends loading for quick startup 
-#DONE: added a filesystem cache for quick ressource loading at startup (images, users, favorites)
-#DONE: added a generic defered url loader (favorites, images, ...)
-#DONE: use python-witter 0.5 with cache
-#DONE: added "Replies" and "Direct Messages" timelines
-#DONE: added "Composite" timelines
-#DONE: Changed line color for replies and direct messages
-#DONE: added a Reply icon button in the message : add @name automatically
-#DONE: added a popup menu to choose timeline
-#DONE: added flags in language popup menu
-
-#DONE: Simplified Chinese translation : eQuw acKman <ackman dot c at gmail dot com>
-#DONE: Traditional Chinese translation : Weizhong Yang <zonble at gmail dot com>
-#DONE: German translation : Yseult <b dot kreissl at gmail dot com>  
-#DONE: Italian translation : Barbara aka Black Cat <theblackcat at gmail dot com> 
-#DONE: Japanese translation : Yusuke Yamamoto <yusuke at mac dot com>
-#DONE: Polish translation : Pawel Solyga <pawel dot solyga at gmail dot com>
-#DONE: Romanian translation : Claudiu Antohi <claudiu at wip dot ro>
-#DONE: Serbian translation : Milos Topic <topicm at gmail dot com> 
-#DONE: Swedish translation : Jonas Nockert <jonasnockert at gmail dot com> 
-#DONE: Spanish translation : Jorge Rangel <jarg1985 at gmail dot com> 
-#DONE: Portuguese translation : brunoric <brunoric at gmail dot com> 
-#DONE: Russian translation : Bloodcarter <bloodcarter at gmail dot com>
-
-#DONE: Bug corrected in url detection
 
 # Later
 #TODO: Jaiku client

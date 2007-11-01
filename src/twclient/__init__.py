@@ -27,7 +27,6 @@ import simplejson
 import time
 from urlparse import urlparse,urlunparse
 from PIL import Image, ImageTk
-
 import re
 from htmlentitydefs import name2codepoint
 
@@ -43,7 +42,6 @@ def urlExtract(msg):
     if urlstart > -1 :
         msgurl = msg[urlstart:].split(' ')[0]
         urlDetected = urlunparse(urlparse(msgurl)).split('"')[0]
-        print "url detected:", urlDetected
     else:
         urlDetected = ''
     return urlDetected
@@ -91,6 +89,7 @@ class PwDeferedTwitter(object):
                 needToCall = False
             except Exception, e:
                 print "Deferred load error:", str(e)
+                time.sleep(1000)
                 needToCall = True
         self._objectQueue.put((key, data))       
         #self._objectQueue.task_done()
@@ -150,28 +149,39 @@ class TwClient(object):
         self.Followers=[]
         self._usercache={}
         self.timeLines=("User","Friends","Replies","Direct", "Composite","Public")
-        self._currentTimeLine = "Friends"       
-        self.VersionOK = self._checkversion(aVersion)
+        self._currentTimeLine = "Friends"  
         
-    def _checkversion(self, aVersion):
+        self._currentVersion = float(aVersion)
+        self.VersionOK = False
+        
+    def _checkversion(self):
         versionURL="http://www.pwytter.com/files/PWYTTER-VERSION.txt"
         try:
             lastVersion= float(urllib2.urlopen(versionURL).read())
             print '>> Verified Pwytter last Version:',lastVersion
         except Exception,e:
             print "Unable to check Pwytter Version:",str(e)
-            lastVersion = aVersion
-        return lastVersion <= float(aVersion)
+            lastVersion = self._currentVersion            
+        return lastVersion <= self._currentVersion
         
+    def VersionChecked(self):
+        loaded, self.VersionOK = self._deferredLoader.Get('pwytter_version', 
+                                                          self._checkversion)
+        return loaded
+
     def login(self, aUser, aPassword):
         self.user, self.password = aUser, aPassword     
         self.api.SetCredentials(self.user, self.password)
 
+    def _getMe(self):
+        return self.userFromCache(self.user)
+    
     def getMyDetails(self):
-        self.me = self.userFromCache(self.user)       
-        loaded, self.myimage = self.imageFromCache(self.user)
+        userloaded, self.me = self._deferredLoader.Get('user:%s' % self.user,
+                                                       self._getMe)
+        imageloaded, self.myimage = self.imageFromCache(self.user)
         print "My details",self.me
-        return loaded
+        return userloaded and imageloaded
 
     def setTimeLine(self, timelineName):
         if timelineName in self.timeLines:
@@ -235,31 +245,6 @@ class TwClient(object):
         except Exception, e:
             print str(e)
         return statuses
-
-
-#    def getFavorites(self, user=None):
-#        '''Fetch the sequence of favorited twitter.Status messages for a user
-#    
-#        The twitter.Api instance must be authenticated if the user is private.
-#    
-#        Args:
-#          user:
-#            Specifies the ID or screen name of the user for whom to return
-#            the friends_timeline.  If unspecified, the username and password
-#            must be set in the twitter.Api instance.  [optional]
-#    
-#        Returns:
-#          A sequence of twitter.Status instances, one for each message
-#        '''
-#        url = 'http://twitter.com/favorites.json'
-#        if not user and not self._username:
-#          raise TwitterError("User must be specified if API is not authenticated.")
-#        parameters = {}
-#        if user:
-#          parameters['id'] = user
-#        json = self.api._FetchUrl(url, parameters=parameters)
-#        data = simplejson.loads(json)
-#        return [Status.NewFromJsonDict(x) for x in data]
 
     def createFavorite(self, screen_name, id):
         '''Favorites the status specified in the ID parameter as the authenticating user.  
@@ -328,6 +313,7 @@ class TwClient(object):
     def refresh(self):
         self._getCurrentTimeLine()
         self.texts=[]
+        self.ids=[]
         for s in self._statuses :
             self._addUserToCache(s.user)
             atime= s.relative_created_at
@@ -345,9 +331,13 @@ class TwClient(object):
             loaded, favorited = False, False
             if s.type <> 'direct':
                 loaded, favorited = self.isFavorite(s.user.screen_name, s.id)
-                print "loaded",loaded, "favorited", favorited
                 
-            msg = htmlentitydecode(s.text).encode('latin-1','replace')                              
+            msg = htmlentitydecode(s.text).encode('latin-1','replace')
+            #remove existing ids : in composite timeline to keep replies 
+            if s.id in self.ids:
+                self.texts.pop()
+            else:
+                self.ids.append(s.id)
             self.texts.append({"name": s.user.screen_name.encode('latin-1','replace'),
                                "id": s.id,
                                "msg" : msg,
@@ -367,7 +357,8 @@ class TwClient(object):
         return self.api.PostDirectMessage(aUser, aText)
 
     def getFriends(self):
-        loaded, self._friends = self._deferredLoader.Get("friends",self.api.GetFriends)
+        loaded, self._friends = self._deferredLoader.Get("friends:%s" % self.user,
+                                                         self.api.GetFriends)
         self.Friends=[]
         if loaded:
             for f in self._friends :
@@ -377,7 +368,8 @@ class TwClient(object):
         return loaded
 
     def getFollowers(self):
-        loaded, self._followers = self._deferredLoader.Get("followers",self.api.GetFollowers)
+        loaded, self._followers = self._deferredLoader.Get("followers:%s" % self.user, 
+                                                           self.api.GetFollowers)
         self.Followers=[]
         if loaded:
             for f in self._followers :
@@ -410,7 +402,6 @@ class TwClient(object):
             else:
                 aUser = self.api.GetUser(name)  
                 self._cache.Set('user//'+name,aUser.AsJsonString())
-                print "load from api user:", name            
             self._addUserToCache(aUser)       
             return aUser
         else :     
