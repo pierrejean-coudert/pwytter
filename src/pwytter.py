@@ -99,9 +99,9 @@ class MainPanel(Frame):
 #                })
         if os.name=='posix':
             self._display.update({
-                'fontName':"Helvetica bold",
-                'fontMsg': "Helvetica",
-                'fontLink':"Helvetica underline",
+                'fontName':"* * bold",
+                'fontMsg': "* * *",
+                'fontLink':"* * underline",
                 'widthMsg':61,
                 'widthTwit':62,
                 'widthDirectMsg':59
