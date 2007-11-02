@@ -99,9 +99,9 @@ class MainPanel(Frame):
 #                })
         if os.name=='posix':
             self._display.update({
-                'fontName':"* * bold",
-                'fontMsg': "* * *",
-                'fontLink':"* * underline",
+                'fontName':"Helvetica 9 bold",
+                'fontMsg': "Helvetica 9",
+                'fontLink':"Helvetica 9 underline",
                 'widthMsg':61,
                 'widthTwit':62,
                 'widthDirectMsg':59
@@ -955,6 +955,7 @@ if __name__ == "__main__":
     print "Starting Pwytter..."
     _initTranslation()
     rootTk = Tk()
+    rootTk.option_add("*Label*font","FreeSans 10 bold")
     rootTk.title('Pwytter %s' % (__version__))
     rootTk.resizable(width=0, height=0) 
     if os.name == 'nt':
