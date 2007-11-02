@@ -88,16 +88,25 @@ class MainPanel(Frame):
             'widthDirectMsg':66,
             'friendcolumn':6
             }
-        if os.name=='mac':
-            self._display.update({
-                'fontName':('Helvetica',9,'bold'),
-                'fontMsg':('Helvetica',9,'bold'),
-                'fontLink':('Helvetica',9,'underline'),
-                'widthMsg':61,
-                'widthTwit':61,
-                'widthDirectMsg':58
-                })
+#        if os.name=='mac':
+#            self._display.update({
+#                'fontName':('Helvetica',9,'bold'),
+#                'fontMsg':('Helvetica',9,'bold'),
+#                'fontLink':('Helvetica',9,'underline'),
+#                'widthMsg':61,
+#                'widthTwit':61,
+#                'widthDirectMsg':58
+#                })
         if os.name=='posix':
+            self._display.update({
+                'fontName':"Helvetica bold",
+                'fontMsg': "Helvetica",
+                'fontLink':"Helvetica underline",
+                'widthMsg':61,
+                'widthTwit':62,
+                'widthDirectMsg':59
+                })
+        if sys.platform == "darwin":
             self._display.update({
                 'fontName':"Helvetica 12 bold",
                 'fontMsg': "Helvetica",
@@ -106,6 +115,7 @@ class MainPanel(Frame):
                 'widthTwit':62,
                 'widthDirectMsg':59
                 })
+            
         self._loadTheme(self._params['theme'])
 
         self._languages={"Chinese Simplified": {"locale":"zh_CN", "flag":"cn.gif"},
@@ -227,13 +237,14 @@ class MainPanel(Frame):
             self._imagesFriendsLoaded = False
             self._needToRefreshMe = not self.tw.getMyDetails()
             self.MyImageRef.paste(self.tw.myimage, (0,0,48,18))
-            self.MyName["text"] = self.tw.me.screen_name.encode('latin-1')
             try:
+                self.MyName["text"] = self.tw.me.screen_name.encode('latin-1')
                 self.MyImageHint.settext(_("%s: %s %cLocation: %s") % (self.tw.me.name.encode('latin-1'),\
                                       self.tw.me.description.encode('latin-1'),13,\
                                       self.tw.me.location.encode('latin-1')))
                 self.MyNameHint.settext(self.MyImageHint.gettext())
             except Exception, e:
+                self.MyName["text"] = _('Loading...')
                 self.MyImageHint.settext('')
                 self.MyNameHint.settext('')
             try:
