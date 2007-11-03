@@ -98,6 +98,7 @@ class MainPanel(Frame):
 #                'widthDirectMsg':58
 #                })
         if os.name=='posix':
+            print "Linux Theme tuning"
             self._display.update({
                 'fontName':"Helvetica 9 bold",
                 'fontMsg': "Helvetica 9",
@@ -107,6 +108,7 @@ class MainPanel(Frame):
                 'widthDirectMsg':59
                 })
         if sys.platform == "darwin":
+            print "Mac OSX Theme tuning"
             self._display.update({
                 'fontName':"Helvetica 12 bold",
                 'fontMsg': "Helvetica",
@@ -955,7 +957,7 @@ if __name__ == "__main__":
     print "Starting Pwytter..."
     _initTranslation()
     rootTk = Tk()
-    rootTk.option_add("*Label*font","FreeSans 10 bold")
+    #rootTk.option_add("*Label*font","FreeSans 10 bold")
     rootTk.title('Pwytter %s' % (__version__))
     rootTk.resizable(width=0, height=0) 
     if os.name == 'nt':
