@@ -65,6 +65,7 @@ class Balloon(tk.Toplevel):
         posY = max(0,self.parent.winfo_rooty()-self._tipheight)
         self.geometry('+%d+%d'%(posX,posY))  
         self.deiconify()  
+        self.lift()        
         
     def _hide(self,event): 
         self.withdraw()  

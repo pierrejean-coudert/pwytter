@@ -8,6 +8,7 @@
   * New Timelines support : "Composite", "Replies" and "Direct Messages" 
   * New popup menu to choose current timeline
   * Easy reply : added an icon button in the message : add @name automatically
+  * New Windows setup for one click install
   * Changed line color for replies and direct messages
   * use python-witter 0.5 with cache
   * Bug corrected in url detection

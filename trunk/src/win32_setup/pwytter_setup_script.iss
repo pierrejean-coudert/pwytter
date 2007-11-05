@@ -15,14 +15,15 @@ AppPublisherURL={#MyAppURL}
 AppSupportURL={#MyAppURL}
 AppUpdatesURL={#MyAppURL}
 DefaultDirName={pf}\{#MyAppName}
-DisableDirPage=yes
+DisableDirPage=true
 DefaultGroupName={#MyAppName}
-DisableProgramGroupPage=yes
+DisableProgramGroupPage=true
 LicenseFile=D:\Eclipse WS\pwytter\src\dist\text\LICENSE.txt
 OutputDir=D:\Eclipse WS\pwytter\src\win32_setup
 OutputBaseFilename=setup_pwytter
 Compression=lzma
-SolidCompression=yes
+SolidCompression=true
+SetupIconFile=D:\Eclipse WS\pwytter\src\media\pwytter.ico
 
 [Languages]
 Name: english; MessagesFile: compiler:Default.isl
@@ -38,7 +39,7 @@ Name: desktopicon; Description: {cm:CreateDesktopIcon}; GroupDescription: {cm:Ad
 Name: quicklaunchicon; Description: {cm:CreateQuickLaunchIcon}; GroupDescription: {cm:AdditionalIcons}; Flags: unchecked
 
 [Files]
-Source: D:\Eclipse WS\pwytter\src\dist\pwytter.exe; DestDir: {app}; Flags: ignoreversion
+Source: D:\Eclipse WS\pwytter\src\dist\*; DestDir: {app}; Flags: ignoreversion recursesubdirs
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]
@@ -50,4 +51,3 @@ Name: {userappdata}\Microsoft\Internet Explorer\Quick Launch\{#MyAppName}; Filen
 
 [Run]
 Filename: {app}\{#MyAppExeName}; Description: {cm:LaunchProgram,{#MyAppName}}; Flags: nowait postinstall skipifsilent
-
