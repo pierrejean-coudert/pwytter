@@ -100,9 +100,9 @@ class MainPanel(Frame):
         if os.name=='posix':
             print "Linux Theme tuning"
             self._display.update({
-                'fontName':"Helvetica 9 bold",
-                'fontMsg': "Helvetica 9",
-                'fontLink':"Helvetica 9 underline",
+                'fontName':"helvetica 8 ",
+                'fontMsg': "helvetica 9",
+                'fontLink':"helvetica 9 underline",
                 'widthMsg':61,
                 'widthTwit':62,
                 'widthDirectMsg':59
