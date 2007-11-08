@@ -11,7 +11,9 @@
   * New Windows setup for one click install
   * Changed line color for replies and direct messages
   * use python-witter 0.5 with cache
+  * Single WIN32 Setup with InnoSetup : http://www.jrsoftware.org/isdl.php
   * Bug corrected in url detection
+  * Bug corrected: on Mac OS X,  Hints should be displayed on top
   * added flags in language popup menu
   * New Translations
 	  * Simplified Chinese translation : eQuw acKman <ackman dot c at gmail dot com>
