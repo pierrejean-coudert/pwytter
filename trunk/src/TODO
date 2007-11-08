@@ -1,6 +1,4 @@
 # Release 0.9
-#TODO: Single WIN32 Setup with InnoSetup : http://www.jrsoftware.org/isdl.php
-#TODO: tkBalloon on Mac OS X: Should be displayed on top. try tix balloons
 #TODO: check mac / linux themes
 
 #TODO: deferred timeline loading, download only the required number of messages
