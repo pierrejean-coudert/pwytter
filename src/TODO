@@ -1,5 +1,6 @@
 # Release 0.9
 #TODO: check mac / linux themes
+#TODO: Design an Icon
 
 #TODO: deferred timeline loading, download only the required number of messages
 #TODO: add newly sended tweet in cache for immediate display
@@ -9,7 +10,7 @@
 #TODO: memorize current timeline choice in parameters
 #TODO: refreshtime in minutes
 #TODO: anti-aliased font on ubuntu
-#TODO: Resize + Scroll to chaage number of lines
+#TODO: Resize + Scroll to change number of lines
        http://effbot.org/zone/tkinter-window-size.htm
        http://effbot.org/zone/tkinter-autoscrollbar.htm
 #TODO: Setup.py: must be ok on linux
@@ -17,7 +18,6 @@
 #TODO: Mac version: Remove console, add icon
 #TODO: Reduce friend image size / limit number of displayed friends / Paging
 #TODO: Hide error message (icon with message in Hint)
-#TODO: Design an Icon
 #TODO: Notifications, Mac Growl integration ( http://growl.info/documentation/developer/python-support.php, http://aaronland.info/python/twitter/twnotifier/, ...
 #TODO: onTop user information dialog : name, links, directmessage, add as friend, ...
 #TODO: multiple accounts as in http://funkatron.com/index.php/site/spaz_a_twitter_client_for_mac_os_x_windows_and_linux/
@@ -25,6 +25,7 @@
 
 #TODO: remove simplejson from dist
 #TODO: reorganize source tree : bat directory, setup outside rsc, ...
+#TODO: Register on apple download
 
 # Later
 #TODO: setup.py : auto install twitter.py, simplejson, PIL
@@ -58,7 +59,7 @@
 - write an announce on pwytter google group
 - write an announce on pwytter/twitter account
 
-- register on pypi
+- register on pypi : python setup.py register
 - register on freshmeat
 
 
