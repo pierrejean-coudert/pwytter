@@ -200,7 +200,7 @@ class MainPanel(Frame):
         self._display.update(self.Theme.values)
 
     def _applyParameters(self):
-        self._refreshRate = int(self._params['refresh_rate'])
+        self._refreshRate = int(self._params['refresh_rate_in_min'])
         self._TwitLines = int(self._params['nb_lines'])
         self.tw.login(self._params['user'], self._params['password'])
         self._loadTheme(self._params['theme'])
@@ -407,7 +407,7 @@ class MainPanel(Frame):
                                     bg=param_bg, fg=self._display['text#'])
         self.UserLbl.config(text=_("User"), bg=param_bg)
         self.PasswordLbl.config(text=_("Password"), bg=param_bg)
-        self.RefreshLbl.config(text=_("Refresh (s)"), bg=param_bg)
+        self.RefreshLbl.config(text=_("Refresh (min)"), bg=param_bg)
         self.LinesLbl.config(text=_("Lines"), bg=param_bg)
         self.BtnBox.config(bg=param_bg)
         self.ApplyBtn.config(text=_("Apply"))
@@ -417,7 +417,7 @@ class MainPanel(Frame):
     def _showParameters(self,par=None):
         self.userVar.set(self._params['user'])
         self.passwordVar.set(self._params['password'])
-        self.refreshVar.set(self._params['refresh_rate'])
+        self.refreshVar.set(self._params['refresh_rate_in_min'])
         self.linesVar.set(self._params['nb_lines'])
         self.ParamEmpyBox.pack_forget()
         self.ParamInsideBox.pack(expand=1,pady=2)
@@ -429,7 +429,7 @@ class MainPanel(Frame):
     def _saveParameters(self,par=None):
         self._params['user'] = self.userVar.get()
         self._params['password'] = self.passwordVar.get()
-        self._params['refresh_rate'] = self.refreshVar.get()
+        self._params['refresh_rate_in_min'] = self.refreshVar.get()
         self._params['nb_lines']= self.linesVar.get()
         self._params['theme']= self.themeVar.get()
         self._params['language']= self.languageVar.get()
@@ -898,7 +898,7 @@ class MainPanel(Frame):
 
     def timer(self):
         try:
-            if time.time()-self._refreshTime >= self._refreshRate :
+            if time.time()-self._refreshTime >= self._refreshRate*60 :
                 self._refreshTwitZone()
                 self._refreshTime = time.time()
             if not self._imagesLoaded :

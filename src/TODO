@@ -1,20 +1,20 @@
 # Release 0.9
-#TODO: check mac / linux themes
 #TODO: Design an Icon
+#TODO: improve SplashScreen
+#TODO: refreshtime in minutes
+#TODO: memorize current timeline choice in parameters
+#TODO: I18N timeline name, theme name
 
+#TODO: check mac / linux themes
 #TODO: deferred timeline loading, download only the required number of messages
 #TODO: add newly sended tweet in cache for immediate display
 #TODO: remove duplicates from composite timeline
 #TODO: delete twitt inline
-#TODO: improve SplashScreen
-#TODO: memorize current timeline choice in parameters
-#TODO: refreshtime in minutes
 #TODO: anti-aliased font on ubuntu
 #TODO: Resize + Scroll to change number of lines
        http://effbot.org/zone/tkinter-window-size.htm
        http://effbot.org/zone/tkinter-autoscrollbar.htm
 #TODO: Setup.py: must be ok on linux
-#TODO: I18N timeline name, theme name
 #TODO: Mac version: Remove console, add icon
 #TODO: Reduce friend image size / limit number of displayed friends / Paging
 #TODO: Hide error message (icon with message in Hint)

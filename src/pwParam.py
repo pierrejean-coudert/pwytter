@@ -28,7 +28,7 @@ class PwytterParams(object):
     def _resetDefaults(self):
         self.values['user'] = 'pwytterTest'
         self.values['password'] = 'pwytterTest'
-        self.values['refresh_rate'] = '120'
+        self.values['refresh_rate_in_min'] = '2'
         self.values['nb_lines'] = '4'
         self.values['theme'] = 'white'
         self.values['language'] = 'English'
