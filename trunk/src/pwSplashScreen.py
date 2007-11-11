@@ -17,6 +17,7 @@ try:
 except ImportError:
      import Image, ImageTk
 from pwytter import __version__ as VERSION
+import os
 
 class Splash(Toplevel):
      def __init__(self, master):
@@ -30,6 +31,7 @@ class Splash(Toplevel):
 #         self.image = ImageTk.PhotoImage(im)
          self.after_idle(self._centerOnScreen)
          self.update()
+         self.lift()   
          #self.after(timeout, self.destroy)
 
      def _centerOnScreen(self):
@@ -45,17 +47,25 @@ class Splash(Toplevel):
          self.createWidgets()
 
      def createWidgets(self):
-     # Need to fill in here
-         self.Box=Frame(self,bg='white', padx=20, pady=5)
+         self.Border=Frame(self,bg='white')
+
+         self.logopil = Image.open(os.path.join("media","pwytter.png"))
+         self.logotk = ImageTk.PhotoImage(self.logopil)         
+         self.Logo =Label(self.Border,image=self.logotk, bg="white")
+    
+         self.Box=Frame(self.Border,bg='white', padx=20, pady=15)
          self.Title =Label(self.Box,text=_("Pwytter"),font=('Helvetica', 14, 'bold'), bg="white", fg="black")
-         self.Title.pack()
          self.Version =Label(self.Box,text=VERSION,font=('Helvetica', 14, 'bold'), bg="white", fg="black")
-         self.Version.pack()
          self.Loading =Label(self.Box,text=_("Loading..."), bg="white", fg="black")
-         self.Loading.pack()
          self.Licence =Label(self.Box,text=_("Licence: GNU GPL v2"), bg="white", fg="black",pady=8)
+
+         self.Title.pack()
+         self.Version.pack()
+         self.Loading.pack()
          self.Licence.pack()
-         self.Box.pack()
+         self.Logo.grid(row=0, column=0)
+         self.Box.grid(row=0, column=1)
+         self.Border.pack()
 #         self.canvas = Canvas(self, height=self.width, width=self.height)
 #         self.canvas.create_image(0,0, anchor=NW, image=self.image)
 #         self.canvas.pack()
@@ -69,6 +79,6 @@ if __name__ == "__main__":
      import os, time
      tk = Tk()
      s = Splash(tk)  
-     time.sleep(5)
+     time.sleep(15)
      s.destroy() 
      tk.mainloop()
