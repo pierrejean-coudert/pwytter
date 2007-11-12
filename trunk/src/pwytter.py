@@ -957,6 +957,8 @@ if __name__ == "__main__":
     print "Starting Pwytter..."
     _initTranslation()
     rootTk = Tk()
+    if sys.platform == "darwin" and hasattr(sys,'frozen'):
+        rootTk.tk.call('console', 'hide')
     #rootTk.option_add("*Label*font","FreeSans 10 bold")
     rootTk.title('Pwytter %s' % (__version__))
     rootTk.resizable(width=0, height=0) 
