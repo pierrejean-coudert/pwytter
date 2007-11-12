@@ -83,6 +83,7 @@ if sys.platform == 'darwin':
                  # We're not apple-scriptable
                 NSAppleScriptEnabled='No',
             ),
+            iconfile='media/pwytter.icns',
         ),
     )
 
