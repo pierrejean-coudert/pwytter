@@ -58,6 +58,7 @@ if sys.platform == 'darwin':
             py2app = dict(
                 argv_emulation=True,
                 resources = ["theme","locale","media"],
+                iconfile='media/pwytter.icns',
                 #distdir = 'MacBinaries'
             ),
             plist = dict(
@@ -83,7 +84,6 @@ if sys.platform == 'darwin':
                  # We're not apple-scriptable
                 NSAppleScriptEnabled='No',
             ),
-            iconfile='media/pwytter.icns',
         ),
     )
 
