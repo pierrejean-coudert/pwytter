@@ -17,6 +17,8 @@
 #TODO: onTop user information dialog : name, links, directmessage, add as friend, ...
 #TODO: multiple accounts as in http://funkatron.com/index.php/site/spaz_a_twitter_client_for_mac_os_x_windows_and_linux/
 #TODO: Jaiku, Pownce client
+#TODO: Win32 : SystrayIcon
+       http://www.brunningonline.net/simon/blog/archives/SysTrayIcon.py.html
 
 #TODO: remove simplejson from dist
 #TODO: reorganize source tree : bat directory, setup outside rsc, ...
