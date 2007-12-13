@@ -4,6 +4,7 @@
 
 #TODO: check mac / linux themes
 #TODO: deferred timeline loading, download only the required number of messages
+#TODO: determine current pwytter path to be able to lauch it in any directory
 #TODO: add newly sended tweet in cache for immediate display
 #TODO: remove duplicates from composite timeline
 #TODO: delete twitt inline
