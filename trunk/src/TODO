@@ -2,6 +2,7 @@
 #TODO: memorize current timeline choice in parameters
 #TODO: I18N timeline name, theme name
 
+#TODO: Search with http://terraminds.com/twitter/api.html
 #TODO: check mac / linux themes
 #TODO: deferred timeline loading, download only the required number of messages
 #TODO: determine current pwytter path to be able to lauch it in any directory

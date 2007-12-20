@@ -150,7 +150,7 @@ class PwDeferedLoader(object):
         self._requestedUrls = []
         
     def _threadLoadData(self):
-        data_url=self._urlQueue.get()
+        data_url=self._urlQueue.get() 
         needToLoad = True
         while needToLoad:
             try:
