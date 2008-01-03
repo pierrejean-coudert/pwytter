@@ -39,6 +39,7 @@ import os.path
 from PIL import Image, ImageTk
 import gettext
 import locale
+import tinyUrl
 
 _imageFile = {}
 def imagefromfile(name):
@@ -147,6 +148,7 @@ class MainPanel(Frame):
         self._defaultTwitText = _('Enter your message here...')
         self.twitText = StringVar()
         self.twitText.set(self._defaultTwitText)
+        self._tinyurl = tinyUrl.TinyUrl(self.twitText)
         self.directText = StringVar()
         self.directText.set(_('Enter your direct message here...'))
         self.userVar = StringVar()
@@ -165,6 +167,7 @@ class MainPanel(Frame):
         if self._needToShowParameters:
             self._showParameters()            
         self._refreshTime = 0
+        
 
     def _setLanguage(self, aLanguage='English'):
         #Get the local directory since we are not installing anything
@@ -936,6 +939,7 @@ class MainPanel(Frame):
             self._busy.reset()
  
     def editValidate(self, *dummy):
+        self._tinyurl.convertTinyUrl()
         text = self.twitText.get()
         actualLength=len(text)
         if (actualLength>0) and (text[0]=='@') :
