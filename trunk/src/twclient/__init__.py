@@ -29,6 +29,7 @@ from urlparse import urlparse,urlunparse
 from PIL import Image, ImageTk
 import re
 from htmlentitydefs import name2codepoint
+from pwytter import __app_path__
 
 class TwClientError(Exception):
   '''Base class for TwClient errors'''
@@ -129,7 +130,7 @@ class TwClient(object):
         self.api.SetSource('pwytter')       
 
         self._cache= pwCache.PwytterCache()
-        self._imageLoading = Image.open(os.path.join("media",'loading.png'))
+        self._imageLoading = Image.open(os.path.join(__app_path__,"media",'loading.png'))
         self._imageLoading.thumbnail((32,32),Image.ANTIALIAS)
         self._imageLoader=pwCache.PwDeferedLoader(NewObjectFromURL=self.ConvertImage, 
                                                     notAvailableObject=self._imageLoading, 

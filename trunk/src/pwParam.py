@@ -15,12 +15,13 @@
 
 import xml.dom.minidom as dom
 import os.path
+from pwytter import __app_path__
 
 class PwytterParams(object):
     """Handle the Pwtytter configuration in an XML file pwytter.xml
     """
     def __init__(self):
-        self._paramPath = 'cfg'
+        self._paramPath =  os.path.join(__app_path__,'cfg')
         self._paramFileName = os.path.join(self._paramPath,'pwytter.xml')        
         self.values={}
         self._resetDefaults()

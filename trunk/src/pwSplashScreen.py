@@ -17,6 +17,7 @@ try:
 except ImportError:
      import Image, ImageTk
 from pwytter import __version__ as VERSION
+from pwytter import __app_path__
 import os
 
 class Splash(Toplevel):
@@ -49,7 +50,7 @@ class Splash(Toplevel):
      def createWidgets(self):
          self.Border=Frame(self,bg='white')
 
-         self.logopil = Image.open(os.path.join("media","pwytter.png"))
+         self.logopil = Image.open(os.path.join(__app_path__,"media","pwytter.png"))
          self.logotk = ImageTk.PhotoImage(self.logopil)         
          self.Logo =Label(self.Border,image=self.logotk, bg="white")
     

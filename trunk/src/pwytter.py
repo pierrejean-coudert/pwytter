@@ -13,16 +13,18 @@
 
 '''A Python Tkinter Twitter Client'''
 
-import sys
 from os.path import dirname, join, abspath
+
 try:
-    sys.path.append(join(abspath(dirname(__file__)), 'twclient'))  
+    __app_path__ = abspath(dirname(__file__))
 except:
-    sys.path.append(join(abspath(dirname(sys.path[0])), 'twclient'))  
-        
+    __app_path__ = abspath(dirname(sys.path[0]))       
 __author__ = 'Pierre-Jean Coudert <coudert@free.fr>'
 __version__ = '0.8'
 APP_NAME = "pwytter"
+
+import sys
+sys.path.append(join(__app_path__, 'twclient'))  
 
 from Tkinter import *
 import tkBalloon
@@ -45,7 +47,7 @@ _imageFile = {}
 def imagefromfile(name):
     global _imageFile
     if name not in _imageFile.keys() :
-        _imageFile[name] = Image.open(os.path.join("media",name))
+        _imageFile[name] = Image.open(os.path.join(__app_path__,"media",name))
         _imageFile[name].thumbnail((16,16),Image.ANTIALIAS)
     return _imageFile[name]
 
@@ -967,7 +969,7 @@ if __name__ == "__main__":
     rootTk.title('Pwytter %s' % (__version__))
     rootTk.resizable(width=0, height=0) 
     if os.name == 'nt':
-        rootTk.iconbitmap(os.path.join("media",'pwytter.ico')) 
+        rootTk.iconbitmap(os.path.join(__app_path__,"media",'pwytter.ico')) 
     s = pwSplashScreen.Splash(rootTk)
     app = MainPanel(master=rootTk)
     app.timer()
