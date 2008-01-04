@@ -13,6 +13,7 @@
 
 import os
 import glob
+from pwytter import __app_path__
 
 class pwTheme(object):
     """
@@ -23,7 +24,7 @@ class pwTheme(object):
     print th.values
     """
     def __init__(self, aName="black"):
-        self._themePath = 'theme'
+        self._themePath = os.path.join(__app_path__,'theme')
         self.themeList = [os.path.splitext(os.path.basename(theme))[0] for theme in \
                            glob.glob(os.path.join(self._themePath, '*.pwt'))]
         self.values={}
