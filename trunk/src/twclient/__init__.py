@@ -318,11 +318,6 @@ class TwClient(object):
         for s in self._statuses :
             self._addUserToCache(s.user)
             atime= s.relative_created_at
-#            try:
-#                atime= s.relative_created_at.encode('latin-1','replace')
-#            except Exception, e:
-#                print "Time conversion error:",e
-#                atime = "..."
             print s
             try :
                 user_url = s.user.url.encode('latin-1','replace')
@@ -381,7 +376,7 @@ class TwClient(object):
                 
     def ConvertImage(self,image):
         returnImage = Image.open(StringIO.StringIO(image))
-        returnImage.thumbnail((32,32),Image.ANTIALIAS)
+        #returnImage.thumbnail((32,32),Image.ANTIALIAS)
         return returnImage
     
     def imageFromCache(self,name):
