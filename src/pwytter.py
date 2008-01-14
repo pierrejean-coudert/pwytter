@@ -28,10 +28,12 @@ sys.path.append(join(__app_path__, 'twclient'))
 
 from Tkinter import *
 import tkBalloon
+import pwUserPopup
 import pwSplashScreen
 import twclient
 import pwParam
 import pwTools
+from pwTools import ClickableImage, imageFromFile
 import pwTheme
 import time
 import webbrowser
@@ -43,29 +45,6 @@ import gettext
 import locale
 import tinyUrl
 
-_imageFile = {}
-def imagefromfile(name):
-    global _imageFile
-    if name not in _imageFile.keys() :
-        _imageFile[name] = Image.open(os.path.join(__app_path__,"media",name))
-        _imageFile[name].thumbnail((16,16),Image.ANTIALIAS)
-    return _imageFile[name]
-
-class ClickableImage(Label):
-    def __init__(self, parent, imageName, clickCommand, aColor, aName, aHint=None):
-        self._imageRef = ImageTk.PhotoImage(imagefromfile(imageName))
-        self._hint = None
-        Label.__init__(self, parent, image=self._imageRef, bg=aColor, name=aName)
-        if aHint:
-            self._hint = tkBalloon.Balloon(self,aHint)
-        if clickCommand:
-            self.bind('<1>', clickCommand)
-            self["cursor"] = 'hand2'
-    
-    def config(self,**options):
-        if "text" in options.keys():
-            self._hint.settext(options["text"])
-        Label.config(self, options)
  
 class MainPanel(Frame):
     """ Main tk Frame """
@@ -89,7 +68,10 @@ class MainPanel(Frame):
             'widthMsg':58,
             'widthTwit':69,
             'widthDirectMsg':66,
-            'friendcolumn':6
+            'friendrow':6,
+            'friendcolumn':8,
+            'thumbnailSize':(24,24),
+            'photoSize':(32,32)
             }
 #        if os.name=='mac':
 #            self._display.update({
@@ -243,7 +225,7 @@ class MainPanel(Frame):
         try:
             self._imagesFriendsLoaded = False
             self._needToRefreshMe = not self.tw.getMyDetails()
-            self.MyImageRef.paste(self.tw.myimage, (0,0,48,18))
+            self.MyImageRef.paste(self.tw.myimage.resize(self._display['photoSize'],Image.ANTIALIAS))
             try:
                 self.MyName["text"] = self.tw.me.screen_name.encode('latin-1')
                 self.MyImageHint.settext(_("%s: %s %cLocation: %s") % (self.tw.me.name.encode('latin-1'),\
@@ -367,7 +349,7 @@ class MainPanel(Frame):
         sorted_languages= self._languages.keys()
         sorted_languages.sort()        
 
-        self._arrow = ImageTk.PhotoImage(imagefromfile("arrow_down.png"))
+        self._arrow = ImageTk.PhotoImage(imageFromFile("arrow_down.png"))
         self.LanguageResultLbl=Label(self.ParamInsideBox, textvariable=self.languageVar,
                                      compound='right', image=self._arrow, cursor = 'hand2',
                                      bd=1, relief="raised")
@@ -377,7 +359,7 @@ class MainPanel(Frame):
             if sys.platform == "darwin":
                 self.LanguageMenu.add_radiobutton(label=lang, variable=self.languageVar)
             else:
-                self._languages[lang]['flag_image'] = ImageTk.PhotoImage(imagefromfile(self._languages[lang]['flag']))
+                self._languages[lang]['flag_image'] = ImageTk.PhotoImage(imageFromFile(self._languages[lang]['flag']))
                 self.LanguageMenu.add_radiobutton(label=lang, compound='left', 
                                                   image=self._languages[lang]['flag_image'],
                                                   variable=self.languageVar)
@@ -568,7 +550,7 @@ class MainPanel(Frame):
             loaded, aImage= self.tw.imageFromCache(name)
             self._imagesLoaded = self._imagesLoaded and loaded        
             try:
-                self.Lines[i]['ImageRef'].paste(aImage, (0,0,20,20))
+                self.Lines[i]['ImageRef'].paste(aImage.resize(self._display['photoSize'],Image.ANTIALIAS ))
             except:
                 print "error pasintg image:", name
             self.Lines[i]['Name']["text"]= name
@@ -630,12 +612,12 @@ class MainPanel(Frame):
         if type=="friend":
             aFriend['Image']    = Label(aParent,image=aFriend['ImageRef'], \
                                            name="frie"+str(index), cursor="hand2")
-            aFriend['ImageHint']=  tkBalloon.Balloon(aFriend['Image'])
+            aFriend['ImageHint']=  pwUserPopup.UserPopup(aFriend['Image'])
             self.FriendImages.append(aFriend)
         else:
             aFriend['Image']    = Label(aParent,image=aFriend['ImageRef'], \
                                            name="foll"+str(index), cursor="hand2")
-            aFriend['ImageHint']=  tkBalloon.Balloon(aFriend['Image'])
+            aFriend['ImageHint']=  pwUserPopup.UserPopup(aFriend['Image'])
             self.FollowerImages.append(aFriend)
         aFriend['Image'].grid(row=1+int(index/c), column=index-(int(index/c)*c), padx=1, pady=1)
         return aFriend
@@ -670,22 +652,22 @@ class MainPanel(Frame):
                 
     def _refresh_friendsBox(self):
         self._imagesFriendsLoaded = True
+        c=self._display['friendcolumn']
+        l=self._display['friendrow']            
         try:
             self._imagesFriendsLoaded = self._imagesFriendsLoaded and self.tw.getFriends()
             i=0
-
-            for fname in self.tw.Friends[:30]:
+            for fname in self.tw.Friends[:c*l]:
                 if i+1>len(self.FriendImages) :
                     self._createFriendImage(self.friendsInsideBox,i, "friend")
                 loaded, aImage= self.tw.imageFromCache(fname)
                 self._imagesFriendsLoaded = self._imagesFriendsLoaded and loaded     
                 try :   
-                    self.FriendImages[i]['ImageRef'].paste(aImage, (0,0,20,20))
+                    self.FriendImages[i]['ImageRef'].paste(aImage.resize(self._display['thumbnailSize'],Image.ANTIALIAS))
                 except:
                     print "error pasting friends images:",fname
-                self.FriendImages[i]['ImageHint'].settext("http://twitter.com/"+fname)
+                self.FriendImages[i]['ImageHint'].setUser(self.tw, fname)
                 self.FriendImages[i]['Image'].bind('<1>', self._friendClick)
-                c=self._display['friendcolumn']
                 self.FriendImages[i]['Image'].grid(row=1+int(i/c), column=i-(int(i/c)*c), padx=1, pady=1)
                 i=i+1
             for i in range(i,len(self.FriendImages)):
@@ -696,18 +678,17 @@ class MainPanel(Frame):
         try:
             self._imagesFriendsLoaded = self._imagesFriendsLoaded and self.tw.getFollowers()
             i=0
-            for fname in self.tw.Followers[:30]:
+            for fname in self.tw.Followers[:c*l]:
                 if i+1>len(self.FollowerImages) :
                     self._createFriendImage(self.followersInsideBox,i, "follower")
                 loaded, aImage= self.tw.imageFromCache(fname)
                 self._imagesFriendsLoaded = self._imagesFriendsLoaded and loaded     
                 try :   
-                    self.FollowerImages[i]['ImageRef'].paste(aImage, (0,0,20,20))
+                    self.FollowerImages[i]['ImageRef'].paste(aImage.resize(self._display['thumbnailSize'], Image.ANTIALIAS))
                 except:
                     print "error pasting friends images:",fname
-                self.FollowerImages[i]['ImageHint'].settext("http://twitter.com/"+fname)
+                self.FollowerImages[i]['ImageHint'].setUser(self.tw, fname)
                 self.FollowerImages[i]['Image'].bind('<1>', self._friendClick)
-                c=self._display['friendcolumn']
                 self.FollowerImages[i]['Image'].grid(row=1+int(i/c), column=i-(int(i/c)*c), padx=1, pady=1)
                 i=i+1
             for i in range(i,len(self.FollowerImages)):
@@ -750,8 +731,9 @@ class MainPanel(Frame):
         self.Lines[lineIndex]['DirectBoxEmpty'].grid(row=2,column=0,columnspan=3,rowspan=1, sticky='W',padx=1)
 
     def _replyToMessage(self,par=None):
-        lineIndex= int(par.widget.winfo_name()[4:])
-        self.twitText.set('@'+self.tw.texts[lineIndex]["name"]+" ")
+        lineIndex = int(par.widget.winfo_name()[4:])
+        userName = self.tw.texts[lineIndex]["name"]
+        self.twitText.set('@' + userName + " ")
         self.TwitEdit.icursor(140)
         self.TwitEdit.focus_set()
         
