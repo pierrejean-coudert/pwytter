@@ -666,7 +666,7 @@ class MainPanel(Frame):
                     self.FriendImages[i]['ImageRef'].paste(aImage.resize(self._display['thumbnailSize'],Image.ANTIALIAS))
                 except:
                     print "error pasting friends images:",fname
-                self.FriendImages[i]['ImageHint'].setUser(self.tw, fname)
+                self.FriendImages[i]['ImageHint'].setUser(self.tw, fname, MainFrame=self)
                 self.FriendImages[i]['Image'].bind('<1>', self._friendClick)
                 self.FriendImages[i]['Image'].grid(row=1+int(i/c), column=i-(int(i/c)*c), padx=1, pady=1)
                 i=i+1
@@ -687,7 +687,7 @@ class MainPanel(Frame):
                     self.FollowerImages[i]['ImageRef'].paste(aImage.resize(self._display['thumbnailSize'], Image.ANTIALIAS))
                 except:
                     print "error pasting friends images:",fname
-                self.FollowerImages[i]['ImageHint'].setUser(self.tw, fname)
+                self.FollowerImages[i]['ImageHint'].setUser(self.tw, fname, MainFrame=self)
                 self.FollowerImages[i]['Image'].bind('<1>', self._friendClick)
                 self.FollowerImages[i]['Image'].grid(row=1+int(i/c), column=i-(int(i/c)*c), padx=1, pady=1)
                 i=i+1
@@ -733,9 +733,7 @@ class MainPanel(Frame):
     def _replyToMessage(self,par=None):
         lineIndex = int(par.widget.winfo_name()[4:])
         userName = self.tw.texts[lineIndex]["name"]
-        self.twitText.set('@' + userName + " ")
-        self.TwitEdit.icursor(140)
-        self.TwitEdit.focus_set()
+        self.setTwitText('@' + userName + " ")
         
     def _sendDirectMessage(self,par=None):
         self._busy.set()
@@ -900,6 +898,11 @@ class MainPanel(Frame):
                 self._refresh_version()                
         finally:
             self.after(1000, self.timer)
+            
+    def setTwitText(self, aText=''):
+        self.twitText.set(aText)
+        self.TwitEdit.icursor(140)
+        self.TwitEdit.focus_set()
 
     def sendTwit(self,par=None):
         self._busy.set()
@@ -926,8 +929,11 @@ class MainPanel(Frame):
         self._tinyurl.convertTinyUrl()
         text = self.twitText.get()
         actualLength=len(text)
-        if (actualLength>0) and (text[0]=='@') :
+        if text.startswith('@') :
             self.TwitEdit.config(bg= self._display['replyLine#'],
+                                 fg=self._display['text#'])
+        elif text.startswith('D ') :
+            self.TwitEdit.config(bg= self._display['directLine#'],
                                  fg=self._display['text#'])
         else:
             self.TwitEdit.config(bg=self._display['twitEdit#'], 
