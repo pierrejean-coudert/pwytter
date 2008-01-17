@@ -20,7 +20,7 @@ try:
 except:
     __app_path__ = abspath(dirname(sys.path[0]))       
 __author__ = 'Pierre-Jean Coudert <coudert@free.fr>'
-__version__ = '0.8'
+__version__ = '0.9'
 APP_NAME = "pwytter"
 
 import sys
@@ -255,6 +255,8 @@ class MainPanel(Frame):
         self.refreshBox = Frame(parent, width=500)
         self.PwytterLink = ClickableImage(self.refreshBox, "home.png", 
                                         self._homeclick,self._bg, "pwyt0",_("Pwytter web site..."))
+        self.SearchLink = ClickableImage(self.refreshBox, "zoom.png", 
+                                        self._searchclick,self._bg, "sear0",_("Search with Terraminds..."))
         self.ShowFriends = ClickableImage(self.refreshBox, "side_expand.png", 
                                         self._showFriends,self._bg, "frie0",_("Show friends"))
         self.HideFriends = ClickableImage(self.refreshBox, "side_contract.png", 
@@ -272,15 +274,17 @@ class MainPanel(Frame):
                                         self.manualRefresh,self._bg, "refr0", _("Refresh"))
         self._theme_RefreshBox()
         self.PwytterLink.grid(row=0,column=0, sticky="W")
-        self.ShowFriends.grid(row=0,column=1, sticky="E")
-        self.Time.grid(row=1,column=0,columnspan=2)
+        self.SearchLink.grid(row=0,column=1, sticky="W")
+        self.ShowFriends.grid(row=0,column=2, sticky="E")
+        self.Time.grid(row=1,column=0,columnspan=3)
         self.TimeLine.grid(row=2,column=0, sticky="W")
         self.TimeLine.bind('<1>', self._timeLineClick)
-        self.Refresh.grid(row=2,column=1, sticky="E")
+        self.Refresh.grid(row=2,column=2, sticky="E")
                 
     def _theme_RefreshBox(self):
         self.refreshBox.config(bg=self._bg)
         self.PwytterLink.config(bg=self._bg, text=_("Pwytter web site..."))
+        self.SearchLink.config(bg=self._bg, text=_("Search with Terraminds..."))
         self.ShowFriends.config(bg=self._bg, text=_("Show friends"))
         self.HideFriends.config(bg=self._bg, text=_("Hide friends"))
         self.Time.config(text=_("Current Time Unknown..."), bg=self._bg, fg=self._display['text#'])
@@ -702,7 +706,7 @@ class MainPanel(Frame):
         self.followersEmptyBox.pack_forget()
         self.followersInsideBox.pack(expand=1,padx=2)
         self.ShowFriends.grid_forget()
-        self.HideFriends.grid(row=0,column=1, sticky="E")
+        self.HideFriends.grid(row=0,column=2, sticky="E")
 
     def _hideFriends(self,par=None):
         self.friendsInsideBox.pack_forget()
@@ -710,7 +714,7 @@ class MainPanel(Frame):
         self.followersInsideBox.pack_forget()
         self.followersEmptyBox.pack(expand=1,padx=2)
         self.HideFriends.grid_forget()
-        self.ShowFriends.grid(row=0,column=1, sticky="E")
+        self.ShowFriends.grid(row=0,column=2, sticky="E")
 
     def _showUpdatePwytter(self,par=None):
         self.UpdateEmptyBox.grid_forget()
@@ -810,6 +814,11 @@ class MainPanel(Frame):
     def _homeclick(self,par=None):
         self._openweb('http://www.pwytter.com')
 
+    def _searchclick(self, par=None):
+        #query = 'query?query=pwytter&submit=search+in+updates'
+        query = ''
+        self._openweb('http://terraminds.com/twitter/'+query)
+        
     def _userClick(self,par=None):
         self._openweb(self.tw.me.url.encode('latin-1'))
 

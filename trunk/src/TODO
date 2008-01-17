@@ -1,33 +1,31 @@
 # Release 0.9
+#TODO: Resize + Scroll to change number of lines
+       http://effbot.org/zone/tkinter-window-size.htm
+       http://effbot.org/zone/tkinter-autoscrollbar.htm
+
 #TODO: TinyUrl support in direct messages and handle msg > 140c
 #TODO: TinyUrl activation parameter
 #TODO: memorize current timeline choice in parameters
-#TODO: I18N timeline name, theme name
+#TODO: I18N timeline name, theme name, new strings
 
 #TODO: Add a 'track'/'untrack' box
-#TODO: Search with http://terraminds.com/twitter/api.html
 #TODO: check mac / linux themes
 #TODO: deferred timeline loading, download only the required number of messages
 #TODO: add newly sended tweet in cache for immediate display
 #TODO: remove duplicates from composite timeline
 #TODO: delete twitt inline
-#TODO: Resize + Scroll to change number of lines
-       http://effbot.org/zone/tkinter-window-size.htm
-       http://effbot.org/zone/tkinter-autoscrollbar.htm
 #TODO: Setup.py: must be ok on linux
 #TODO: Hide error message (icon with message in Hint)
 #TODO: Notifications, Mac Growl integration ( http://growl.info/documentation/developer/python-support.php, http://aaronland.info/python/twitter/twnotifier/, ...
        Sound notifications
-#TODO: multiple accounts as in http://funkatron.com/index.php/site/spaz_a_twitter_client_for_mac_os_x_windows_and_linux/
 #TODO: Win32 : SystrayIcon  http://www.brunningonline.net/simon/blog/archives/SysTrayIcon.py.html
 
-#TODO: remove simplejson from dist
 #TODO: reorganize source tree : bat directory, setup outside rsc, ...
 #TODO: Register on apple download
 #TODO: Friends Paging
 
-#TODO: onTop user information dialog : name, links, directmessage, add as friend, ...
-
+#DONE: Search icon redirect to http://terraminds.com/twitter/
+#DONE: onTop user information dialog : name, links, directmessage, reply 
 #DONE: Reduce friend image size
 #DONE: Bug corrected : determine current pwytter path to be able to lauch it in any directory
 #DONE: shorten long URLs with TinyUrl support
@@ -37,6 +35,9 @@
 #DONE: Mac version: Remove console, add icon
 
 # Later
+#TODO: multiple accounts as in http://funkatron.com/index.php/site/spaz_a_twitter_client_for_mac_os_x_windows_and_linux/
+#TODO: onTop user information :add as friend, ...
+#TODO: Search with http://terraminds.com/twitter/api.html
 #TODO: Jaiku, Pownce client
 #TODO: anti-aliased font on ubuntu : tcl 8.5
 #TODO: setup.py : auto install twitter.py, simplejson, PIL
