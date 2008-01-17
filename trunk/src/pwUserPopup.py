@@ -18,20 +18,22 @@ from pwTools import ClickableImage, LabelLink
 class UserPopup(tk.Toplevel): 
     """
     """
-    def __init__(self, parent=None, aUser='', aDelay=400): 
+    def __init__(self, parent=None, aUser='', aDelay=500): 
         tk.Toplevel.__init__(self,parent,bd=1,bg='black')  
         self._duration = aDelay 
         self._mousePoint = None
         self._tipwidth = 0
         self._tipheight = 0  
         self._inPopup = False
+        self._user = aUser
+        self._mainFrame = None
         self.parent = parent        
         self.withdraw()  
         self.overrideredirect(1)  
         self.transient() 
-        self._bg = "#E0E0E0"
+        self._bg = "#E3E3E0"
         
-        self._frame = tk.Frame(self,bg=self._bg,bd=1)
+        self._frame = tk.Frame(self,bg=self._bg,bd=0)
         self._label = tk.Label(self._frame, bg=self._bg,justify='left')  
         self._labelTwitter = LabelLink(self._frame, bg=self._bg,justify='left')  
         self._labelUrl = LabelLink(self._frame, bg=self._bg,justify='left')  
@@ -61,7 +63,9 @@ class UserPopup(tk.Toplevel):
         self._frame.pack()          
         self._frame.update_idletasks()         
         
-    def setUser(self, twClient=None, aUser=''): 
+    def setUser(self, twClient=None, aUser='', MainFrame=None):
+        self._mainFrame = MainFrame 
+        self._user = aUser
         if not twClient:
             return
         loaded, aImage = twClient.imageFromCache(aUser)
@@ -108,6 +112,7 @@ class UserPopup(tk.Toplevel):
         self.lift()        
         
     def _hide(self, event): 
+        self._mousePoint = None
         self.action = self.parent.after(self._duration, self._hidePopup)
 
     def _hidePopup(self): 
@@ -120,9 +125,10 @@ class UserPopup(tk.Toplevel):
         
     def _leavePopup(self, event):
         self._inPopup = False
-        self._hidePopup()      
+        self.action = self.parent.after(self._duration, self._hidePopup)      
         
     def _disable(self, event): 
+        self._inPopup = False
         self.withdraw()  
         self.action = self.parent.after(self._duration, self._nothing)
 
@@ -130,8 +136,10 @@ class UserPopup(tk.Toplevel):
         pass
 
     def _replyToUser(self, event): 
-        pass
+        self._mainFrame.setTwitText('@' + self._user + " ")
+        self._disable(None)
     
     def _directMessage(self, event): 
-        pass
+        self._mainFrame.setTwitText('D ' + self._user + " ")
+        self._disable(None)
     
