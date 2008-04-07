@@ -13,6 +13,7 @@
 
 '''A Python Tkinter Twitter Client'''
 
+import sys
 from os.path import dirname, join, abspath
 
 try:
@@ -23,7 +24,6 @@ __author__ = 'Pierre-Jean Coudert <coudert@free.fr>'
 __version__ = '0.9'
 APP_NAME = "pwytter"
 
-import sys
 sys.path.append(join(__app_path__, 'twclient'))  
 
 from Tkinter import *
@@ -966,7 +966,10 @@ if __name__ == "__main__":
     rootTk.title('Pwytter %s' % (__version__))
     rootTk.resizable(width=0, height=0) 
     if os.name == 'nt':
-        rootTk.iconbitmap(os.path.join(__app_path__,"media",'pwytter.ico')) 
+        try:
+            rootTk.iconbitmap(os.path.join(__app_path__,"media",'pwytter.ico'))
+        except Exception, e:
+            print str(e)
     s = pwSplashScreen.Splash(rootTk)
     app = MainPanel(master=rootTk)
     app.timer()
