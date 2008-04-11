@@ -112,6 +112,7 @@ class MainPanel(Frame):
                          "German": {"locale":"de_DE", "flag":"de.gif"},
                          "Italian": {"locale":"it_IT", "flag":"it.gif"},
                          "Japanese": {"locale":"ja_JP", "flag":"jp.gif"},
+                         "Dutch": {"locale":"nl_NL", "flag":"nl.gif"},
                          "Polish": {"locale":"pl_PL", "flag":"pl.gif"},
                          "Portuguese": {"locale":"pt_BR", "flag":"br.gif"},
                          "Romanian": {"locale":"ro_RO", "flag":"ro.gif"},
