@@ -108,6 +108,7 @@ class MainPanel(Frame):
         self._languages={"Chinese Simplified": {"locale":"zh_CN", "flag":"cn.gif"},
                          "Chinese Traditional": {"locale":"zh_TW", "flag":"tw.gif"},
                          "English": {"locale":"en_US", "flag":"us.gif"},
+                         "Faroese": {"locale":"fo_FO", "flag":"fo.gif"},
                          "French": {"locale":"fr_FR", "flag":"fr.gif"},
                          "German": {"locale":"de_DE", "flag":"de.gif"},
                          "Italian": {"locale":"it_IT", "flag":"it.gif"},
