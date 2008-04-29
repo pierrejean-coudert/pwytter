@@ -37,6 +37,8 @@
 #DONE: Mac version: Remove console, add icon
 
 # Later
+#TODO: add twitpic support http://twitpic.com/
+#TODO: add photo to flickr, picasaweb account
 #TODO: multiple accounts as in http://funkatron.com/index.php/site/spaz_a_twitter_client_for_mac_os_x_windows_and_linux/
 #TODO: onTop user information :add as friend, ...
 #TODO: Search with http://terraminds.com/twitter/api.html
