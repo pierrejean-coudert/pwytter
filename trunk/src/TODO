@@ -26,7 +26,7 @@
 
 #DONE: Faroese Translation Magnus Valle <wiscados at wiscados dot com>
 #DONE: Dutch Translation makochan200 <makochan200 at gmail dot com>
-#DONE: Search icon redirect to http://terraminds.com/twitter/
+#DONE: Search icon redirect to http://summize.com/
 #DONE: onTop user information dialog : name, links, directmessage, reply 
 #DONE: Reduce friend image size
 #DONE: Bug corrected : determine current pwytter path to be able to lauch it in any directory
@@ -43,7 +43,7 @@
 #TODO: add photo to flickr, picasaweb account
 #TODO: multiple accounts as in http://funkatron.com/index.php/site/spaz_a_twitter_client_for_mac_os_x_windows_and_linux/
 #TODO: onTop user information :add as friend, ...
-#TODO: Search with http://terraminds.com/twitter/api.html
+#TODO: Search with http://summize.com/api
 #TODO: Jaiku, Pownce client
 #TODO: anti-aliased font on ubuntu : tcl 8.5
 #TODO: setup.py : auto install twitter.py, simplejson, PIL

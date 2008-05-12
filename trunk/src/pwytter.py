@@ -817,9 +817,9 @@ class MainPanel(Frame):
         self._openweb('http://www.pwytter.com')
 
     def _searchclick(self, par=None):
-        #query = 'query?query=pwytter&submit=search+in+updates'
+        #query = 'search?q=xxx'
         query = ''
-        self._openweb('http://terraminds.com/twitter/'+query)
+        self._openweb('http://summize.com/'+query)
         
     def _userClick(self,par=None):
         self._openweb(self.tw.me.url.encode('latin-1'))
