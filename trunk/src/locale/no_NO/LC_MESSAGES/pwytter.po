@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Pwytter\n"
 "POT-Creation-Date: \n"
-"PO-Revision-Date: 2008-05-21 10:00+0100\n"
+"PO-Revision-Date: 2008-05-21 10:56+0100\n"
 "Last-Translator: PJ Coudert <coudert@free.fr>\n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -62,7 +62,7 @@ msgstr "Bytt tidssone"
 #: pwytter.py:248
 #: pwytter.py:266
 msgid "Refresh"
-msgstr "Oppda&eacute;r"
+msgstr "Oppdaér"
 
 #: pwytter.py:262
 msgid "Current Time Unknown..."
@@ -85,15 +85,15 @@ msgstr "Avbryt"
 #: pwytter.py:277
 #: pwytter.py:291
 msgid "Update now..."
-msgstr "Oppdat&eacute; n&aring;"
+msgstr "Oppdaté nå"
 
 #: pwytter.py:289
 msgid "A new Pwytter release is available. You should upgrade now !"
-msgstr "En new Pwytter-versjon er tilgjengelig. Du b&oslash;r oppgradere n&aring;"
+msgstr "En new Pwytter-versjon er tilgjengelig. Du bør oppgradere nå"
 
 #: pwytter.py:350
 msgid "Click here to create a Free Twitter Account..."
-msgstr "Klikk her for &aring; opprette gratis Twitter-konto..."
+msgstr "Klikk her for å opprette gratis Twitter-konto..."
 
 #: pwytter.py:352
 msgid "User"
@@ -105,7 +105,7 @@ msgstr "Passord"
 
 #: pwytter.py:354
 msgid "Refresh (s)"
-msgstr "Oppdat&eacute;r (s)"
+msgstr "Oppdatér (s)"
 
 #: pwytter.py:355
 msgid "Lines"
@@ -121,7 +121,7 @@ msgstr "Tema"
 
 #: pwytter.py:359
 msgid "Language"
-msgstr "Spr&aring;k"
+msgstr "Språk"
 
 #: pwytter.py:410
 #: pwytter.py:471
@@ -141,7 +141,7 @@ msgstr "Observerer"
 
 #: pwytter.py:586
 msgid "Followers"
-msgstr "Observat&oring;rer"
+msgstr "Observatorer"
 
 #: pwytter.py:830
 msgid "%d character(s) left"
@@ -149,31 +149,31 @@ msgstr "%d tegn tilgode"
 
 #: twclient\twitter.py:148
 msgid "about a second ago"
-msgstr "ca et sekund siden"
+msgstr "omtrent et sekund siden"
 
 #: twclient\twitter.py:150
 msgid "about %d seconds ago"
-msgstr "ca %d sekunder siden"
+msgstr "omtrent %d sekunder siden"
 
 #: twclient\twitter.py:152
 msgid "about a minute ago"
-msgstr "ca et minutt siden"
+msgstr "omtrent et minutt siden"
 
 #: twclient\twitter.py:154
 msgid "about %d minutes ago"
-msgstr "ca %d minutter siden"
+msgstr "omtrent %d minutter siden"
 
 #: twclient\twitter.py:156
 msgid "about an hour ago"
-msgstr "ca en time siden"
+msgstr "omtrent en time siden"
 
 #: twclient\twitter.py:158
 msgid "about %d hours ago"
-msgstr "ca %d timer siden"
+msgstr "omtrent %d timer siden"
 
 #: twclient\twitter.py:160
 msgid "about a day ago"
-msgstr "i g&aring;r"
+msgstr "i går"
 
 #: twclient\twitter.py:162
 msgid "about %d days ago"
