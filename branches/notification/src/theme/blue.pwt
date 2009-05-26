@@ -1,0 +1,16 @@
+text#       : #FFFFFF
+bg#         : #1D2A3A
+1stLine#    : #42546A
+line#       : #32445A
+directLine# : #FFCCCC
+replyLine#  : #FFFFCC
+param#      : #42546A
+timeline#   : #32445A
+me_bg#      : #42546A 
+me_fg#      : #777777
+time#       : #888888
+message#    : #F0F0F0
+messageUrl# : #ABBBCB
+directMsg#  : #1D2A3A
+update#     : #FFBBBB
+twitEdit#   : #42546A
