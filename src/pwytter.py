@@ -5,7 +5,7 @@
 #   This program is free software; you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
 #   the Free Software Foundation; version 2 of the License.
-# 
+#
 #   This program is distributed in the hope that it will be useful,
 #   but WITHOUT ANY WARRANTY; without even the implied warranty of
 #   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -19,12 +19,12 @@ from os.path import dirname, join, abspath
 try:
     __app_path__ = abspath(dirname(__file__))
 except:
-    __app_path__ = abspath(dirname(sys.path[0]))       
+    __app_path__ = abspath(dirname(sys.path[0]))
 __author__ = 'Pierre-Jean Coudert <coudert@free.fr>'
 __version__ = '0.9'
 APP_NAME = "pwytter"
 
-sys.path.append(join(__app_path__, 'twclient'))  
+sys.path.append(join(__app_path__, 'twclient'))
 
 from Tkinter import *
 import tkBalloon
@@ -44,8 +44,9 @@ from PIL import Image, ImageTk
 import gettext
 import locale
 import tinyUrl
+import pwNotification
 
- 
+
 class MainPanel(Frame):
     """ Main tk Frame """
     def __init__(self, master=None):
@@ -102,7 +103,7 @@ class MainPanel(Frame):
                 'widthTwit':62,
                 'widthDirectMsg':59
                 })
-            
+
         self._loadTheme(self._params['theme'])
 
         self._languages={"Chinese Simplified": {"locale":"zh_CN", "flag":"cn.gif"},
@@ -128,8 +129,8 @@ class MainPanel(Frame):
             self._params.readFromXML()
         except:
             self._needToShowParameters = True
-                
-        self.tw=twclient.TwClient(__version__, self._params['user'], self._params['password'])       
+
+        self.tw=twclient.TwClient(__version__, self._params['user'], self._params['password'])
         self._applyParameters()
 
         self._defaultTwitText = _('Enter your message here...')
@@ -144,17 +145,18 @@ class MainPanel(Frame):
         self.linesVar = IntVar()
         self.timeLineVar= StringVar()
         self.timeLineVar.set(self.tw.timeLineName())
-        
+
         self._bg=self._display['bg#']
         self['bg']=self._bg
         self.pack(ipadx=2, ipady=2)
         self._create_widgets()
+        self._create_notifications()
         self._refresh_mySelfBox()
         self._refresh_version()
         if self._needToShowParameters:
-            self._showParameters()            
+            self._showParameters()
         self._refreshTime = 0
-        
+
 
     def _setLanguage(self, aLanguage='English'):
         #Get the local directory since we are not installing anything
@@ -175,13 +177,13 @@ class MainPanel(Frame):
             self._currentLanguage='English'
         try:
             langFr = gettext.translation('pwytter',locale_path,languages=[self._languages[self._currentLanguage]['locale']])
-            langFr.install()    
+            langFr.install()
         except Exception,e:
             print str(e)
         # Get the language to use
     #        self.lang = gettext.translation(APP_NAME, self.locale_path
     #            , languages=langs, fallback = True)
-    
+
     def _loadTheme(self, aName):
         if self.Theme:
           self.Theme.setTheme(aName)
@@ -197,20 +199,20 @@ class MainPanel(Frame):
         self._setLanguage(self._params['language'])
         self._bg=self._display['bg#']
         self['bg']=self._bg
-        
+
     def _create_mySelfBox(self, aParent):
         self.MySelfBox = Frame(aParent)
         self.MyImageRef = ImageTk.PhotoImage("RGB",(48,48))
         self.MyImage = Label(self.MySelfBox,image=self.MyImageRef )
-        self.MyImageHint = tkBalloon.Balloon(self.MyImage)       
+        self.MyImageHint = tkBalloon.Balloon(self.MyImage)
         self.MyName = Label(self.MySelfBox,text="...",font=('Helvetica', 14, 'bold'))
         self.MyNameHint = tkBalloon.Balloon(self.MyName)
-        self.ParametersShow = ClickableImage(self.MySelfBox, "cog.png", 
+        self.ParametersShow = ClickableImage(self.MySelfBox, "cog.png",
                                         self._showParameters,self._display['me_bg#'], "para0", _("Parameters..."))
         self.MyUrl = Label(self.MySelfBox,text="http", cursor = 'hand2' )
 
         self._theme_mySelfBox()
-        
+
         self.MyImage.grid(row=0,column=0, rowspan=3, sticky=W,padx=5, pady=5)
         self.MyName.grid(row=0,column=1)
         self.ParametersShow.grid(row=0,column=2, sticky="E")
@@ -222,7 +224,7 @@ class MainPanel(Frame):
         self.MySelfBox["bg"] = self._display['me_bg#']
         self.MyName.config(bg= self._display['me_bg#'],fg=self._display['text#'])
         self.MyUrl.config(bg= self._display['me_bg#'], fg= self._display['me_fg#'])
-        
+
     def _refresh_mySelfBox(self):
         self._theme_mySelfBox()
         try:
@@ -243,7 +245,7 @@ class MainPanel(Frame):
                 self.MyUrl["text"] = self.tw.me.url.encode('latin-1')
             except Exception, e:
                 self.MyUrl["text"] = ''
-                
+
         except Exception, e:
             print "_refreshMe Exception:",str(e)
             self._needToRefreshMe = True
@@ -256,24 +258,24 @@ class MainPanel(Frame):
 
     def _create_RefreshBox(self, parent):
         self.refreshBox = Frame(parent, width=500)
-        self.PwytterLink = ClickableImage(self.refreshBox, "home.png", 
+        self.PwytterLink = ClickableImage(self.refreshBox, "home.png",
                                         self._homeclick,self._bg, "pwyt0",_("Pwytter web site..."))
-        self.SearchLink = ClickableImage(self.refreshBox, "zoom.png", 
+        self.SearchLink = ClickableImage(self.refreshBox, "zoom.png",
                                         self._searchclick,self._bg, "sear0",_("Search with Terraminds..."))
-        self.ShowFriends = ClickableImage(self.refreshBox, "side_expand.png", 
+        self.ShowFriends = ClickableImage(self.refreshBox, "side_expand.png",
                                         self._showFriends,self._bg, "frie0",_("Show friends"))
-        self.HideFriends = ClickableImage(self.refreshBox, "side_contract.png", 
+        self.HideFriends = ClickableImage(self.refreshBox, "side_contract.png",
                                         self._hideFriends,self._bg, "frie1",_("Hide friends"))
         self.Time = Label(self.refreshBox)
         self.TimeLine = Label(self.refreshBox, cursor = 'hand2')
-        self.TimeLineHint=tkBalloon.Balloon(self.TimeLine, _("Switch TimeLine"))       
+        self.TimeLineHint=tkBalloon.Balloon(self.TimeLine, _("Switch TimeLine"))
         self.timeLineVar.trace("w", self._timeLineMenuClick)
         self.TimeLineMenu = Menu(rootTk, tearoff=0)
         for tl in self.tw.timeLines:
-            self.TimeLineMenu.add_radiobutton(label=tl, 
+            self.TimeLineMenu.add_radiobutton(label=tl,
                                           variable = self.timeLineVar)
-        
-        self.Refresh = ClickableImage(self.refreshBox, "arrow_refresh.png", 
+
+        self.Refresh = ClickableImage(self.refreshBox, "arrow_refresh.png",
                                         self.manualRefresh,self._bg, "refr0", _("Refresh"))
         self._theme_RefreshBox()
         self.PwytterLink.grid(row=0,column=0, sticky="W")
@@ -283,7 +285,7 @@ class MainPanel(Frame):
         self.TimeLine.grid(row=2,column=0, sticky="W")
         self.TimeLine.bind('<1>', self._timeLineClick)
         self.Refresh.grid(row=2,column=2, sticky="E")
-                
+
     def _theme_RefreshBox(self):
         self.refreshBox.config(bg=self._bg)
         self.PwytterLink.config(bg=self._bg, text=_("Pwytter web site..."))
@@ -300,34 +302,34 @@ class MainPanel(Frame):
         update_bg=self._display['update#']
         self.UpdateEmptyBox = Frame(aParent)
         self.UpdateInsideBox = Frame(aParent, width=500)
-        self.UpdateCancel = ClickableImage(self.UpdateInsideBox, "cross.png", 
+        self.UpdateCancel = ClickableImage(self.UpdateInsideBox, "cross.png",
                                         self._hideUpdate, update_bg, "upca0", _("Cancel"))
         self.UpdateLbl=Label(self.UpdateInsideBox, font=self._display['fontLink'], cursor="hand2")
         self.UpdateLbl.bind('<1>', self._updateClick)
-        self.UpdateGo = ClickableImage(self.UpdateInsideBox, "page_go.png", 
+        self.UpdateGo = ClickableImage(self.UpdateInsideBox, "page_go.png",
                                         self._updateClick, update_bg, "upgo0", _("Update now..."))
 
         self.UpdateCancel.grid(row=0,column=0,padx=5,pady=5,sticky=W)
         self.UpdateLbl.grid(row=0,column=1,padx=5,pady=5,sticky=W)
         self.UpdateGo.grid(row=0,column=2,padx=5,pady=5,sticky=W)
         self._theme_updateBox()
-        
+
     def _theme_updateBox(self):
         update_bg=self._display['update#']
         self.UpdateEmptyBox.config(bg=self._bg)
         self.UpdateInsideBox.config(bg=update_bg)
         self.UpdateCancel.config(bg=update_bg, text=_("Cancel"))
-        self.UpdateLbl.config(text=_("A new Pwytter release is available. You should upgrade now !"), 
+        self.UpdateLbl.config(text=_("A new Pwytter release is available. You should upgrade now !"),
                               bg=update_bg)
         self.UpdateGo.config(bg=update_bg, text=_("Update now..."))
 
     def _create_parameterBox(self, aParent):
-        param_bg=self._display['param#']        
+        param_bg=self._display['param#']
         self.ParamEmpyBox = Frame(aParent)
         self.ParamInsideBox = Frame(aParent, width=500)
-        
+
         self.ParamCancel = ClickableImage(self.ParamInsideBox, \
-                                        "cross.png", self._hideParameters, 
+                                        "cross.png", self._hideParameters,
                                         param_bg,"parcancel", _('Cancel'))
         self.CreateAccountLbl=Label(self.ParamInsideBox, font=self._display['fontLink'],
                                     cursor="hand2")
@@ -354,20 +356,20 @@ class MainPanel(Frame):
         self.languageVar = StringVar(self.ParamInsideBox)
         self.languageVar.set(self._currentLanguage) # default value
         sorted_languages= self._languages.keys()
-        sorted_languages.sort()        
+        sorted_languages.sort()
 
         self._arrow = ImageTk.PhotoImage(imageFromFile("arrow_down.png"))
         self.LanguageResultLbl=Label(self.ParamInsideBox, textvariable=self.languageVar,
                                      compound='right', image=self._arrow, cursor = 'hand2',
                                      bd=1, relief="raised")
-        
+
         self.LanguageMenu = Menu(rootTk, tearoff=0)
         for lang in sorted_languages:
             if sys.platform == "darwin":
                 self.LanguageMenu.add_radiobutton(label=lang, variable=self.languageVar)
             else:
                 self._languages[lang]['flag_image'] = ImageTk.PhotoImage(imageFromFile(self._languages[lang]['flag']))
-                self.LanguageMenu.add_radiobutton(label=lang, compound='left', 
+                self.LanguageMenu.add_radiobutton(label=lang, compound='left',
                                                   image=self._languages[lang]['flag_image'],
                                                   variable=self.languageVar)
         self.LanguageResultLbl.bind('<1>', self._languagePopupClick)
@@ -384,20 +386,20 @@ class MainPanel(Frame):
         self.refreshEntry.grid(row=2, column=1,padx=5,pady=5)
         self.LinesLbl.grid(row=2,column=2,padx=5,pady=5,sticky=W)
         self.LinesEntry.grid(row=2, column=3,padx=5,pady=5)
-        self.ThemeLbl.grid(row=3, column=0, padx=5, pady=5, sticky=W)   
-        self.ThemeBox.grid(row=3, column=1, padx=5, pady=5, sticky=W)      
-        self.LanguageLbl.grid(row=3, column=2, padx=5, pady=5, sticky=W)   
-        self.LanguageResultLbl.grid(row=3, column=3, padx=5, pady=5, ipadx=2, sticky=W)      
+        self.ThemeLbl.grid(row=3, column=0, padx=5, pady=5, sticky=W)
+        self.ThemeBox.grid(row=3, column=1, padx=5, pady=5, sticky=W)
+        self.LanguageLbl.grid(row=3, column=2, padx=5, pady=5, sticky=W)
+        self.LanguageResultLbl.grid(row=3, column=3, padx=5, pady=5, ipadx=2, sticky=W)
         self.BtnBox.grid(row=4, column=3, columnspan=4, sticky=EW)
         self.ApplyBtn.pack(padx=5,pady=5,side="right")
-       
+
     def _theme_parameterBox(self):
-        param_bg=self._display['param#']        
+        param_bg=self._display['param#']
         self.ParamEmpyBox.config(bg=self._bg)
         self.ParamInsideBox.config(bg=param_bg)
-        
+
         self.ParamCancel.config(bg=param_bg,text=_('Cancel'))
-        self.CreateAccountLbl.config(text= _("Click here to create a Free Twitter Account..."), 
+        self.CreateAccountLbl.config(text= _("Click here to create a Free Twitter Account..."),
                                     bg=param_bg, fg=self._display['text#'])
         self.UserLbl.config(text=_("User"), bg=param_bg)
         self.PasswordLbl.config(text=_("Password"), bg=param_bg)
@@ -430,14 +432,14 @@ class MainPanel(Frame):
         self._params.writeToXML()
         self._applyParameters()
         self._hideParameters()
-        
+
         self._theme_widgets()
         self._theme_parameterBox()
         self._theme_RefreshBox()
         self._theme_friendsBox()
-        self._theme_updateBox()        
+        self._theme_updateBox()
 
-        self._refresh_mySelfBox()       
+        self._refresh_mySelfBox()
         self.manualRefresh()
 
     def _create_Line(self, aParent, i):
@@ -470,10 +472,11 @@ class MainPanel(Frame):
                                         "world_go.png", self._userUrlClick, linecolor,"uurl"+str(i))
         aLine['UserUrlHint']=  tkBalloon.Balloon(aLine['UserUrl'])
         aLine['UserUrlInvalid']= ClickableImage(aLine['IconBox'], \
-                                        "world_nb.png", None, linecolor,"iurl"+str(i))        
+                                        "world_nb.png", None, linecolor,"iurl"+str(i))
         aLine['Reply'] = ClickableImage(aLine['IconBox'], \
                                         "arrow_undo.png", self._replyToMessage, linecolor,"repl"+str(i),
                                         _('Reply to this message...'))
+       
         aLine['Msg']      = Label(aLine['Box'],text="...", name=str(i),\
                                   font=self._display['fontMsg'],\
                                   width=self._display['widthMsg'])
@@ -495,19 +498,19 @@ class MainPanel(Frame):
         aLine['DirectEdit'].grid(row=0,column=1, padx=1)
         aLine['DirectSend'].grid(row=0,column=2, sticky='E',padx=1)
         aLine['Image'].bind('<1>', self._nameClick)
-        aLine['Image'].grid(row=0,column=0,rowspan=2, sticky='NW',padx=1,pady=2)        
-        aLine['NameBox'].grid(row=0,column=1, sticky='W') 
+        aLine['Image'].grid(row=0,column=0,rowspan=2, sticky='NW',padx=1,pady=2)
+        aLine['NameBox'].grid(row=0,column=1, sticky='W')
         aLine['Name'].bind('<1>', self._nameClick)
         aLine['Name'].grid(row=0,column=0, sticky='W',padx=1)
-        aLine['Time'].grid(row=0,column=1, sticky='W') 
-        aLine['IconBox'].grid(row=0,column=2, sticky='E') 
+        aLine['Time'].grid(row=0,column=1, sticky='W')
+        aLine['IconBox'].grid(row=0,column=2, sticky='E')
         aLine['Reply'].grid(row=0,column=0, rowspan=1, sticky='E')
         aLine['Direct'].grid_forget()
         aLine['DirectInvalid'].grid(row=0,column=1, rowspan=1, sticky='W')
         aLine['Favorite'].grid_forget()
         aLine['FavoriteGray'].grid(row=0,column=2, rowspan=1, sticky='E')
         aLine['UserUrl'].grid(row=0,column=3, sticky='E')
-        aLine['UserUrl'].grid_forget()           
+        aLine['UserUrl'].grid_forget()
         aLine['UserUrlInvalid'].grid(row=0,column=3, sticky='E')
         aLine['Msg'].grid(row=1,column=1,columnspan=2,rowspan=1, sticky='W',padx=1)
         aLine['Box'].grid(row=i,sticky=W,padx=0, pady=1, ipadx=1, ipady=1)
@@ -517,7 +520,7 @@ class MainPanel(Frame):
         return aLine
 
     def _theme_Line(self, aLine, index, type='standard'):
-        if index==0: 
+        if index==0:
             linecolor = self._display['1stLine#']
         else:
             linecolor = self._display['line#']
@@ -544,18 +547,18 @@ class MainPanel(Frame):
         aLine['DirectCancel'].config(bg=directColor, text=_('Cancel'))
         aLine['DirectEdit'].config(bg=self._bg, fg=self._display['text#'])
         aLine['DirectSend'].config(bg=directColor, text=_('Send'))
- 
-    def _refresh_lines(self, par=None):      
+
+    def _refresh_lines(self, par=None):
         self._imagesLoaded=True
         i=0
         for i in range(min(self._TwitLines,len(self.tw.texts))):
             if i+1>len(self.Lines) :
                 self.Lines.append(self._create_Line(self.LinesBox, i))
             self._theme_Line(self.Lines[i], i, self.tw.texts[i]['type'])
-            
+
             name = self.tw.texts[i]["name"]
             loaded, aImage= self.tw.imageFromCache(name)
-            self._imagesLoaded = self._imagesLoaded and loaded        
+            self._imagesLoaded = self._imagesLoaded and loaded
             try:
                 self.Lines[i]['ImageRef'].paste(aImage.resize(self._display['photoSize'],Image.ANTIALIAS ))
             except:
@@ -571,7 +574,7 @@ class MainPanel(Frame):
                 self.Lines[i]['DirectInvalid'].grid_forget()
                 self.Lines[i]['Direct'].grid(row=0,column=1, rowspan=1, sticky='W')
 
-            self.Lines[i]['Msg']["text"]=textwrap.fill(self.tw.texts[i]["msgunicode"], 70, break_long_words=True)           
+            self.Lines[i]['Msg']["text"]=textwrap.fill(self.tw.texts[i]["msgunicode"], 70, break_long_words=True)
 
             if self.tw.texts[i]["url"]<>'' :
                 self.Lines[i]['Msg'].bind('<1>', self._urlClick)
@@ -586,33 +589,33 @@ class MainPanel(Frame):
                 self.Lines[i]['MsgHint'].disable()
             if self.tw.texts[i]["user_url"] == '':
                 self.Lines[i]['UserUrl'].bind('<1>', None)
-                self.Lines[i]['UserUrl']["cursor"] = ''    
-                self.Lines[i]['UserUrl'].grid_forget()           
+                self.Lines[i]['UserUrl']["cursor"] = ''
+                self.Lines[i]['UserUrl'].grid_forget()
                 self.Lines[i]['UserUrlInvalid'].grid(row=0, column=3, sticky='E')
             else:
                 self.Lines[i]['UserUrl'].bind('<1>', self._userUrlClick)
                 self.Lines[i]['UserUrl']["cursor"] = 'hand2'
                 self.Lines[i]['UserUrlHint'].settext(self.tw.texts[i]["user_url"])
-                self.Lines[i]['UserUrlInvalid'].grid_forget() 
+                self.Lines[i]['UserUrlInvalid'].grid_forget()
                 self.Lines[i]['UserUrl'].grid(row=0, column=3, sticky='E')
                 self.Lines[i]['UserUrl'].grid()
 
             self._imagesLoaded = self._imagesLoaded \
-                                 and self.tw.texts[i]["favorite_updated"]                       
+                                 and self.tw.texts[i]["favorite_updated"]
             if self.tw.texts[i]["favorite"]:
                 self.Lines[i]['FavoriteGray'].grid_forget()
                 self.Lines[i]['Favorite'].grid(row=0,column=2, rowspan=1, sticky='E')
             else:
                 self.Lines[i]['Favorite'].grid_forget()
                 self.Lines[i]['FavoriteGray'].grid(row=0,column=2, rowspan=1, sticky='E')
-                
+
             self.Lines[i]['Box'].grid(row=i,sticky=W,padx=0, pady=1, ipadx=1, ipady=1)
 
         for i in range(i+1,len(self.Lines)):
             self.Lines[i]['Box'].grid_forget()
 
-    
-    def _createFriendImage(self, aParent, index, type):   
+
+    def _createFriendImage(self, aParent, index, type):
         aFriend={}
         aFriend['ImageRef'] = ImageTk.PhotoImage("RGB",(20,20))
         c=self._display['friendcolumn']
@@ -628,8 +631,8 @@ class MainPanel(Frame):
             self.FollowerImages.append(aFriend)
         aFriend['Image'].grid(row=1+int(index/c), column=index-(int(index/c)*c), padx=1, pady=1)
         return aFriend
-        
-    def _create_friendsBox(self, aParent):   
+
+    def _create_friendsBox(self, aParent):
         self.friendsEmptyBox = Frame(aParent)
         self.friendsInsideBox = Frame(aParent)
         self.FriendImages=[]
@@ -656,11 +659,11 @@ class MainPanel(Frame):
         self.followersEmptyBox.config(bg=self._bg)
         self.followersInsideBox.config(bg=self._bg)
         self.FollowerTitle.config(text=_("Followers"), bg=self._bg, fg=self._display['text#'])
-                
+
     def _refresh_friendsBox(self):
         self._imagesFriendsLoaded = True
         c=self._display['friendcolumn']
-        l=self._display['friendrow']            
+        l=self._display['friendrow']
         try:
             self._imagesFriendsLoaded = self._imagesFriendsLoaded and self.tw.getFriends()
             i=0
@@ -668,8 +671,8 @@ class MainPanel(Frame):
                 if i+1>len(self.FriendImages) :
                     self._createFriendImage(self.friendsInsideBox,i, "friend")
                 loaded, aImage= self.tw.imageFromCache(fname)
-                self._imagesFriendsLoaded = self._imagesFriendsLoaded and loaded     
-                try :   
+                self._imagesFriendsLoaded = self._imagesFriendsLoaded and loaded
+                try :
                     self.FriendImages[i]['ImageRef'].paste(aImage.resize(self._display['thumbnailSize'],Image.ANTIALIAS))
                 except:
                     print "error pasting friends images:",fname
@@ -681,7 +684,7 @@ class MainPanel(Frame):
                 self.FriendImages[i]['Image'].grid_forget()
         except Exception,e :
             print str(e),"-> Can't get friends"
-            
+
         try:
             self._imagesFriendsLoaded = self._imagesFriendsLoaded and self.tw.getFollowers()
             i=0
@@ -689,8 +692,8 @@ class MainPanel(Frame):
                 if i+1>len(self.FollowerImages) :
                     self._createFriendImage(self.followersInsideBox,i, "follower")
                 loaded, aImage= self.tw.imageFromCache(fname)
-                self._imagesFriendsLoaded = self._imagesFriendsLoaded and loaded     
-                try :   
+                self._imagesFriendsLoaded = self._imagesFriendsLoaded and loaded
+                try :
                     self.FollowerImages[i]['ImageRef'].paste(aImage.resize(self._display['thumbnailSize'], Image.ANTIALIAS))
                 except:
                     print "error pasting friends images:",fname
@@ -699,7 +702,7 @@ class MainPanel(Frame):
                 self.FollowerImages[i]['Image'].grid(row=1+int(i/c), column=i-(int(i/c)*c), padx=1, pady=1)
                 i=i+1
             for i in range(i,len(self.FollowerImages)):
-                self.FollowerImages[i]['Image'].grid_forget()        
+                self.FollowerImages[i]['Image'].grid_forget()
         except Exception,e :
             print str(e),"-> Can't get followers"
 
@@ -741,7 +744,7 @@ class MainPanel(Frame):
         lineIndex = int(par.widget.winfo_name()[4:])
         userName = self.tw.texts[lineIndex]["name"]
         self.setTwitText('@' + userName + " ")
-        
+
     def _sendDirectMessage(self,par=None):
         self._busy.set()
         try:
@@ -754,22 +757,45 @@ class MainPanel(Frame):
         finally:
             self._busy.reset()
 
-    def _create_widgets(self):      
+    def _create_notifications(self) :
+        self.notification=pwNotification.TwitterStatus(self._params['user'],self._params['password'] )
+        self.notification.load()
+
+        for i in self.notification.api.GetFriendsTimeline():
+              self.notification.count_update(i)
+
+        self.notification.display_count()
+        for i in self.notification.api.GetFriendsTimeline():
+              self.notification.check_status(i)
+         
+        # Next lets do Replies
+        for i in self.notification.api.GetReplies():
+              self.notification.check_status(i)
+    
+        # Personal Messages we have been sent
+        
+        for i in self.notification.api.GetDirectMessages():
+              self.notification.check_status(i)
+
+        # Save stored entries
+        self.notification.save()
+    def _create_widgets(self):
         self.MainZone = Frame(self)
         self._create_mySelfBox(self.MainZone)
         self._create_RefreshBox(self.MainZone)
         self.ParameterBox = Frame(self.MainZone)
         self._create_parameterBox(self.ParameterBox)
-        self.LinesBox= Frame(self.MainZone) 
-        self.Lines=[]       
-        for i in range(self._TwitLines):           
+        self.LinesBox= Frame(self.MainZone)
+        self.Lines=[]
+        for i in range(self._TwitLines):
             self.Lines.append(self._create_Line(self.LinesBox, i))
+
         self.EditParentBox = Frame(self.MainZone, bg=self._bg)
         self.RemainCar = Label(self.EditParentBox,text="...")
         self.editBox = Frame(self.EditParentBox)
         self.TwitEdit = Entry(self.editBox, width=self._display['widthTwit'],\
                               textvariable=self.twitText, bd=0)
-        self.Send = ClickableImage(self.editBox, "comment.png", 
+        self.Send = ClickableImage(self.editBox, "comment.png",
                                    self.sendTwit,self._bg, "send0",_("Send"))
         self.UpdateZone = Frame(self)
         self._create_updateBox(self.UpdateZone)
@@ -783,31 +809,31 @@ class MainPanel(Frame):
         self.LinesBox.grid(row=3, column=0,columnspan=2)
         self.RemainCar.pack(padx=5)
         self.TwitEdit.pack(side="left",padx=2, ipadx=2, ipady=2)
-        self.Send.pack(side="left", padx=2, ipadx=1, ipady=1)       
+        self.Send.pack(side="left", padx=2, ipadx=1, ipady=1)
         self.TwitEdit.bind("<Return>", self.sendTwit)
-        self.TwitEdit.bind('<Button-1>',self.emptyTwit)  
+        self.TwitEdit.bind('<Button-1>',self.emptyTwit)
         self.twitText.trace("w", self.editValidate)
-        self.editBox.pack()      
-        self.EditParentBox.grid(row=4,column=0,columnspan=2, pady=2)       
+        self.editBox.pack()
+        self.EditParentBox.grid(row=4,column=0,columnspan=2, pady=2)
         self.UpdateZone.grid(row=0,column=0)
         self.MainZone.grid(row=1,column=0,sticky=W)
         self.FriendZone.grid(row=1,column=1,sticky=NE)
         self._hideFriends()
         self._theme_widgets()
-        
-    def _theme_widgets(self):      
+
+    def _theme_widgets(self):
         self.MainZone.config(bg=self._bg)
         self.ParameterBox.config(bg=self._bg)
-        self.LinesBox.config(bg=self._bg) 
+        self.LinesBox.config(bg=self._bg)
         self.EditParentBox.config(bg=self._bg)
         self.RemainCar.config(bg=self._bg, fg=self._display['text#'] )
-        self.editValidate()       
+        self.editValidate()
         self.editBox.config(bg=self._bg)
         self.TwitEdit.config(bg=self._display['twitEdit#'], fg=self._display['text#'])
         self.Send.config(bg=self._bg, text=_("Send"))
         self.UpdateZone.config(bg=self._bg)
         self.FriendZone.config(bg=self._bg)
-   
+
     def _openweb(self,url):
         try :
             webbrowser.open(url)
@@ -821,16 +847,16 @@ class MainPanel(Frame):
         #query = 'search?q=xxx'
         query = ''
         self._openweb('http://summize.com/'+query)
-        
+
     def _userClick(self,par=None):
         self._openweb(self.tw.me.url.encode('latin-1'))
 
     def _createAccountClick(self,par=None):
         self._openweb('https://twitter.com/signup')
-        
+
     def _updateClick(self,par=None):
         self._openweb('http://www.pwytter.com/download')
-        
+
     def _urlClick(self,par=None):
         lineIndex= int(par.widget.winfo_name())
         self._openweb(self.tw.texts[lineIndex]["url"])
@@ -838,7 +864,7 @@ class MainPanel(Frame):
     def _nameClick(self,par=None):
         lineIndex= int(par.widget.winfo_name()[4:])
         self._openweb("http://twitter.com/"+self.tw.texts[lineIndex]["name"])
-            
+
     def _friendClick(self,par=None):
         friendIndex= int(par.widget.winfo_name()[4:])
         self._openweb(self.FriendImages[friendIndex]['ImageHint'].gettext())
@@ -867,21 +893,21 @@ class MainPanel(Frame):
     def _timeLineClick(self,event=None):
         if event:
             self.TimeLineMenu.post(event.x_root, event.y_root)
-            
-    def _timeLineMenuClick(self,*dummy):       
+
+    def _timeLineMenuClick(self,*dummy):
         self._busy.set()
         try:
-            self.tw.setTimeLine(self.timeLineVar.get())            
+            self.tw.setTimeLine(self.timeLineVar.get())
             print "Switch to Timeline:",self.tw.timeLineName()
             self.TimeLine["text"] = _("Timeline: %s") %(self.tw.timeLineName())
             self._refreshTwitZone()
         finally:
             self._busy.reset()
-            
+
     def _languagePopupClick(self,event=None):
         if event:
             self.LanguageMenu.post(event.x_root, event.y_root)
-  
+
     def _refreshTwitZone(self):
         timestr = time.strftime("%a, %d %b %Y %H:%M:%S", time.localtime())
         self.Time["text"]= timestr
@@ -889,7 +915,7 @@ class MainPanel(Frame):
             self.tw.refresh()
             self._refresh_lines()
         except Exception, e :
-            self.Time["text"]=textwrap.fill("Refresh error: "+timestr+" >> "+str(e), 50, break_long_words=True)           
+            self.Time["text"]=textwrap.fill("Refresh error: "+timestr+" >> "+str(e), 50, break_long_words=True)
 #        finally:
 #            pass
 
@@ -907,10 +933,10 @@ class MainPanel(Frame):
             if not self._imagesFriendsLoaded :
                 self._refresh_friendsBox()
             if not self._versionChecked :
-                self._refresh_version()                
+                self._refresh_version()
         finally:
             self.after(1000, self.timer)
-            
+
     def setTwitText(self, aText=''):
         self.twitText.set(aText)
         self.TwitEdit.icursor(140)
@@ -925,18 +951,18 @@ class MainPanel(Frame):
             self.editValidate()
         finally:
             self._busy.reset()
-        
+
     def emptyTwit(self,par=None):
         if self.twitText.get() == self._defaultTwitText:
             self.twitText.set('')
-        
+
     def manualRefresh(self,par=None):
         self._busy.set()
         try:
             self._refreshTwitZone()
         finally:
             self._busy.reset()
- 
+
     def editValidate(self, *dummy):
         self._tinyurl.convertTinyUrl()
         text = self.twitText.get()
@@ -948,7 +974,7 @@ class MainPanel(Frame):
             self.TwitEdit.config(bg= self._display['directLine#'],
                                  fg=self._display['text#'])
         else:
-            self.TwitEdit.config(bg=self._display['twitEdit#'], 
+            self.TwitEdit.config(bg=self._display['twitEdit#'],
                                  fg=self._display['text#'])
         if actualLength>140:
             self.twitText.set(self.twitText.get()[:140])
@@ -956,9 +982,9 @@ class MainPanel(Frame):
             self.RemainCar["text"] =  _("%d character(s) left") % (140-actualLength)
 
 def _initTranslation():
-    """Translation stuff : init locale and get text"""       
+    """Translation stuff : init locale and get text"""
     gettext.install(APP_NAME)
-       
+
 if __name__ == "__main__":
     print "Starting Pwytter..."
     _initTranslation()
@@ -967,7 +993,7 @@ if __name__ == "__main__":
         rootTk.tk.call('console', 'hide')
     #rootTk.option_add("*Label*font","FreeSans 10 bold")
     rootTk.title('Pwytter %s' % (__version__))
-    rootTk.resizable(width=0, height=0) 
+    rootTk.resizable(width=0, height=0)
     if os.name == 'nt':
         try:
             rootTk.iconbitmap(os.path.join(__app_path__,"media",'pwytter.ico'))
@@ -976,5 +1002,5 @@ if __name__ == "__main__":
     s = pwSplashScreen.Splash(rootTk)
     app = MainPanel(master=rootTk)
     app.timer()
-    s.destroy() 
+    s.destroy()
     app.mainloop()
