@@ -44,8 +44,17 @@ from PIL import Image, ImageTk
 import gettext
 import locale
 import tinyUrl
-import pwNotification
+import urllib
+import pickle
 
+STORAGE_DIRECTORY = "~/.twitter"
+IMAGE_DIRECTORY = "~/.twitter/images"
+
+if os.name=='posix' :
+    import pygtk
+    pygtk.require('2.0')
+    import pynotify
+    import gtk
 
 class MainPanel(Frame):
     """ Main tk Frame """
@@ -58,9 +67,14 @@ class MainPanel(Frame):
         self._imagesFriendsLoaded = True
         self._needToShowParameters = False
         self._versionChecked = False
+        self.store={}
+        self.count=0
         self._busy = pwTools.BusyManager(master)
         self._params = pwParam.PwytterParams()
-
+        self.storage = os.path.expanduser(STORAGE_DIRECTORY)
+        self.image_storage = os.path.expanduser(IMAGE_DIRECTORY)
+        if not os.path.exists(self.image_storage):
+            os.makedirs(self.image_storage)
         self.Theme = None
         self._display={
             'fontName':('Helvetica',8,'bold'),
@@ -476,7 +490,7 @@ class MainPanel(Frame):
         aLine['Reply'] = ClickableImage(aLine['IconBox'], \
                                         "arrow_undo.png", self._replyToMessage, linecolor,"repl"+str(i),
                                         _('Reply to this message...'))
-       
+
         aLine['Msg']      = Label(aLine['Box'],text="...", name=str(i),\
                                   font=self._display['fontMsg'],\
                                   width=self._display['widthMsg'])
@@ -757,28 +771,128 @@ class MainPanel(Frame):
         finally:
             self._busy.reset()
 
+    def check_status(self, status):
+        """Check if a status update has already been stored.
+        If not then store it and send a notification."""
+        if status.id not in self.store.keys():
+            try:
+                username = status.user.name
+            except AttributeError:
+                username = status.sender_screen_name
+            try:
+                profile_image = status.user.profile_image_url
+            except AttributeError:
+                profile_image = self.api.GetUser(\
+                                username).GetProfileImageUrl()
+
+            # Find the image
+            imagepath = self.cached_image(username)
+            if not imagepath:
+                imagepath = self.download_image(username,
+                            profile_image)
+
+            # Markup Hyperlinks
+            text = status.text
+            if "http://" in text:
+                for i in text.split():
+                    if i.startswith("http://"):
+                        text = text.replace(i, \
+                               '<a href="' + i + '">' + i + '</a>')
+
+            # Call notification
+            self.send_note(username, text, imagepath )
+
+            # Add to dict
+            self.store[status.id] = status
+
+    def load(self):
+        """Load storage file from disk."""
+        try:
+            filename = open(self.storage + "/twitter.pkl", 'r')
+            self.store = pickle.load(filename)
+            filename.close()
+        except IOError:
+            self.store = {}
+
+    def save(self):
+        """Save storage file to disk."""
+        filename = open(self.storage + "/twitter.pkl", 'w')
+        pickle.dump(self.store, filename)
+        filename.close()
+
+
+    def count_update(self,status) :
+        """ this will count total number of updates that are unread"""
+        if status.id not in self.store.keys():
+            self.count=self.count+1
+
+    def send_note(self,user, message, imageurl):
+        """Send the note to the desktop."""
+        if os.name == 'posix' :
+           print "Linux notifications"
+           if not pynotify.init("Pwytter"):
+               try :
+                    raise Exception('pynotify is not initialized')
+               except Exception ,inst :
+                    print "Error :",inst
+           note = pynotify.Notification(user, message, imageurl)
+           if not note.show():
+               try :
+                  raise Exception('failed to send notification')
+               except Exception ,inst:
+                  print "Error :",inst
+        else :
+           str = "growlnotify /t:\"%s\" /a:pwytter /i:\"%s\" /s:true \"%s\"" % (user,imageurl,message)
+           os.system(str)
+
+    def display_count(self) :
+        text= self._params['user']
+        text= text + ", You have %d" % self.count
+        text=text+" "+ " new tweets"
+        imagenm="pwytter.png"
+        if self.count!=0:
+               self.send_note("Pwytter",text,imagenm)
+
+
+    def download_image(self, username, image_url):
+        """Download new profile image."""
+        fileextension = image_url.rpartition('.')[-1]
+        targetname = self.image_storage + "/" + username + "." + fileextension
+        urllib.urlretrieve(image_url, targetname)
+        return targetname
+
+    def cached_image(self, username):
+        """Check for already downloaded profile image."""
+        for i in os.listdir(self.image_storage):
+            if i.startswith(username + "."):
+                return i
+            else:
+                return None
+
+
     def _create_notifications(self) :
-        self.notification=pwNotification.TwitterStatus(self._params['user'],self._params['password'] )
-        self.notification.load()
+        self.api=twclient.twitter.Api(username=self._params['user'], password=self._params['password'])
+        self.load()
 
-        for i in self.notification.api.GetFriendsTimeline():
-              self.notification.count_update(i)
+        for i in self.api.GetFriendsTimeline():
+              self.count_update(i)
 
-        self.notification.display_count()
-        for i in self.notification.api.GetFriendsTimeline():
-              self.notification.check_status(i)
-         
+        self.display_count()
+
+        for i in self.api.GetFriendsTimeline():
+              self.check_status(i)
+
         # Next lets do Replies
-        for i in self.notification.api.GetReplies():
-              self.notification.check_status(i)
-    
+        for i in self.api.GetReplies():
+              self.check_status(i)
+
         # Personal Messages we have been sent
-        
-        for i in self.notification.api.GetDirectMessages():
-              self.notification.check_status(i)
+
+        for i in self.api.GetDirectMessages():
+              self.check_status(i)
 
         # Save stored entries
-        self.notification.save()
+        self.save()
     def _create_widgets(self):
         self.MainZone = Frame(self)
         self._create_mySelfBox(self.MainZone)
