@@ -62,40 +62,23 @@ actions:
 
 replies:
 	id			Tweet id
-	to			Tweet id this is a reply to, 0 if none
-	at			User id this is a reply at
+	reply_to	Tweet id this is a reply to, 0 if none
+	direct_at	User id this is a reply at
 
 direct_messages:
 	id			Tweet id
-	to			Tweet id this is a reply to, 0 if none
-	at			User id this is a reply at
+	reply_to	Tweet id this is a reply to, 0 if none
+	direct_at	User id this is a reply at
 
 The TODO list:
 
 public methods for tweetstore:
-	getDirectMessages(...)
 	blockFollower(User)
 	AddFriend(User)
 	RemoveFriend(User)
 
 Implement search queries
 
-Update TwitterAccount to download
-	replies
-	direct messages
-
-Remove usage of TweetStore._getUsers() in:
-	Message
-	User
-	Account
-
-Update:
-	twitter account type
-	mockup account typ
-
-Save settings:
-	TweetStore._cacheTimeout
-	TweetStore.__accounts, must be pickled and stored in database
 """
 
 def asynchronous(f):
