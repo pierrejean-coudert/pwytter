@@ -78,7 +78,12 @@ public methods for tweetstore:
 	RemoveFriend(User)
 
 Implement search queries
-
+Add more events:
+	onAccountAdded
+	onNewFollower
+	onNewTweet
+	onNewReply
+	onNewDirectMessaage
 """
 
 def asynchronous(f):
@@ -931,9 +936,9 @@ class Message:
 			self._service_id = data["service_id"]
 			self._suid = data["suid"]
 			self._user = User(self.__store, data = data["user"])
-			self._reply_at = data["reply_at"]
-			self._reply_to = data["reply_to"]
-			self._direct_at = data["direct_at"]
+			self._reply_at = User(self.__store, data = data["reply_at"])
+			self._reply_to = User(self.__store, data = data["reply_to"])
+			self._direct_at = User(self.__store, data = data["direct_at"])
 			return None
 		#If creating new instance
 		else:
@@ -974,12 +979,21 @@ class Message:
 		data["service_id"] = self._getServiceID()
 		data["suid"] = self._getServiceUniqueId()
 		data["user"] = self.getUser().dumps()
+		#Dump reply_at user
 		if self.isReply():
 			data["reply_at"] = self.getReplyAt().dumps()
 		else:
-			data["reply_at"] = None #FInish serialization of this!!!
-		data["reply_to"] = self.getReplyTo()
-		data["direct_at"] = self.getDirectAt()
+			data["reply_at"] = None
+		#Dump direct_at user
+		if self.isDirectMessage():
+			data["direct_a"] = self.getDirectAt().dumps()
+		else:
+			data["direct_a"] = None
+		#Dump reply_to user
+		if self.getReplyTo() != None:
+			data["reply_to"] = self.getReplyTo().dumps()
+		else:
+			data["reply_to"] = None
 		return pickle.dumps(data)
 
 	def getMessage(self):
