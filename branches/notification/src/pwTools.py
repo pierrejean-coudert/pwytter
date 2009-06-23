@@ -19,6 +19,7 @@ from Tkinter import *
 from PIL import Image, ImageTk
 import os
 from os.path import dirname, join, abspath
+import sys
 import webbrowser
 
 try:
@@ -26,6 +27,16 @@ try:
 except:
     __app_path__ = abspath(dirname(sys.path[0]))       
 
+
+def platform():
+    if os.name=='posix':
+        if sys.platform == "darwin":
+            return 'mac'
+        else:
+            return 'linux'
+    else:
+        return 'windows'
+                        
 class BusyManager:
     '''Busy cursor Manager'''
 

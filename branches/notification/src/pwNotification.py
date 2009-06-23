@@ -2,8 +2,9 @@ import urllib
 import time
 import sys
 import os
+from pwTools import platform
 
-if os.name=='posix' :
+if platform() == 'linux' :
     import pygst
     import pygtk
     pygst.require('0.10')
@@ -17,7 +18,7 @@ class PwytterNotify(object):
 
     def __init__(self,api):
         self.api=api
-        self.image_directory="~/.twitter/images"
+        self.image_directory="~/.pwytter/images"
         self.image_storage = os.path.expanduser(self.image_directory)
         if not os.path.exists(self.image_storage):
             os.makedirs(self.image_storage)
@@ -79,25 +80,32 @@ class PwytterNotify(object):
 
     def _send_note(self,user, message, imageurl):
         """Send the note to the desktop."""
-        if os.name == 'posix' :
-           print "Linux notifications"
-           if not pynotify.init("Pwytter"):
-               try :
-                    raise Exception('pynotify is not initialized')
-               except Exception ,inst :
-                    print "Error :",inst
-           self._create_sound()
-           note = pynotify.Notification(user, message, imageurl)
-           if not note.show():
-               try :
-                  raise Exception('failed to send notification')
-               except Exception ,inst:
-                  print "Error :",inst
-        else :
-           str = "growlnotify /t:\"%s\" /a:pwytter /i:\"%s\" /s:true \"%s\"" % (user,imageurl,message)
-           os.system(str)
-
-
+        try:
+            ascii_message = message.encode('ascii','replace')
+            if platform() == 'linux' :
+               print "Linux notifications"
+               if not pynotify.init("Pwytter"):
+                   try :
+                        raise Exception('pynotify is not initialized')
+                   except Exception ,inst :
+                        print "Error :",inst
+               self._create_sound()
+               note = pynotify.Notification(user, ascii_message, imageurl)
+               if not note.show():
+                   try :
+                      raise Exception('failed to send notification')
+                   except Exception ,inst:
+                      print "Error :",inst
+            elif platform() == 'windows' :
+               str = 'growlnotify /t:"%s" /a:pwytter /i:"%s" /s:true "%s"' % (user,imageurl,ascii_message)
+               os.system(str)
+            elif platform() == 'mac' :
+               str = 'growlnotify -t "%s" -a "pwytter" -i "%s" -m"%s"\n' % (user,imageurl,ascii_message)
+               print str
+               os.system(str)
+        except:
+            print "notify error"
+            
     def _create_sound(self):
         # This will create pipeline pwytter
         self.pipeline = gst.Pipeline("pwytter")

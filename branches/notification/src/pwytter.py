@@ -61,7 +61,7 @@ class MainPanel(Frame):
         self._versionChecked = False
         self.count=0
         self.store={}
-        self.storage_directory="~/.twitter"
+        self.storage_directory="~/.pwytter"
         self.storage = os.path.expanduser(self.storage_directory)
         self._busy = pwTools.BusyManager(master)
         self._params = pwParam.PwytterParams()
