@@ -61,9 +61,10 @@ class TwitterAccount(tweetstore.Account):
 			self.__loginCB.raiseEvent(self, False, "Login failed, ensure internet connection\n error: " + str(e))
 		except BaseException, e:
 			self.__loginCB.raiseEvent(self, False, "Login failed: " + str(e))
-		self._status = "idle"
-		self._store._addAccount(self)
-		self.__loginCB.raiseEvent(self, True, "Login successful")
+		else:
+			self._status = "idle"
+			self._store._addAccount(self)
+			self.__loginCB.raiseEvent(self, True, "Login successful")
 
 	_store = None
 	def _setOwner(self, store):
@@ -72,6 +73,7 @@ class TwitterAccount(tweetstore.Account):
 
 	def _getMessages(self):
 		if not self._store: raise tweetstore.OwnerNotSetError, "Cannot created messages."
+		self.__changeStatus("updating")
 		try:
 			#TODO: Use the since parameter and store it on the this class
 			msgs = []
@@ -97,6 +99,7 @@ class TwitterAccount(tweetstore.Account):
 
 	def _getFriends(self):
 		if not self._store: raise tweetstore.OwnerNotSetError, "Cannot created User instances."
+		self.__changeStatus("updating")
 		try:
 			friends = []
 			for user in self.__api.GetFriends():
@@ -115,6 +118,7 @@ class TwitterAccount(tweetstore.Account):
 		
 	def _getFollowers(self):
 		if not self._store: raise tweetstore.OwnerNotSetError, "Cannot created User instances."
+		self.__changeStatus("updating")
 		try:
 			followers = []
 			for user in self.__api.GetFollowers():
@@ -134,6 +138,7 @@ class TwitterAccount(tweetstore.Account):
 	def _postMessage(self, message):
 		if not self._store: raise tweetstore.OwnerNotSetError, "Cannot update account status changes."
 		assert isinstance(message, tweetstore.Message), "message must be an instanc of Message"
+		self.__changeStatus("updating")
 		try:
 			#TODO: Figure out how to post in reply to another message
 			if message.getDirectAt() == None:

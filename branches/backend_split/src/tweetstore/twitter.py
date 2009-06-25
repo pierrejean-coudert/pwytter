@@ -91,7 +91,7 @@ class Status(object):
 
     Returns:
       The time this status message was posted, in seconds since the epoch.
-    '''
+    ''' 
     return time.mktime(time.strptime(self.created_at, '%a %b %d %H:%M:%S +0000 %Y'))
 
   created_at_in_seconds = property(GetCreatedAtInSeconds,

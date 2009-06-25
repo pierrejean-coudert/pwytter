@@ -1,33 +1,30 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import twitter
+import identica
 import tweetstore
 import urllib2
 import event
 
-service_string = "Twitter"
+service_string = "Identi.ca"
 
 """
-Notes:
+This implementation uses a twitter module hacked to support identi.ca
+Please fix bugs in this file in the twitteraccount module too.
 
-Twitter test user:
+This uses the twitter API available from identi.ca
 
-username:	pwdebug
-password:	pwytter
-
-Use this user to test things... The account already follower Jessica Simpson so anything posted
-can't possibly make it worse.
+See: http://www.dilella.org/?p=65
 """
 
-class TwitterAccount(tweetstore.Account):
+class IdenticaAccount(tweetstore.Account):
 	__api = None
 	_user = None
 	_status = "unconfigured"
 	def __init__(self, username, password, owner, callback):
-		"""	Creates an instance of TwitterAccount
-			username: Twitter username
-			password: Twitter password
+		"""	Creates an instance of IdenticaAccount
+			username: Identi.ca username
+			password: Identi.ca password
 			owner: TweetStore you want this Account added to
 			callback:	Callback for once this instance have attempted login
 					Callback gets two parameters (self, success, message), bool and str
@@ -39,7 +36,7 @@ class TwitterAccount(tweetstore.Account):
 		self._username = username
 		self._password = password
 		self._store = owner
-		self.__api = twitter.Api(self._username, self._password)
+		self.__api = identica.Api(self._username, self._password, twitterserver='identi.ca/api')
 		self.__serivceID = self._store._getServiceID(service_string)
 		self.__loginCB = event.Event()
 		self.__loginCB += callback
@@ -54,13 +51,13 @@ class TwitterAccount(tweetstore.Account):
 			self._user = self.__parseUser(self.__api.GetUser(self._username))
 		except urllib2.HTTPError, e:
 			if e.code == 401:
-				self.__loginCB.raiseEvent(self, False, "Authendication failed, ensure you entered the correct password")
+				self.__loginCB.raiseEvent(False, "Authendication failed, ensure you entered the correct password")
 			else:
-				self.__loginCB.raiseEvent(self, False, "Login failed: " + str(e))
+				self.__loginCB.raiseEvent(False, "Login failed: " + str(e))
 		except urllib2.URLError:
-			self.__loginCB.raiseEvent(self, False, "Login failed, ensure internet connection\n error: " + str(e))
+			self.__loginCB.raiseEvent(False, "Login failed, ensure internet connection\n error: " + str(e))
 		except BaseException, e:
-			self.__loginCB.raiseEvent(self, False, "Login failed: " + str(e))
+			self.__loginCB.raiseEvent(False, "Login failed: " + str(e))
 		self._status = "idle"
 		self._store._addAccount(self)
 		self.__loginCB.raiseEvent(self, True, "Login successful")
@@ -72,6 +69,7 @@ class TwitterAccount(tweetstore.Account):
 
 	def _getMessages(self):
 		if not self._store: raise tweetstore.OwnerNotSetError, "Cannot created messages."
+		self.__changeStatus("updating")
 		try:
 			#TODO: Use the since parameter and store it on the this class
 			msgs = []
@@ -97,6 +95,7 @@ class TwitterAccount(tweetstore.Account):
 
 	def _getFriends(self):
 		if not self._store: raise tweetstore.OwnerNotSetError, "Cannot created User instances."
+		self.__changeStatus("updating")
 		try:
 			friends = []
 			for user in self.__api.GetFriends():
@@ -115,6 +114,7 @@ class TwitterAccount(tweetstore.Account):
 		
 	def _getFollowers(self):
 		if not self._store: raise tweetstore.OwnerNotSetError, "Cannot created User instances."
+		self.__changeStatus("updating")
 		try:
 			followers = []
 			for user in self.__api.GetFollowers():
@@ -134,6 +134,7 @@ class TwitterAccount(tweetstore.Account):
 	def _postMessage(self, message):
 		if not self._store: raise tweetstore.OwnerNotSetError, "Cannot update account status changes."
 		assert isinstance(message, tweetstore.Message), "message must be an instanc of Message"
+		self.__changeStatus("updating")
 		try:
 			#TODO: Figure out how to post in reply to another message
 			if message.getDirectAt() == None:
@@ -179,7 +180,7 @@ class TwitterAccount(tweetstore.Account):
 		if not self._store: raise tweetstore.OwnerNotSetError, "Cannot update account status changes."
 		if password == None:
 			password = self._password
-		self.__api = twitter.Api(self._username, password)
+		self.__api = identica.Api(self._username, password, twitterserver='identi.ca/api')
 		self._store._updateAccount(self)
 		self._store.sync(self)
 
@@ -194,7 +195,7 @@ class TwitterAccount(tweetstore.Account):
 		self._password = data["password"]
 		self._status = "offline"
 		self._store = None
-		self.__api = twitter.Api(self._username, self._password)
+		self.__api = identica.Api(self._username, self._password, twitterserver='identi.ca/api')
 		
 	def __changeStatus(self, status, force = False):
 		if force or self._status != status:
@@ -202,19 +203,19 @@ class TwitterAccount(tweetstore.Account):
 			self._store.onStatusChange.raiseEvent(self, status)
 
 	def __parseUser(self, user):
-		return TwitterUser(self._store, user)
+		return IdenticaUser(self._store, user)
 
 	def __parseMessage(self, msg):
-		return TwitterMessage(self._store, self.__api, msg)
+		return IdenticaMessage(self._store, self.__api, msg)
 
 
-class TwitterUser(tweetstore.User):
-	"""Wrapper around twitter.User"""
+class IdenticaUser(tweetstore.User):
+	"""Wrapper around identica.User"""
 	def __init__(self, store, user):
-		"""	Initialize a new Twitter user from an instance of twitter.User
+		"""	Initialize a new identica user from an instance of identica.User
 		"""
 		assert isinstance(store, tweetstore.TweetStore), "store must be an instance of TweetStore"
-		assert isinstance(user, twitter.User), "user must be an instance of twitter.User"
+		assert isinstance(user, identica.User), "user must be an instance of identica.User"
 		self.__store = store
 		self.__user = user
 		self._image_id = self.__store._cacheImage(user.GetProfileImageUrl())
@@ -258,34 +259,34 @@ class TwitterUser(tweetstore.User):
 		"""Get image id of image for this user"""
 		return self._image_id
 
-class TwitterMessage(tweetstore.Message):
-	"""Wrapper around twitter.Status and twitter.DirectMessage"""
+class IdenticaMessage(tweetstore.Message):
+	"""Wrapper around identica.Status and identica.DirectMessage"""
 	def __init__(self, store, api, message):
 		assert isinstance(store, tweetstore.TweetStore), "store must be an instance of TweetStore"
 		self.__store = store
-		assert isinstance(api, twitter.Api), "api must be an instance of twitter.Api"
-		assert isinstance(message, (twitter.Status, twitter.DirectMessage)), "message must be an instance of twitter.Status or twitter.DirectMessage"
+		assert isinstance(api, identica.Api), "api must be an instance of identica.Api"
+		assert isinstance(message, (identica.Status, identica.DirectMessage)), "message must be an instance of identica.Status or identica.DirectMessage"
 		self.__message = message
 		self._service_id = None
 		#Check if it is a direct message
-		if isinstance(message, twitter.DirectMessage):
-			self._user = TwitterUser(store, api.GetUser(message.GetSenderScreenName()))
-			self._direct_at = TwitterUser(store, api.GetUser(message.GetRecipientScreenName()))
+		if isinstance(message, identica.DirectMessage):
+			self._user = IdenticaUser(store, api.GetUser(message.GetSenderScreenName()))
+			self._direct_at = IdenticaUser(store, api.GetUser(message.GetRecipientScreenName()))
 			self._reply_at = None
 		else:
 			#If it's a status
-			self._user = TwitterUser(store, message.GetUser())
+			self._user = IdenticaUser(store, message.GetUser())
 			self._direct_at = None
 			#Check if this is a reply
 			if self.getMessage().startswith("@"):
 				try:
 					username = self.getMessage().split(" ", 1)[0][1:]
-					self._reply_at = TwitterUser(store, api.GetUser(username))
+					self._reply_at = IdenticaUser(store, api.GetUser(username))
 				except:
 					self._reply_at = None
 			else:
 				self._reply_at = None
-		#TODO: Figure out how to get reply to parameter if it exists for twitter
+		#TODO: Figure out how to get reply to parameter if it exists for identica
 		self._reply_to = None
 
 	def getMessage(self):
