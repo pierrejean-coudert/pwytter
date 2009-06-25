@@ -1,0 +1,237 @@
+<ui version="4.0" >
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow" >
+  <property name="geometry" >
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>364</width>
+    <height>369</height>
+   </rect>
+  </property>
+  <property name="windowTitle" >
+   <string>Pwytter</string>
+  </property>
+  <property name="windowIcon" >
+   <iconset resource="ressources.qrc" >
+    <normaloff>:/icons/icons/pwytter.png</normaloff>:/icons/icons/pwytter.png</iconset>
+  </property>
+  <widget class="QWidget" name="centralwidget" >
+   <property name="sizePolicy" >
+    <sizepolicy vsizetype="Maximum" hsizetype="Maximum" >
+     <horstretch>0</horstretch>
+     <verstretch>0</verstretch>
+    </sizepolicy>
+   </property>
+   <layout class="QHBoxLayout" name="horizontalLayout_2" >
+    <item>
+     <widget class="QSplitter" name="splitter" >
+      <property name="orientation" >
+       <enum>Qt::Vertical</enum>
+      </property>
+      <widget class="TweetView" name="tweetView" />
+      <widget class="QWidget" name="layoutWidget" >
+       <layout class="QHBoxLayout" name="horizontalLayout" >
+        <item>
+         <widget class="QPlainTextEdit" name="MessageTextEdit" >
+          <property name="sizePolicy" >
+           <sizepolicy vsizetype="Ignored" hsizetype="MinimumExpanding" >
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <layout class="QVBoxLayout" name="verticalLayout" >
+          <item>
+           <widget class="QPushButton" name="postButton" >
+            <property name="text" >
+             <string>Post update</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QComboBox" name="PostFromComboBox" >
+            <property name="toolTip" >
+             <string>Account to post status update to.</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <spacer name="verticalSpacer" >
+            <property name="orientation" >
+             <enum>Qt::Vertical</enum>
+            </property>
+            <property name="sizeType" >
+             <enum>QSizePolicy::MinimumExpanding</enum>
+            </property>
+            <property name="sizeHint" stdset="0" >
+             <size>
+              <width>1</width>
+              <height>1</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </widget>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menubar" >
+   <property name="geometry" >
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>364</width>
+     <height>26</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuFile" >
+    <property name="title" >
+     <string>&amp;File</string>
+    </property>
+    <addaction name="QuitAction" />
+   </widget>
+   <widget class="QMenu" name="menuView" >
+    <property name="title" >
+     <string>&amp;View</string>
+    </property>
+    <addaction name="HideWindowAction" />
+   </widget>
+   <widget class="QMenu" name="menuAccounts" >
+    <property name="title" >
+     <string>&amp;Accounts</string>
+    </property>
+    <widget class="QMenu" name="menuConnect_to" >
+     <property name="title" >
+      <string>Add account</string>
+     </property>
+     <property name="icon" >
+      <iconset resource="ressources.qrc" >
+       <normaloff>:/icons/icons/tango/32x32/actions/list-add.png</normaloff>:/icons/icons/tango/32x32/actions/list-add.png</iconset>
+     </property>
+     <addaction name="NewTwitterAccountAction" />
+     <addaction name="NewIdenticaAccountAction" />
+    </widget>
+    <widget class="QMenu" name="RemoveAccountMenu" >
+     <property name="title" >
+      <string>Remove account</string>
+     </property>
+     <property name="icon" >
+      <iconset resource="ressources.qrc" >
+       <normaloff>:/icons/icons/tango/32x32/actions/list-remove.png</normaloff>:/icons/icons/tango/32x32/actions/list-remove.png</iconset>
+     </property>
+    </widget>
+    <addaction name="SynchronizeAccountsAction" />
+    <addaction name="separator" />
+    <addaction name="menuConnect_to" />
+    <addaction name="RemoveAccountMenu" />
+   </widget>
+   <widget class="QMenu" name="menu_Help" >
+    <property name="title" >
+     <string>&amp;Help</string>
+    </property>
+    <addaction name="HelpAction" />
+    <addaction name="separator" />
+    <addaction name="AboutAction" />
+   </widget>
+   <addaction name="menuFile" />
+   <addaction name="menuView" />
+   <addaction name="menuAccounts" />
+   <addaction name="menu_Help" />
+  </widget>
+  <widget class="QStatusBar" name="statusbar" />
+  <widget class="QToolBar" name="ViewToolBar" >
+   <property name="windowTitle" >
+    <string>Content toolbar</string>
+   </property>
+   <property name="movable" >
+    <bool>false</bool>
+   </property>
+   <property name="allowedAreas" >
+    <set>Qt::NoToolBarArea</set>
+   </property>
+   <property name="floatable" >
+    <bool>false</bool>
+   </property>
+   <attribute name="toolBarArea" >
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak" >
+    <bool>false</bool>
+   </attribute>
+   <addaction name="SynchronizeAccountsAction" />
+  </widget>
+  <action name="NewTwitterAccountAction" >
+   <property name="icon" >
+    <iconset resource="ressources.qrc" >
+     <normaloff>:/icons/icons/services/Twitter.png</normaloff>:/icons/icons/services/Twitter.png</iconset>
+   </property>
+   <property name="text" >
+    <string>&amp;Twitter account</string>
+   </property>
+  </action>
+  <action name="QuitAction" >
+   <property name="icon" >
+    <iconset resource="ressources.qrc" >
+     <normaloff>:/icons/icons/tango/32x32/actions/system-log-out.png</normaloff>:/icons/icons/tango/32x32/actions/system-log-out.png</iconset>
+   </property>
+   <property name="text" >
+    <string>Quit</string>
+   </property>
+  </action>
+  <action name="AboutAction" >
+   <property name="text" >
+    <string>&amp;About</string>
+   </property>
+  </action>
+  <action name="HelpAction" >
+   <property name="icon" >
+    <iconset resource="ressources.qrc" >
+     <normaloff>:/icons/icons/tango/32x32/apps/help-browser.png</normaloff>:/icons/icons/tango/32x32/apps/help-browser.png</iconset>
+   </property>
+   <property name="text" >
+    <string>&amp;Help</string>
+   </property>
+  </action>
+  <action name="SynchronizeAccountsAction" >
+   <property name="icon" >
+    <iconset resource="ressources.qrc" >
+     <normaloff>:/icons/icons/tango/32x32/actions/view-refresh.png</normaloff>:/icons/icons/tango/32x32/actions/view-refresh.png</iconset>
+   </property>
+   <property name="text" >
+    <string>&amp;Synchronize accounts</string>
+   </property>
+  </action>
+  <action name="NewIdenticaAccountAction" >
+   <property name="icon" >
+    <iconset resource="ressources.qrc" >
+     <normaloff>:/icons/icons/services/Identi.ca.png</normaloff>:/icons/icons/services/Identi.ca.png</iconset>
+   </property>
+   <property name="text" >
+    <string>&amp;Identi.ca account</string>
+   </property>
+  </action>
+  <action name="HideWindowAction" >
+   <property name="text" >
+    <string>&amp;Hide window</string>
+   </property>
+  </action>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>TweetView</class>
+   <extends>QTextBrowser</extends>
+   <header>tweetview</header>
+  </customwidget>
+ </customwidgets>
+ <resources>
+  <include location="ressources.qrc" />
+ </resources>
+ <connections/>
+</ui>

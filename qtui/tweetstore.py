@@ -8,6 +8,7 @@ import database
 from urllib2 import urlopen
 import time
 import urllib
+from pysqlite2 import dbapi2 as sqlite3
 
 """
 Database tables:
@@ -73,17 +74,13 @@ direct_messages:
 The TODO list:
 
 public methods for tweetstore:
-	blockFollower(User)
+	BlockFollower(User)
 	AddFriend(User)
 	RemoveFriend(User)
+	RemoveAccount(Account)
+	
 
 Implement search queries
-Add more events:
-	onAccountAdded
-	onNewFollower
-	onNewTweet
-	onNewReply
-	onNewDirectMessaage
 """
 
 def asynchronous(f):
@@ -105,8 +102,35 @@ def asynchronous(f):
 class TweetStore:
 	"""	Pwytter backend that manages accounts, connections, threading and database storage."""
 
-	"""Occurs whenever an account changes status"""
+	"""Occurs whenever an account changes status
+		Eventhandlers should take two parameters: account and status
+	"""
 	onStatusChange = Event()
+
+	"""Occurs whenever an account have been synchronized and there's new tweets in the timeline
+		Eventhandlers should take two parameters: account and a tuple of new tweets
+	"""
+	onNewTweets = Event()
+	
+	"""Occurs whenever an account has been synchronized and there's a new reply at the user of the account
+		Eventhandlers should take two parameters: account and a tuple of new replies
+	"""
+	onNewReplies = Event()
+	
+	"""Occurs whenever an account has been synchronized and there's a new direct message at the user of the account
+		Eventhandlers should take two parameters: account and a tuple of new direct messages
+	"""
+	onNewDirectMessages = Event()
+
+	"""Occurs whenever an account has been synchronized and there's a new follower
+		Eventhandlers should take two parameters: account and a tuple of new followers
+	"""
+	onNewFollowers = Event()
+	
+	"""Occurs whenever an account has been synchronized and there's a new friend
+		Eventhandlers should take two parameters: account and a tuple of new friends
+	"""
+	onNewFriends = Event()
 
 	def __init__(self, database_path = ":memory:"):
 		"""Initialize an instance of TweetStore"""
@@ -208,9 +232,9 @@ class TweetStore:
 			assert isinstance(account, Account), "Cannot sync object that is not an instance of Account"
 			#Synchronize, while aborting if user interaction is needed
 			if not self._syncActions(account): return
-			if not self._syncMessages(account): return
 			if not self._syncFriends(account): return
 			if not self._syncFollowers(account): return
+			if not self._syncMessages(account): return
 			self.__db.commit()
 
 	def _syncActions(self, account):
@@ -243,9 +267,27 @@ class TweetStore:
 		"""
 		assert isinstance(account, Account), "Cannot sync object that is not an instance of Account"
 		msgs = account._getMessages()
+		new_replies = ()
+		new_tweets = ()
+		new_directmessages = ()
 		if msgs == False: return False
+		acUserID = self._getUserID(account.getUser().getUsername(), account.getService())
+		acID = self.__getAccountID(account)
 		for msg in msgs:
-			self.__cacheMessage(msg)
+			if self.__cacheMessage(msg):
+				if msg.isReply() and msg.getReplyAt()._dbid == acUserID:
+					new_replies += (msg,)
+				if msg.isDirectMessage() and msg.getDirectAt()._dbid == acUserID:
+					new_directmessages += (msg,)
+				isOnTimeline = self.__db.fetchone("SELECT COUNT(id) FROM friends WHERE id = ? AND account = ?", msg.getUser()._dbid, acID)
+				if isOnTimeline > 0:
+					new_tweets += (msg,)
+		if len(new_tweets) > 0:
+			self.onNewTweets.raiseEvent(account, new_tweets)
+		if len(new_replies) > 0:
+			self.onNewReplies.raiseEvent(account, new_replies)
+		if len(new_directmessages) > 0:
+			self.onNewDirectMessages.raiseEvent(account, new_directmessages)
 		return True
 
 	def _syncFriends(self, account):
@@ -260,8 +302,11 @@ class TweetStore:
 		if friends == False: return False
 		#Get ids for the friend that the account returned
 		friend_ids = []
+		new_friends = ()
 		for friend in friends:
-			friend_ids += [self.__cacheUser(friend)]
+			if self.__cacheUser(friend):
+				new_friends += (friend,)
+			friend_ids += [friend._dbid]
 		account_id = self.__getAccountID(account)
 		for friend in self.__db.execute("SELECT id from friends WHERE account = ?", account_id):
 			#Remove friends already associated from friend_ids and delete friends not in friend_ids
@@ -272,6 +317,9 @@ class TweetStore:
 		#Insert new friends
 		for friend in friend_ids:
 			self.__db.execute("INSERT INTO friends (id, account) VALUES (?,?)", friend, account_id)
+		#Raise event
+		if len(new_friends) > 0:
+			self.onNewFriends.raiseEvent(account, new_friends)
 		return True
 
 	def _syncFollowers(self, account):
@@ -286,8 +334,11 @@ class TweetStore:
 		if followers == False: return False
 		#Get ids for the followers that the account returned
 		follower_ids = []
+		new_followers = ()
 		for follower in followers:
-			follower_ids += [self.__cacheUser(follower)]
+			if self.__cacheUser(follower):
+				new_followers += (follower,)
+			follower_ids += [follower._dbid]
 		account_id = self.__getAccountID(account)
 		for follower in self.__db.execute("SELECT id from followers WHERE account = ?", account_id):
 			#Remove followers already associated from follower_ids and delete followers not in follower_ids
@@ -298,44 +349,56 @@ class TweetStore:
 		#Insert new followers
 		for follower in follower_ids:
 			self.__db.execute("INSERT INTO followers (id, account) VALUES (?,?)", follower, account_id)
+		#Raise event if needed
+		if len(new_followers) > 0:
+			self.onNewFollowers.raiseEvent(account, new_followers)
 		return True
 
 	def __cacheMessage(self, message):
 		"""	Add a message to database if it is not already there
-			returns the id of the message
+			returns a boolean indicating if it was added to the cache
+			
+			Note: The database id of the cached message is added to the message instance as _dbid
 		"""
 		assert isinstance(message, Message), "message must be an instance of Message"
 		created = message.getCreated()
 		suid = message._getServiceUniqueId()
 		service = message._getServiceID()
 		msgtext = message.getMessage()
-		userid = self.__cacheUser(message.getUser())
+		user = message.getUser()
+		self.__cacheUser(user)
 		for msg in self.__db.execute("SELECT id, message, user FROM tweets WHERE created = ? AND suid = ? AND service = ?", created, suid, service):
-			if msg["message"] == msgtext and msg["user"] == userid:
-				return msg["id"]
+			if msg["message"] == msgtext and msg["user"] == user._dbid:
+				message._dbid = msg["id"]
+				return False
 		sql = "INSERT INTO tweets (message, created, user, suid, service) VALUES (?,?,?,?,?)"
-		identifier = self.__db.execute(sql, msgtext, created, userid, suid, service)
+		identifier = self.__db.execute(sql, msgtext, created, user._dbid, suid, service)
+		message._dbid = identifier
 		if message.isReply():
-			at = self.__cacheUser(message.getReplyAt())
+			at = message.getReplyAt()
+			self.__cacheUser(at)
 			to = message.getReplyTo()
 			if to != None:
-				to = self.__cacheMessage(to)
+				self.__cacheMessage(to)
 			else:
 				to = 0
-			self.__db.execute("INSERT INTO replies (id, reply_at, reply_to) VALUES (?, ?, ?)", identifier, at, to)
+			self.__db.execute("INSERT INTO replies (id, reply_at, reply_to) VALUES (?, ?, ?)", identifier, at._dbid, to._dbid)
 		if message.isDirectMessage():
-			at = self.__cacheUser(message.getDirectTo())
+			at = message.getDirectAt()
+			self.__cacheUser(at)
 			to = message.getReplyTo()
 			if to != None:
-				to = self.__cacheMessage(to)
+				self.__cacheMessage(to)
 			else:
 				to = 0
-			self.__db.execute("INSERT INTO direct_messages (id, direct_at, reply_to) VALUES (?, ?, ?)", identifier, at, to)
-		return identifier
+			self.__db.execute("INSERT INTO direct_messages (id, direct_at, reply_to) VALUES (?, ?, ?)", identifier, at._dbid, to._dbid)
+		return True
 
 	def __cacheUser(self, user):
 		"""	Add a user to database if it is not already there
-			returns the id of the user
+			returns a boolean indicating whether it was just cached
+			
+			Note: The database id of the cached user is added to the user instance as _dbid
 		"""
 		assert isinstance(user, User), "user must be an instance of User"
 		username = user.getUsername()
@@ -346,7 +409,8 @@ class TweetStore:
 		assert len(users) < 2, "Only one user with the same username and service should exist in the database"
 		if len(users) == 0:
 			params = [user.getName(), username, user.getUrl(), user.getDescription(), user.getLocation(), img_id, service]
-			return self.__db.execute("INSERT INTO users (name, username, url, description, location, image, service ) values (?,?,?,?,?,?,?)", *params)
+			user._dbid = self.__db.execute("INSERT INTO users (name, username, url, description, location, image, service ) values (?,?,?,?,?,?,?)", *params)
+			return True
 		fields = []
 		params = []
 		if users[0]["name"] != user.getName():
@@ -372,7 +436,8 @@ class TweetStore:
 			params += [username, service]
 			sql += " WHERE username = ? AND service = ?"
 			self.__db.execute(sql, *params)
-		return users[0]["id"]
+		user._dbid = users[0]["id"]
+		return False
 
 	@asynchronous
 	def postMessage(self, message):
@@ -407,10 +472,10 @@ class TweetStore:
 		identifier = self.__db.fetchone("SELECT id, cached FROM images WHERE url = ? LIMIT 1", url)
 		if not identifier:
 			data = urlopen("http://" + urllib.quote(url[7:])).read()
-			return self.__db.execute("INSERT INTO images (url, cached, image) VALUES (?, ?, ?)", url, time.time(), data)
+			return self.__db.execute("INSERT INTO images (url, cached, image) VALUES (?, ?, ?)", url, time.time(), sqlite3.Binary(data))
 		elif time.time() - identifier["cached"] > self.getCacheTimeout():
 			data = urlopen("http://" + urllib.quote(url[7:])).read()
-			self.__db.execute("UPDATE images SET image = ?, cached = ? WHERE id = ?", data, time.time(), identifier["id"])
+			self.__db.execute("UPDATE images SET image = ?, cached = ? WHERE id = ?", sqlite3.Binary(data), time.time(), identifier["id"])
 		return identifier["id"]
 	
 	def _getImage(self, identifier):
@@ -484,7 +549,7 @@ class TweetStore:
 
 	__accounts = {}
 	def _addAccount(self, account):
-		for ID, AC in self.__accounts:
+		for ID, AC in self.__accounts.items():
 			if account == AC:
 				assert False, "account is already added"
 				return
@@ -505,6 +570,21 @@ class TweetStore:
 
 		#Sync the newly added account
 		self.sync(account)
+		
+	def removeAccount(self, account):
+		"""	Remove an account
+			This deletes friend and follower associations for this account, but not tweets and users
+		"""
+		assert isinstance(account ,Account), "account must be an instance of Account"
+		ID = self.__getAccountID(account)
+		#Remove from out account list
+		del self.__accounts[ID]
+		#Delete the cached account
+		self.__db.execute("DELETE FROM accounts WHERE id = ?", ID);
+		#Delete associated friends, not the users, just the friend associations
+		self.__db.execute("DELETE FROM friends WHERE account = ?", ID);
+		#Delete associated followers, not the users, just the follower associations
+		self.__db.execute("DELETE FROM followers WHERE account = ?", ID);
 
 	def __getAccountID(self, account):
 		"""Get the ID of an account"""
@@ -709,7 +789,7 @@ class TweetStore:
 		else:
 			assert isinstance(To, User), "to must be an instance of User"
 			params += [To._getServiceID()]
-			sql += "id IN (SELECT id FROM direct_messages WHERE at = ?)"
+			sql += "id IN (SELECT id FROM direct_messages WHERE direct_at = ?)"
 		#Add optional from condition
 		if From != None:
 			assert isinstance(From, User), "from must be an instance of User"
