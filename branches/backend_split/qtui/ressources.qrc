@@ -1,0 +1,21 @@
+<RCC>
+  <qresource prefix="icons" >
+    <file>icons/pwytter.png</file>
+    <file>icons/services/Twitter.png</file>
+    <file>icons/services/Identi.ca.png</file>
+    <file>icons/tango/32x32/apps/help-browser.png</file>
+    <file>icons/tango/32x32/actions/list-remove.png</file>
+    <file>icons/tango/32x32/actions/list-add.png</file>
+    <file>icons/tango/32x32/actions/view-refresh.png</file>
+    <file>icons/tango/32x32/status/network-idle.png</file>
+    <file>icons/tango/32x32/status/network-offline.png</file>
+    <file>icons/tango/32x32/status/dialog-error.png</file>
+    <file>icons/tango/32x32/categories/preferences-system.png</file>
+    <file>icons/tango/32x32/actions/system-log-out.png</file>
+    <file>icons/tango/22x22/actions/view-refresh.png</file>
+    <file>icons/tango/22x22/status/network-idle.png</file>
+    <file>icons/tango/22x22/status/network-offline.png</file>
+    <file>icons/tango/22x22/status/dialog-error.png</file>
+    <file>icons/tango/22x22/categories/preferences-system.png</file>
+  </qresource>
+</RCC>

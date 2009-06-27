@@ -655,10 +655,10 @@ class TweetStore:
 			sql = "SELECT * FROM tweets WHERE user IN (SELECT id FROM friends) AND id NOT IN (SELECT id FROM direct_messages) AND id NOT IN (SELECT id FROM replies WHERE reply_at NOT IN (SELECT id FROM friends))"
 		sql += " ORDER BY created DESC"
 		if page_size > 0:
-			sql = " OFFSET ?"
-			params += [page * page_size]
-			sql = " LIMIT ?"
+			sql += " LIMIT ?"
 			params += [page_size]
+			sql += " OFFSET ?"
+			params += [page * page_size]
 		#Execute sql
 		msgs = self.__db.execute(sql, *params)
 		#Return using generator
@@ -686,10 +686,10 @@ class TweetStore:
 			params += [self.__getAccountID(account)]
 		sql += ") ORDER BY name"
 		if page_size > 0:
-			sql = " OFFSET ?"
-			params += [page * page_size]
-			sql = " LIMIT ?"
+			sql += " LIMIT ?"
 			params += [page_size]
+			sql += " OFFSET ?"
+			params += [page * page_size]
 		#Execute sql statement
 		friends = self.__db.execute(sql, *params)
 		#Return user generator
@@ -717,10 +717,10 @@ class TweetStore:
 			params += [self.__getAccountID(account)]
 		sql += ") ORDER BY name"
 		if page_size > 0:
-			sql = " OFFSET ?"
-			params += [page * page_size]
-			sql = " LIMIT ?"
+			sql += " LIMIT ?"
 			params += [page_size]
+			sql += " OFFSET ?"
+			params += [page * page_size]
 		#Execute sql statement
 		followers = self.__db.execute(sql, *params)
 		#Return user generator
@@ -758,10 +758,10 @@ class TweetStore:
 		sql += " ORDER BY created DESC"
 		#Create optional pagnation
 		if page_size > 0:
-			sql = " OFFSET ?"
-			params += [page * page_size]
-			sql = " LIMIT ?"
+			sql += " LIMIT ?"
 			params += [page_size]
+			sql += " OFFSET ?"
+			params += [page * page_size]
 		#Execute sql
 		msgs = self.__db.execute(sql, *params)
 		#Return using generator
@@ -799,10 +799,10 @@ class TweetStore:
 		sql += " ORDER BY created DESC"
 		#Create optional pagnation
 		if page_size > 0:
-			sql = " OFFSET ?"
-			params += [page * page_size]
-			sql = " LIMIT ?"
+			sql += " LIMIT ?"
 			params += [page_size]
+			sql += " OFFSET ?"
+			params += [page * page_size]
 		#Execute sql
 		msgs = self.__db.execute(sql, *params)
 		#Return using generator
