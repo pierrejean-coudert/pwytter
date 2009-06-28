@@ -4,6 +4,7 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from PyQt4.QtNetwork import *
 from PyQt4.QtWebKit import *
+import tinpy
 
 from time import strftime, localtime
 import webbrowser
@@ -42,6 +43,11 @@ class TweetView(QWebView):
 		#Delgate all links, then we'll manually load those we want :)
 		self.page().setLinkDelegationPolicy(QWebPage.DelegateAllLinks)
 		self.connect(self.page(), SIGNAL("linkClicked(QUrl)"), self.linkClicked)
+		self.JStore = JavascriptStore(self)
+		self.connect(self.page().mainFrame(), SIGNAL("javaScriptWindowObjectCleared()"), self.provideJStore)
+
+	def provideJStore(self):
+		self.page().mainFrame().addToJavaScriptWindowObject("tweetstore", self.JStore)
 
 	def setStore(self, store):
 		self.store = store
@@ -66,7 +72,7 @@ class TweetView(QWebView):
 	theme = {}
 	def setTheme(self, theme = "default"):
 		self.theme["messagesTemplate"] = open("themes/" + theme + "/Messages.tpl").read()
-		self.theme["usersTemplate"] = open("themes/" + theme + "/Users.tpl").read()
+		self.theme["usersTemplate"] = tinpy.compile(open("themes/" + theme + "/Users.tpl").read())
 		self.theme["userTemplate"] = open("themes/" + theme + "/DetailedUser.tpl").read()
 		self.theme["name"] = theme
 		self.reload()
@@ -120,11 +126,22 @@ class PwytterReply(QNetworkReply):
 				data = self.store.getFollowers(account, page = page, page_size = view.userPageSize)
 			elif urlparts[3] == "friends":
 				data = self.store.getFriends(account, page = page, page_size = view.userPageSize)
-			
+			print "Serving: " + url.toString()
 			#Parse template
 			if urlparts[3] in ("followers", "friends"):
+				vars = {}
+				vars["Users"] = ()
+				pageUniqueId = 0
+				for user in data:
+					vars["Users"] += (UserWrapper(user, self.store, pageUniqueId),)
+					pageUniqueId += 1
+				vars["HasNextPage"] = True
+				vars["HasPrevPage"] = page != 0
+				vars["NextPage"] = "/".join(urlparts[0:5]) + "/" + str(page+1)
+				vars["PrevPage"] = "/".join(urlparts[0:5]) + "/" + str(page-1)
 				#Parse users template
-				header, template, footer = view.theme["usersTemplate"].split("{foreach}", 2)
+				self.content = str(tinpy.build(view.theme["usersTemplate"], vars, strict = __debug__))
+				"""header, template, footer = view.theme["usersTemplate"].split("{foreach}", 2)
 				html = QString(header)
 				for user in data:
 					msg = QString(template)
@@ -135,7 +152,7 @@ class PwytterReply(QNetworkReply):
 				html += footer
 				html = html.replace("{next}", "/".join(urlparts[0:5]) + "/" + str(page+1))
 				html = html.replace("{prev}", "/".join(urlparts[0:5]) + "/" + str(page-1))
-				self.content = str(html)
+				self.content = str(html)"""
 			else:
 				#Parse messages template
 				header, template, footer = view.theme["messagesTemplate"].split("{foreach}", 2)
@@ -211,3 +228,96 @@ class NetworkAccessManager(QNetworkAccessManager):
 			reply = PwytterReply(self, request.url(), self.GetOperation, self.store, self.view)
 			return reply
 		return QNetworkAccessManager.createRequest(self, operation, request, data)
+
+
+class UserWrapper:
+	def __init__(self, user, store, id):
+		"""Wraps a user as if it was a dictionary
+			For use in template system, as we don't want template designers to deal with pwytter backend internals
+			
+			user:	instance of User
+			store:	instance of tweetstore, used later to add stuff like isFriend
+			id:		Page specific id, note ONLY page unique!
+					Used for getting hold of this user on the serverside.
+			
+		"""
+		self.__user = user
+		self.__store = store
+		self.__id = id
+	
+	def get(self, key, default = ""):
+		try:
+			return self.__getitem__(key)
+		except KeyError:
+			return default
+	
+	def __getitem__(self, key):
+		if key == "Name":
+			return self.__user.getName()
+		if key == "Service":
+			return self.__user.getService()
+		if key == "Image":
+			return "pwytter://image/cache/" + str(user._getImageID())
+		if key == "Description":
+			return self.__user.getDescription()
+		if key == "Location":
+			return self.__user.getLocation()
+		if key == "Url":
+			return self.__user.getUrl()
+		if key == "Username":
+			return self.__user.getUsername()
+		if key == "Id":
+			return self.__id
+		else:
+			raise KeyError, "Key not found"
+	
+	def __repr__(self):
+		return str(self.__user)
+
+class MessageWrapper:
+	def __init__(self, message, store, id):
+		self.__message = message
+		self.__store = store
+		self.__id = id
+	
+	def get(self, key, default = ""):
+		try:
+			return self.__getitem__(key)
+		except KeyError:
+			return default
+	
+	def __getitem__(self, key):
+		if key == "Text":
+			return self.__message.getMessage()
+		if key == "User":
+			return UserWrapper(self.__message.getUser(), self.__store, self.__id)
+		if key == "Service":
+			return self.__message.getService()
+		if key == "Created":
+			#TODO: Use a suitable date format
+			return strftime("the %d of %m, %Y", localtime(self.__message.getCreated()))
+		if key == "InReplyTo":
+			return self.__message.getReplyTo()
+		if key == "ReplyAt":
+			return self.__message.getReplyAt()
+		if key == "IsReply":
+			return self.__message.isReply()
+		if key == "IsReplyTo":
+			return self.__message.getReplyTo() != None
+		if key == "IsDirectMessage":
+			return self.__message.isDirectMessage()
+		if key == "DirectMessageAt":
+			return self.__message.getDirectAt()
+		if key == "Id":
+			return self.__id
+		else:
+			raise KeyError, "Key not found"
+
+class JavascriptStore(QObject):
+	def __init__(self, parent):
+		QObject.__init__(self, parent)
+		self.setProperty("test", QVariant("Bob"))
+
+	@pyqtSignature("QString")
+	def writeout(self, text):
+		print str(self.property("test")) + " says: " + text
