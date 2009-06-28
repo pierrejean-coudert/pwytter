@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'mainwindow.ui'
 #
-# Created: Thu Jun 25 11:22:53 2009
+# Created: Sun Jun 28 19:54:26 2009
 #      by: PyQt4 UI code generator 4.4.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -12,7 +12,7 @@ from PyQt4 import QtCore, QtGui
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(364, 369)
+        MainWindow.resize(366, 682)
         icon = QtGui.QIcon()
         icon.addPixmap(QtGui.QPixmap(":/icons/icons/pwytter.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         MainWindow.setWindowIcon(icon)
@@ -30,11 +30,16 @@ class Ui_MainWindow(object):
         self.splitter.setObjectName("splitter")
         self.tweetView = TweetView(self.splitter)
         self.tweetView.setObjectName("tweetView")
-        self.layoutWidget = QtGui.QWidget(self.splitter)
-        self.layoutWidget.setObjectName("layoutWidget")
-        self.horizontalLayout = QtGui.QHBoxLayout(self.layoutWidget)
+        self.widget = QtGui.QWidget(self.splitter)
+        self.widget.setObjectName("widget")
+        self.verticalLayout_2 = QtGui.QVBoxLayout(self.widget)
+        self.verticalLayout_2.setObjectName("verticalLayout_2")
+        self.replyLabel = QtGui.QLabel(self.widget)
+        self.replyLabel.setObjectName("replyLabel")
+        self.verticalLayout_2.addWidget(self.replyLabel)
+        self.horizontalLayout = QtGui.QHBoxLayout()
         self.horizontalLayout.setObjectName("horizontalLayout")
-        self.MessageTextEdit = QtGui.QPlainTextEdit(self.layoutWidget)
+        self.MessageTextEdit = QtGui.QPlainTextEdit(self.widget)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.MinimumExpanding, QtGui.QSizePolicy.Ignored)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -44,19 +49,24 @@ class Ui_MainWindow(object):
         self.horizontalLayout.addWidget(self.MessageTextEdit)
         self.verticalLayout = QtGui.QVBoxLayout()
         self.verticalLayout.setObjectName("verticalLayout")
-        self.postButton = QtGui.QPushButton(self.layoutWidget)
+        self.postButton = QtGui.QPushButton(self.widget)
         self.postButton.setObjectName("postButton")
         self.verticalLayout.addWidget(self.postButton)
-        self.PostFromComboBox = QtGui.QComboBox(self.layoutWidget)
+        self.PostFromComboBox = QtGui.QComboBox(self.widget)
         self.PostFromComboBox.setObjectName("PostFromComboBox")
         self.verticalLayout.addWidget(self.PostFromComboBox)
+        self.counterLabel = QtGui.QLabel(self.widget)
+        self.counterLabel.setAlignment(QtCore.Qt.AlignCenter)
+        self.counterLabel.setObjectName("counterLabel")
+        self.verticalLayout.addWidget(self.counterLabel)
         spacerItem = QtGui.QSpacerItem(1, 1, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.MinimumExpanding)
         self.verticalLayout.addItem(spacerItem)
         self.horizontalLayout.addLayout(self.verticalLayout)
+        self.verticalLayout_2.addLayout(self.horizontalLayout)
         self.horizontalLayout_2.addWidget(self.splitter)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtGui.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 364, 26))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 366, 26))
         self.menubar.setObjectName("menubar")
         self.menuFile = QtGui.QMenu(self.menubar)
         self.menuFile.setObjectName("menuFile")
@@ -115,6 +125,12 @@ class Ui_MainWindow(object):
         self.NewIdenticaAccountAction.setObjectName("NewIdenticaAccountAction")
         self.HideWindowAction = QtGui.QAction(MainWindow)
         self.HideWindowAction.setObjectName("HideWindowAction")
+        self.CollapseMessageEditAction = QtGui.QAction(MainWindow)
+        self.CollapseMessageEditAction.setCheckable(True)
+        icon8 = QtGui.QIcon()
+        icon8.addPixmap(QtGui.QPixmap(":/icons/icons/tango/22x22/apps/preferences-desktop-keyboard-shortcuts.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.CollapseMessageEditAction.setIcon(icon8)
+        self.CollapseMessageEditAction.setObjectName("CollapseMessageEditAction")
         self.menuFile.addAction(self.QuitAction)
         self.menuView.addAction(self.HideWindowAction)
         self.menuConnect_to.addAction(self.NewTwitterAccountAction)
@@ -137,6 +153,7 @@ class Ui_MainWindow(object):
 
     def retranslateUi(self, MainWindow):
         MainWindow.setWindowTitle(QtGui.QApplication.translate("MainWindow", "Pwytter", None, QtGui.QApplication.UnicodeUTF8))
+        self.replyLabel.setText(QtGui.QApplication.translate("MainWindow", "<b>Reply to</b>", None, QtGui.QApplication.UnicodeUTF8))
         self.postButton.setText(QtGui.QApplication.translate("MainWindow", "Post update", None, QtGui.QApplication.UnicodeUTF8))
         self.PostFromComboBox.setToolTip(QtGui.QApplication.translate("MainWindow", "Account to post status update to.", None, QtGui.QApplication.UnicodeUTF8))
         self.menuFile.setTitle(QtGui.QApplication.translate("MainWindow", "&File", None, QtGui.QApplication.UnicodeUTF8))
@@ -153,6 +170,7 @@ class Ui_MainWindow(object):
         self.SynchronizeAccountsAction.setText(QtGui.QApplication.translate("MainWindow", "&Synchronize accounts", None, QtGui.QApplication.UnicodeUTF8))
         self.NewIdenticaAccountAction.setText(QtGui.QApplication.translate("MainWindow", "&Identi.ca account", None, QtGui.QApplication.UnicodeUTF8))
         self.HideWindowAction.setText(QtGui.QApplication.translate("MainWindow", "&Hide window", None, QtGui.QApplication.UnicodeUTF8))
+        self.CollapseMessageEditAction.setText(QtGui.QApplication.translate("MainWindow", "Toggle new message field.", None, QtGui.QApplication.UnicodeUTF8))
 
 from tweetview import TweetView
 import ressources_rc

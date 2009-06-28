@@ -63,9 +63,17 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 		self.connect(self.ViewComboBox, SIGNAL("currentIndexChanged(int)"), self.showMessages)
 		self.ViewComboBox.setCurrentIndex(0)
 		
+		#Add ToolButton for toggling MessageEdit collapsation
+		collapseToolbutton = QToolButton(self)
+		collapseToolbutton.setDefaultAction(self.CollapseMessageEditAction)
+		self.statusbar.addWidget(collapseToolbutton)
+		#Add statusbar label, to display messages and fill the void.
+		self.statusbarMessageLabel = QLabel("", self)
+		self.statusbar.addWidget(self.statusbarMessageLabel, 1)
+		
+		
 		#Update account list
 		self.updateAccountList()
-		
 		#Setup tray icon
 		self.setupTrayIcon()
 		
@@ -78,6 +86,27 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 		
 		#Setup splitter index 0 to not be collapsable, e.g. TweetView cannot be collapsed
 		self.splitter.setCollapsible(0, False)
+		#Collapse message edit
+		self.on_CollapseMessageEditAction_triggered()
+		
+		#Hide the writing reply to... label initially
+		self.replyLabel.hide()
+
+	@pyqtSignature("")
+	def on_CollapseMessageEditAction_triggered(self):
+		"""Change collapsation of MessageEdit"""
+		min, max = self.splitter.getRange(1)
+		if self.splitter.widget(1).size().height() == 0:
+			height = self.splitter.widget(1).sizeHint().height()
+			self.splitter.moveSplitter(max - height, 1)
+		else:
+			self.splitter.moveSplitter(max, 1)
+
+	@pyqtSignature("int, int")
+	def on_splitter_splitterMoved(self, x, y):
+		"""Update the checked state of the CollapseMessageEditAction"""
+		min, max = self.splitter.getRange(1)
+		self.CollapseMessageEditAction.setChecked(x != max)
 
 	@pyqtSignature("")
 	def on_SynchronizeAccountsAction_triggered(self):
@@ -104,7 +133,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 		#Get the view
 		view = str(self.ViewComboBox.currentText())
 		self.tweetView.load(QUrl("pwytter://view/" + view.lower() + "/" + str(account) + "/0"))
-		
+	
+	@pyqtSignature("")
+	def on_MessageTextEdit_textChanged(self):
+		"""Updates the char counter label"""
+		pass
+	
 	@pyqtSignature("")
 	def on_postButton_clicked(self):
 		""""Post message"""
@@ -172,8 +206,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 		self._statusbarLabels = {}
 		
 		#Update comboboxes and menues
-		self.PostFromComboBox.addItem("All")
-		self.ViewAccountComboBox.addItem("All")
+		groupIcon = QIcon(":/icons/icons/tango/32x32/apps/internet-group-chat.png")
+		self.PostFromComboBox.addItem(groupIcon, "All")
+		self.ViewAccountComboBox.addItem(groupIcon, "All")
 		for account in self._store.getAccounts():
 			#TODO: Add icons for the accounts, extend tweetstore.Account to support this
 			account_string = str(account)
@@ -203,7 +238,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 	
 	def statusChanged(self, account, status):
 		self._statusbarLabels[account].setPixmap(self._statusIconLinks[status])
-		#self._statusbarLabels[account].setText("<img src=':/icons/icons/tango/22x22/" + self._statusIconLinks[status]+ ".png'>")
 		self._statusbarLabels[account].setToolTip(str(account) + "\n" + status)
 		#TODO: Attempt reauthendicate if status is "bad authendication"
 		

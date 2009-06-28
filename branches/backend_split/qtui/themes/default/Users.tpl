@@ -4,11 +4,13 @@
 </head>
 <body>
 <ul>
-{foreach}
-	<li>{name} on {service}</li>
-{foreach}
+[% for User in Users %]
+	<li>[% var User['Name'] %] on [% var User['Service'] %]</li>
+[% done %]
 </ul>
 <br>
-<a href="{prev}">prev page</a> | <a href="{next}">next page</a>
+[% if HasPrevPage %]<a href="[% var PrevPage %]">prev page</a>[% endif %]
+[% if HasPrevPage %][% if HasNextPage %] | [% endif %][% endif %]
+[% if HasNextPage %]<a href="[% var NextPage %]">next page</a>[% endif %]
 </body>
 </html>

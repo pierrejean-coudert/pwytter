@@ -812,14 +812,10 @@ class TweetStore:
 	def __parseTweetRow(self, row):
 		"""Parse a database from the table of tweets"""
 		return CachedMessage(self, self.__db, row)
-		#user = self._getUser(self.row["user"])
-		#service = self._getService(row["service"])
-		#return Message(row["Message"], row["created"], user, row["suid"], service, row["service"])
 
 	def __parseUserRow(self, row):
 		"""Parse a database from the table of users"""
 		return CachedUser(self, row)
-		#return User(row["name"], row["username"], self._getService(row["service"]), row["url"], row["location"], row["description"], row["image"], row["service"])
 		
 
 class User:

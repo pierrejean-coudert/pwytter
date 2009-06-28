@@ -5,8 +5,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>364</width>
-    <height>369</height>
+    <width>366</width>
+    <height>682</height>
    </rect>
   </property>
   <property name="windowTitle" >
@@ -30,49 +30,70 @@
        <enum>Qt::Vertical</enum>
       </property>
       <widget class="TweetView" name="tweetView" />
-      <widget class="QWidget" name="layoutWidget" >
-       <layout class="QHBoxLayout" name="horizontalLayout" >
+      <widget class="QWidget" name="" >
+       <layout class="QVBoxLayout" name="verticalLayout_2" >
         <item>
-         <widget class="QPlainTextEdit" name="MessageTextEdit" >
-          <property name="sizePolicy" >
-           <sizepolicy vsizetype="Ignored" hsizetype="MinimumExpanding" >
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
+         <widget class="QLabel" name="replyLabel" >
+          <property name="text" >
+           <string>&lt;b>Reply to&lt;/b></string>
           </property>
          </widget>
         </item>
         <item>
-         <layout class="QVBoxLayout" name="verticalLayout" >
+         <layout class="QHBoxLayout" name="horizontalLayout" >
           <item>
-           <widget class="QPushButton" name="postButton" >
-            <property name="text" >
-             <string>Post update</string>
+           <widget class="QPlainTextEdit" name="MessageTextEdit" >
+            <property name="sizePolicy" >
+             <sizepolicy vsizetype="Ignored" hsizetype="MinimumExpanding" >
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QComboBox" name="PostFromComboBox" >
-            <property name="toolTip" >
-             <string>Account to post status update to.</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <spacer name="verticalSpacer" >
-            <property name="orientation" >
-             <enum>Qt::Vertical</enum>
-            </property>
-            <property name="sizeType" >
-             <enum>QSizePolicy::MinimumExpanding</enum>
-            </property>
-            <property name="sizeHint" stdset="0" >
-             <size>
-              <width>1</width>
-              <height>1</height>
-             </size>
-            </property>
-           </spacer>
+           <layout class="QVBoxLayout" name="verticalLayout" >
+            <item>
+             <widget class="QPushButton" name="postButton" >
+              <property name="text" >
+               <string>Post update</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QComboBox" name="PostFromComboBox" >
+              <property name="toolTip" >
+               <string>Account to post status update to.</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="counterLabel" >
+              <property name="text" >
+               <string/>
+              </property>
+              <property name="alignment" >
+               <set>Qt::AlignCenter</set>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="verticalSpacer" >
+              <property name="orientation" >
+               <enum>Qt::Vertical</enum>
+              </property>
+              <property name="sizeType" >
+               <enum>QSizePolicy::MinimumExpanding</enum>
+              </property>
+              <property name="sizeHint" stdset="0" >
+               <size>
+                <width>1</width>
+                <height>1</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+           </layout>
           </item>
          </layout>
         </item>
@@ -87,7 +108,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>364</width>
+     <width>366</width>
      <height>26</height>
     </rect>
    </property>
@@ -220,6 +241,18 @@
   <action name="HideWindowAction" >
    <property name="text" >
     <string>&amp;Hide window</string>
+   </property>
+  </action>
+  <action name="CollapseMessageEditAction" >
+   <property name="checkable" >
+    <bool>true</bool>
+   </property>
+   <property name="icon" >
+    <iconset resource="ressources.qrc" >
+     <normaloff>:/icons/icons/tango/22x22/apps/preferences-desktop-keyboard-shortcuts.png</normaloff>:/icons/icons/tango/22x22/apps/preferences-desktop-keyboard-shortcuts.png</iconset>
+   </property>
+   <property name="text" >
+    <string>Toggle new message field.</string>
    </property>
   </action>
  </widget>
