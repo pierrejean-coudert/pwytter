@@ -62,7 +62,11 @@ class MainPanel(Frame):
         self.count=0
         self.store={}
         self.storage_directory="~/.pwytter"
+        self.storage_image_directory="~/.pwytter/images"
         self.storage = os.path.expanduser(self.storage_directory)
+        self.storageImage=os.path.expanduser(self.storage_image_directory)
+        if not os.path.exists(self.storageImage):
+            os.makedirs(self.storageImage)
         self._busy = pwTools.BusyManager(master)
         self._params = pwParam.PwytterParams()
 
@@ -155,7 +159,6 @@ class MainPanel(Frame):
         self['bg']=self._bg
         self.pack(ipadx=2, ipady=2)
         self._create_widgets()
-        self._create_notifications()
         self._refresh_mySelfBox()
         self._refresh_version()
         if self._needToShowParameters:
@@ -235,6 +238,8 @@ class MainPanel(Frame):
         try:
             self._imagesFriendsLoaded = False
             self._needToRefreshMe = not self.tw.getMyDetails()
+            text=self.storageImage + "/" + self.tw.me.screen_name.encode('latin-1','replace') +"." + self.tw.myimage.format
+            self.tw.myimage.save(text)
             self.MyImageRef.paste(self.tw.myimage.resize(self._display['photoSize'],Image.ANTIALIAS))
             try:
                 self.MyName["text"] = self.tw.me.screen_name.encode('latin-1')
@@ -675,6 +680,8 @@ class MainPanel(Frame):
                 if i+1>len(self.FriendImages) :
                     self._createFriendImage(self.friendsInsideBox,i, "friend")
                 loaded, aImage= self.tw.imageFromCache(fname)
+                text=self.storageImage + "/" + fname +"." + aImage.format
+                aImage.save(text)
                 self._imagesFriendsLoaded = self._imagesFriendsLoaded and loaded
                 try :
                     self.FriendImages[i]['ImageRef'].paste(aImage.resize(self._display['thumbnailSize'],Image.ANTIALIAS))
@@ -1033,5 +1040,6 @@ if __name__ == "__main__":
     s = pwSplashScreen.Splash(rootTk)
     app = MainPanel(master=rootTk)
     app.timer()
+    app._create_notifications()
     s.destroy()
     app.mainloop()

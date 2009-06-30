@@ -22,7 +22,7 @@ class PwytterNotify(object):
         self.image_storage = os.path.expanduser(self.image_directory)
         if not os.path.exists(self.image_storage):
             os.makedirs(self.image_storage)
-
+	
     def _display_count(self,user,count) :
         text=" %s ,you have %d new tweets" % (user,count)
         imagenm="pwytter.png"
@@ -31,21 +31,11 @@ class PwytterNotify(object):
 
     def _notify_tweet(self, status):
             try:
-                username = status.user.name
+                username = status.user.screen_name.encode('latin-1','replace')
             except AttributeError:
-                username = status.sender_screen_name
-            try:
-                profile_image = status.user.profile_image_url
-            except AttributeError:
-                profile_image = self.api.GetUser(\
-                                username).GetProfileImageUrl()
-
-            # Find the image
+                username = status.sender_screen_name.encode('latin-1','replace')
+            #Find image
             imagepath = self._cached_image(username)
-            if not imagepath:
-                imagepath = self._download_image(username,
-                            profile_image)
-
             # Markup Hyperlinks
             text = status.text
             if "http://" in text:
@@ -58,31 +48,19 @@ class PwytterNotify(object):
             self._send_note(username, text, imagepath )
 
 
-
-
-
-    def _download_image(self, username, image_url):
-        """Download new profile image."""
-        fileextension = image_url.rpartition('.')[-1]
-        targetname = self.image_storage + "/" + username + "." + fileextension
-        urllib.urlretrieve(image_url, targetname)
-        return targetname
-
     def _cached_image(self, username):
         """Check for already downloaded profile image."""
         for i in os.listdir(self.image_storage):
             if i.startswith(username + "."):
-                return i
-            else:
-                return None
-
+                  return i
 
 
     def _send_note(self,user, message, imageurl):
         """Send the note to the desktop."""
         try:
             ascii_message = message.encode('ascii','replace')
-            if platform() == 'linux' :
+            imageurl=self.image_storage+ "/" + imageurl
+	    if platform() == 'linux' :
                print "Linux notifications"
                if not pynotify.init("Pwytter"):
                    try :
@@ -105,7 +83,7 @@ class PwytterNotify(object):
                os.system(str)
         except:
             print "notify error"
-            
+
     def _create_sound(self):
         # This will create pipeline pwytter
         self.pipeline = gst.Pipeline("pwytter")
