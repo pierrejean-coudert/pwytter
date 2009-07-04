@@ -46,8 +46,8 @@ import locale
 import tinyUrl
 import pickle
 import pwNotification
-
-
+import pwNotifyParams
+import pdb
 class MainPanel(Frame):
     """ Main tk Frame """
     def __init__(self, master=None):
@@ -69,7 +69,6 @@ class MainPanel(Frame):
             os.makedirs(self.storageImage)
         self._busy = pwTools.BusyManager(master)
         self._params = pwParam.PwytterParams()
-
         self.Theme = None
         self._display={
             'fontName':('Helvetica',8,'bold'),
@@ -141,13 +140,16 @@ class MainPanel(Frame):
 
         self.tw=twclient.TwClient(__version__, self._params['user'], self._params['password'])
         self._applyParameters()
-
+        self.api=twclient.twitter.Api(username=self._params['user'], password=self._params['password'])
+        self._notify=pwNotifyParams.PwytterNotifications(self.api)
+        self._notify.readFromXML()
         self._defaultTwitText = _('Enter your message here...')
         self.twitText = StringVar()
         self.twitText.set(self._defaultTwitText)
         self._tinyurl = tinyUrl.TinyUrl(self.twitText)
         self.directText = StringVar()
         self.directText.set(_('Enter your direct message here...'))
+        self.textVar=StringVar()
         self.userVar = StringVar()
         self.passwordVar = StringVar()
         self.refreshVar = IntVar()
@@ -267,9 +269,10 @@ class MainPanel(Frame):
                 self._showUpdatePwytter()
 
     def _create_RefreshBox(self, parent):
-        self.refreshBox = Frame(parent, width=500)
+        self.refreshBox = Frame(parent, width=600)
         self.PwytterLink = ClickableImage(self.refreshBox, "home.png",
                                         self._homeclick,self._bg, "pwyt0",_("Pwytter web site..."))
+        self.NotificationLink=ClickableImage(self.refreshBox,"asterisk_yellow.png",self._showNotifications,self._bg,"not0",_("Notification Settings"))
         self.SearchLink = ClickableImage(self.refreshBox, "zoom.png",
                                         self._searchclick,self._bg, "sear0",_("Search with Terraminds..."))
         self.ShowFriends = ClickableImage(self.refreshBox, "side_expand.png",
@@ -289,11 +292,13 @@ class MainPanel(Frame):
                                         self.manualRefresh,self._bg, "refr0", _("Refresh"))
         self._theme_RefreshBox()
         self.PwytterLink.grid(row=0,column=0, sticky="W")
-        self.SearchLink.grid(row=0,column=1, sticky="W")
-        self.ShowFriends.grid(row=0,column=2, sticky="E")
+
+        self.SearchLink.grid(row=0,column=2, sticky="W",columnspan=2)
+        self.ShowFriends.grid(row=0,column=3, sticky="E")
         self.Time.grid(row=1,column=0,columnspan=3)
         self.TimeLine.grid(row=2,column=0, sticky="W")
         self.TimeLine.bind('<1>', self._timeLineClick)
+        self.NotificationLink.grid(row=2,column=1,sticky="W")
         self.Refresh.grid(row=2,column=2, sticky="E")
 
     def _theme_RefreshBox(self):
@@ -333,6 +338,134 @@ class MainPanel(Frame):
                               bg=update_bg)
         self.UpdateGo.config(bg=update_bg, text=_("Update now..."))
 
+    def _create_notificationBox(self,aParent) :
+        notification_bg=self._display['param#']
+        self.NotificationEmpyBox=Frame(aParent)
+        self.NotificationInsideBox=Frame(aParent,width=500)
+        self.NotificationCancel=ClickableImage(self.NotificationInsideBox,\
+                                  "cross.png",self._hideNotifications,notification_bg,"notifycancel",_('Cancel'))
+
+        self.NotifyLbl=Label(self.NotificationInsideBox)
+        self.DontNotifyLabel=Label(self.NotificationInsideBox)
+        self.LtoRBtn=Button(self.NotificationInsideBox,command=self.FromLeftToRight)
+        self.LtoRAllBtn=Button(self.NotificationInsideBox,command=self.FromLeftToRightAll)
+        self.RtoLBtn=Button(self.NotificationInsideBox,command=self.FromRightToLeft)
+        self.RtoLAllBtn=Button(self.NotificationInsideBox,command=self.FromRightToLeftAll)
+        self.NotifyBtnbox=Frame(self.NotificationInsideBox)
+        self.ApplyNotificationBtn=Button(self.NotifyBtnbox,command=self._saveNotifications)
+        self.ResetNotificationBtn=Button(self.NotifyBtnbox,command=self._resetNotifications)
+        self.NotifyScrollBox=Frame(self.NotificationInsideBox)
+        self.NotifyScroll=Scrollbar(self.NotifyScrollBox,orient=VERTICAL)
+        self.NotifyList=Listbox(self.NotificationInsideBox,selectmode=EXTENDED,yscrollcommand=self.NotifyScroll.set)
+
+        self.NotifyScroll.config(command=self.NotifyList.yview)
+        self.DontNotifyScrollBox=Frame(self.NotificationInsideBox)
+        self.DontNotifyScroll=Scrollbar(self.DontNotifyScrollBox,orient=VERTICAL)
+        self.DontNotifyList=Listbox(self.NotificationInsideBox,selectmode=EXTENDED,yscrollcommand=self.DontNotifyScroll.set)
+
+        for frnd in self.FriendList :
+            if self._notify[frnd.screen_name]=='1' :
+                self.NotifyList.insert(END,frnd.screen_name)
+            else :
+                self.DontNotifyList.insert(END,frnd.screen_name)
+        self.DontNotifyScroll.config(command=self.DontNotifyList.yview)
+        self.NotifyTxtLbl=Label(self.NotificationInsideBox)
+        self.TextEntry=Entry(self.NotificationInsideBox,textvariable=self.textVar)
+        self._theme_notificationBox()
+        self.NotificationCancel.grid(row=0,column=0,sticky=NW)
+        self.NotifyLbl.grid(row=0,column=1,padx=5,pady=5,sticky=W)
+        self.DontNotifyLabel.grid(row=0,column=8,padx=5,pady=5,sticky=W)
+        self.LtoRBtn.grid(row=1,column=5,columnspan=2,padx=5,pady=5)
+        self.LtoRAllBtn.grid(row=2,column=5,columnspan=2,padx=5,pady=5)
+        self.RtoLBtn.grid(row=3,column=5,columnspan=2,padx=5,pady=5)
+        self.RtoLAllBtn.grid(row=4,column=5,columnspan=2,padx=5,pady=5)
+        self.NotifyScrollBox.grid(row=1,column=4,sticky=W+N+S,rowspan=4)
+        self.NotifyScroll.pack(side="right",fill=Y)
+        self.NotifyList.grid(row=1,column=1,rowspan=4,columnspan=3,sticky=NW)
+        self.DontNotifyScrollBox.grid(row=1,column=10,sticky=W+N+S,rowspan=4)
+        self.DontNotifyScroll.pack(side="right",fill=Y)
+        self.DontNotifyList.grid(row=1,column=7,rowspan=4,columnspan=3)
+        self.NotifyTxtLbl.grid(row=5,column=1,pady=10,sticky=W)
+        self.TextEntry.grid(row=5,column=2,columnspan=10,sticky=EW,pady=10,padx=5)
+        self.ApplyNotificationBtn.pack(padx=5,pady=5,side="right",fill=X)
+        self.NotifyBtnbox.grid(row=6,column=8,columnspan=5,sticky=EW)
+        self.ResetNotificationBtn.pack(padx=5,pady=5,side="right",fill=X)
+
+
+    def _theme_notificationBox(self) :
+        notification_bg=self._display['param#']
+        self.NotificationEmpyBox.config(bg=self._bg)
+        self.NotificationInsideBox.config(bg=notification_bg)
+        self.NotifyLbl.config(text=_("Notify me"),bg=notification_bg)
+        self.DontNotifyLabel.config(text=_("Don't notify me"),bg=notification_bg)
+        self.LtoRBtn.config(text=_("  >  "),bg=notification_bg)
+        self.LtoRAllBtn.config(text=_("  >> "),bg=notification_bg)
+        self.RtoLBtn.config(text=_("  <  "),bg=notification_bg)
+        self.RtoLAllBtn.config(text=_("  << "),bg=notification_bg)
+        self.NotifyList.config(bg=notification_bg)
+        self.DontNotifyList.config(bg=notification_bg)
+        self.NotifyBtnbox.config(bg=notification_bg)
+        self.ApplyNotificationBtn.config(text=_("Apply"))
+        self.ResetNotificationBtn.config(text=_("Reset"))
+        self.NotifyTxtLbl.config(text=_("Enter your text"),bg=notification_bg)
+        self.NotifyLbl.config(bg=notification_bg)
+        self.DontNotifyScrollBox.config(bg=notification_bg)
+        self.NotifyScrollBox.config(bg=notification_bg)
+
+    def FromLeftToRight(self) :
+         items=self.NotifyList.curselection()
+         items=map(int,items)
+         count = 0
+         try :
+               for i in items :
+                 #print self.listBox.get(items[i])
+                 data=self.NotifyList.get(i-count)
+                 self.NotifyList.delete(i-count)
+                 self.DontNotifyList.insert(END,data)
+                 count=count+1
+                 """if self.var.get()==1 :
+                     print "Selected" """
+         except ValueError : pass
+
+    def FromRightToLeft(self) :
+            items=self.DontNotifyList.curselection()
+            items=map(int,items)
+            count = 0
+            try :
+               for i in items :
+                 #print self.listBox.get(items[i])
+                 data=self.DontNotifyList.get(i-count)
+                 self.DontNotifyList.delete(i-count)
+                 self.NotifyList.insert(END,data)
+                 count=count+1
+            except ValueError : pass
+    def FromLeftToRightAll(self) :
+            items=self.NotifyList.get(0,END)
+            self.NotifyList.delete(0,END)
+            for i in items :
+                self.DontNotifyList.insert(END,i)
+
+    def FromRightToLeftAll(self) :
+            items=self.DontNotifyList.get(0,END)
+            self.DontNotifyList.delete(0,END)
+            for i in items :
+                self.NotifyList.insert(END,i)
+    def _saveNotifications(self) :
+        names=self.DontNotifyList.get(0,END)
+        fnames=self.NotifyList.get(0,END)
+        #print names
+        for i in names :
+            self._notify[i]='0'
+
+        for i in fnames :
+            self._notify[i]='1'
+        self._notify.writeToXML()
+        self._hideNotifications()
+
+
+    def _resetNotifications(self) :
+        print "reset Notifications "
+
     def _create_parameterBox(self, aParent):
         param_bg=self._display['param#']
         self.ParamEmpyBox = Frame(aParent)
@@ -360,7 +493,7 @@ class MainPanel(Frame):
         self.themeVar = StringVar(self.ParamInsideBox)
         self.themeVar.set(self.Theme.themeName) # default value
         self.ThemeBox = OptionMenu(self.ParamInsideBox, self.themeVar, *self.Theme.themeList)
-       # self.ThemeBox.configure(indicatoron=0, compound='right', image=self._arrow)
+        #self.ThemeBox.configure(indicatoron=0, compound='right', image=self._arrow)
 
         self.LanguageLbl=Label(self.ParamInsideBox)
         self.languageVar = StringVar(self.ParamInsideBox)
@@ -441,13 +574,11 @@ class MainPanel(Frame):
         self._params.writeToXML()
         self._applyParameters()
         self._hideParameters()
-
         self._theme_widgets()
         self._theme_parameterBox()
         self._theme_RefreshBox()
         self._theme_friendsBox()
         self._theme_updateBox()
-
         self._refresh_mySelfBox()
         self.manualRefresh()
 
@@ -786,15 +917,33 @@ class MainPanel(Frame):
     def _count_update(self,status) :
         """ this will count total number of updates that are unread"""
         if status.id not in self.store.keys():
-            self.count=self.count+1
-
+            if status.user.screen_name!=self._params['user'] :
+                try :
+                     user_name=status.user.screen_name
+                     if self._notify[user_name]=='1' :
+                        self.count=self.count+1
+                except AttributeError:
+                    user_name=status.sender_screen_name
+                    if self._notify[user_name]=='1' :
+                        self.count=self.count+1
     def _check_new_tweet(self,status) :
         if status.id not in self.store.keys():
-             self.notification._notify_tweet(status)
-             self.store[status.id] = status
+            if status.user.screen_name==self._params['user'] :
+                self.store[status.id] = status
+                return
+            try :
+                 user_name=status.user.screen_name
+                 print user_name
+                 print self._notify[user_name]
+                 if self._notify[user_name]=='1' :
+                       self.notification._notify_tweet(status)
+            except AttributeError:
+                 user_name=status.sender_screen_name
+                 if self._notify[user_name]=='1' :
+                        self.notification._notify_tweet(status)
+            self.store[status.id] = status
 
     def _create_notifications(self) :
-        self.api=twclient.twitter.Api(username=self._params['user'], password=self._params['password'])
         self.notification=pwNotification.PwytterNotify(self.api )
         self._load()
 
@@ -821,6 +970,9 @@ class MainPanel(Frame):
         self.MainZone = Frame(self)
         self._create_mySelfBox(self.MainZone)
         self._create_RefreshBox(self.MainZone)
+        self.NotificationBox=Frame(self.MainZone)
+        self.FriendList=self.api.GetFriends()
+        self._create_notificationBox(self.NotificationBox)
         self.ParameterBox = Frame(self.MainZone)
         self._create_parameterBox(self.ParameterBox)
         self.LinesBox= Frame(self.MainZone)
@@ -843,6 +995,8 @@ class MainPanel(Frame):
         self.MySelfBox.grid(row=0, column=0, padx=2, ipadx=6, pady=2, sticky="W")
         self.refreshBox.grid(row=0, column=1, sticky="SE")
         self.ParameterBox.grid(row=1,column=0,columnspan=2)
+        self.NotificationBox.grid(row=1,column=0,columnspan=2)
+        self._hideNotifications()
         self._hideParameters()
         self.LinesBox.grid(row=3, column=0,columnspan=2)
         self.RemainCar.pack(padx=5)
@@ -877,7 +1031,12 @@ class MainPanel(Frame):
             webbrowser.open(url)
         except Exception,e :
             print str(e),'-> Cannot open Browser with url:',url
-
+    def _showNotifications(self,par=None) :
+        self.NotificationEmpyBox.pack_forget()
+        self.NotificationInsideBox.pack(expand=1,pady=2)
+    def _hideNotifications(self,par=None) :
+        self.NotificationInsideBox.pack_forget()
+        self.NotificationEmpyBox.pack()
     def _homeclick(self,par=None):
         self._openweb('http://www.pwytter.com')
 
