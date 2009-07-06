@@ -19,6 +19,7 @@ class PwytterNotifications(object):
         self.Friends=self.api.GetFriends()
         for frnd in self.Friends :
             self.values[frnd.screen_name]='1'
+        self.values['FilterString']=''
 
     def __getitem__(self, aKey):
         return self.values[aKey]
