@@ -47,7 +47,7 @@ import tinyUrl
 import pickle
 import pwNotification
 import pwNotifyParams
-import pdb
+import re
 class MainPanel(Frame):
     """ Main tk Frame """
     def __init__(self, master=None):
@@ -354,13 +354,11 @@ class MainPanel(Frame):
         self.NotifyBtnbox=Frame(self.NotificationInsideBox)
         self.ApplyNotificationBtn=Button(self.NotifyBtnbox,command=self._saveNotifications)
         self.ResetNotificationBtn=Button(self.NotifyBtnbox,command=self._resetNotifications)
-        self.NotifyScrollBox=Frame(self.NotificationInsideBox)
-        self.NotifyScroll=Scrollbar(self.NotifyScrollBox,orient=VERTICAL)
+        self.NotifyScroll=Scrollbar(self.NotificationInsideBox,orient=VERTICAL)
         self.NotifyList=Listbox(self.NotificationInsideBox,selectmode=EXTENDED,yscrollcommand=self.NotifyScroll.set)
 
         self.NotifyScroll.config(command=self.NotifyList.yview)
-        self.DontNotifyScrollBox=Frame(self.NotificationInsideBox)
-        self.DontNotifyScroll=Scrollbar(self.DontNotifyScrollBox,orient=VERTICAL)
+        self.DontNotifyScroll=Scrollbar(self.NotificationInsideBox,orient=VERTICAL)
         self.DontNotifyList=Listbox(self.NotificationInsideBox,selectmode=EXTENDED,yscrollcommand=self.DontNotifyScroll.set)
 
         for frnd in self.FriendList :
@@ -368,27 +366,29 @@ class MainPanel(Frame):
                 self.NotifyList.insert(END,frnd.screen_name)
             else :
                 self.DontNotifyList.insert(END,frnd.screen_name)
+        self.StrFilter=self._notify['FilterString']
         self.DontNotifyScroll.config(command=self.DontNotifyList.yview)
-        self.NotifyTxtLbl=Label(self.NotificationInsideBox)
-        self.TextEntry=Entry(self.NotificationInsideBox,textvariable=self.textVar)
+        self.FilterTweet=Frame(self.NotificationInsideBox,bd=2,relief=GROOVE)
+        self.NotifyTxtLbl=Label(self.FilterTweet)
+        self.TextEntry=Text(self.FilterTweet,height=3,width=73)
+        self.TextEntry.insert(END,self.StrFilter)
         self._theme_notificationBox()
-        self.NotificationCancel.grid(row=0,column=0,sticky=NW)
-        self.NotifyLbl.grid(row=0,column=1,padx=5,pady=5,sticky=W)
-        self.DontNotifyLabel.grid(row=0,column=8,padx=5,pady=5,sticky=W)
-        self.LtoRBtn.grid(row=1,column=5,columnspan=2,padx=5,pady=5)
-        self.LtoRAllBtn.grid(row=2,column=5,columnspan=2,padx=5,pady=5)
-        self.RtoLBtn.grid(row=3,column=5,columnspan=2,padx=5,pady=5)
-        self.RtoLAllBtn.grid(row=4,column=5,columnspan=2,padx=5,pady=5)
-        self.NotifyScrollBox.grid(row=1,column=4,sticky=W+N+S,rowspan=4)
-        self.NotifyScroll.pack(side="right",fill=Y)
-        self.NotifyList.grid(row=1,column=1,rowspan=4,columnspan=3,sticky=NW)
-        self.DontNotifyScrollBox.grid(row=1,column=10,sticky=W+N+S,rowspan=4)
-        self.DontNotifyScroll.pack(side="right",fill=Y)
-        self.DontNotifyList.grid(row=1,column=7,rowspan=4,columnspan=3)
-        self.NotifyTxtLbl.grid(row=5,column=1,pady=10,sticky=W)
-        self.TextEntry.grid(row=5,column=2,columnspan=10,sticky=EW,pady=10,padx=5)
+        self.NotificationCancel.grid(row=0,column=0,sticky=NW,padx=5)
+        self.NotifyLbl.grid(row=0,column=1,sticky=W)
+        self.DontNotifyLabel.grid(row=0,column=4,sticky=W)
+        self.LtoRBtn.grid(row=1,column=3,padx=5,sticky=W)
+        self.LtoRAllBtn.grid(row=2,column=3,padx=5,sticky=W)
+        self.RtoLBtn.grid(row=3,column=3,padx=5,sticky=W)
+        self.RtoLAllBtn.grid(row=4,column=3,padx=5,sticky=W)
+        self.NotifyScroll.grid(row=1,column=2,sticky=N+S+W,rowspan=4)
+        self.NotifyList.grid(row=1,column=1,rowspan=4,sticky=EW)
+        self.DontNotifyScroll.grid(row=1,column=5,sticky=N+S+W,rowspan=4)
+        self.DontNotifyList.grid(row=1,column=4,rowspan=4,sticky=EW)
+        self.FilterTweet.grid(row=5,column=1,sticky=W,columnspan=5)
+        self.NotifyTxtLbl.pack(padx=5,pady=5,fill=X)
+        self.TextEntry.pack(padx=5,pady=5,fill=X)
         self.ApplyNotificationBtn.pack(padx=5,pady=5,side="right",fill=X)
-        self.NotifyBtnbox.grid(row=6,column=8,columnspan=5,sticky=EW)
+        self.NotifyBtnbox.grid(column=4,sticky=EW,columnspan=3)
         self.ResetNotificationBtn.pack(padx=5,pady=5,side="right",fill=X)
 
 
@@ -398,19 +398,19 @@ class MainPanel(Frame):
         self.NotificationInsideBox.config(bg=notification_bg)
         self.NotifyLbl.config(text=_("Notify me"),bg=notification_bg)
         self.DontNotifyLabel.config(text=_("Don't notify me"),bg=notification_bg)
-        self.LtoRBtn.config(text=_("  >  "),bg=notification_bg)
+        self.LtoRBtn.config(text=_("  >   "),bg=notification_bg)
         self.LtoRAllBtn.config(text=_("  >> "),bg=notification_bg)
-        self.RtoLBtn.config(text=_("  <  "),bg=notification_bg)
+        self.RtoLBtn.config(text=_("  <   "),bg=notification_bg)
         self.RtoLAllBtn.config(text=_("  << "),bg=notification_bg)
         self.NotifyList.config(bg=notification_bg)
         self.DontNotifyList.config(bg=notification_bg)
         self.NotifyBtnbox.config(bg=notification_bg)
         self.ApplyNotificationBtn.config(text=_("Apply"))
         self.ResetNotificationBtn.config(text=_("Reset"))
-        self.NotifyTxtLbl.config(text=_("Enter your text"),bg=notification_bg)
+        str='Filter notifications containing words you\'d rather not see.Seperate words with pipe character \nlike politics|football|entertainment : Nerds can use regular expressions'
+        self.FilterTweet.config(bg=notification_bg)
+        self.NotifyTxtLbl.config(text=_(str),bg=notification_bg)
         self.NotifyLbl.config(bg=notification_bg)
-        self.DontNotifyScrollBox.config(bg=notification_bg)
-        self.NotifyScrollBox.config(bg=notification_bg)
 
     def FromLeftToRight(self) :
          items=self.NotifyList.curselection()
@@ -418,13 +418,10 @@ class MainPanel(Frame):
          count = 0
          try :
                for i in items :
-                 #print self.listBox.get(items[i])
                  data=self.NotifyList.get(i-count)
                  self.NotifyList.delete(i-count)
                  self.DontNotifyList.insert(END,data)
                  count=count+1
-                 """if self.var.get()==1 :
-                     print "Selected" """
          except ValueError : pass
 
     def FromRightToLeft(self) :
@@ -433,7 +430,6 @@ class MainPanel(Frame):
             count = 0
             try :
                for i in items :
-                 #print self.listBox.get(items[i])
                  data=self.DontNotifyList.get(i-count)
                  self.DontNotifyList.delete(i-count)
                  self.NotifyList.insert(END,data)
@@ -453,7 +449,8 @@ class MainPanel(Frame):
     def _saveNotifications(self) :
         names=self.DontNotifyList.get(0,END)
         fnames=self.NotifyList.get(0,END)
-        #print names
+        self._notify['FilterString']=self.TextEntry.get("1.0",END)
+
         for i in names :
             self._notify[i]='0'
 
@@ -464,7 +461,14 @@ class MainPanel(Frame):
 
 
     def _resetNotifications(self) :
-        print "reset Notifications "
+        self.FromRightToLeftAll()
+        fnames=self.NotifyList.get(0,END)
+        for i in fnames :
+            self._notify[i]='1'
+        self.TextEntry.delete('1.0',END)
+        self._notify['FilterString']=self.TextEntry.get("1.0",END)
+        self._notify.writeToXML()
+
 
     def _create_parameterBox(self, aParent):
         param_bg=self._display['param#']
@@ -914,34 +918,52 @@ class MainPanel(Frame):
         except IOError:
             self.store = {}
 
+
     def _count_update(self,status) :
         """ this will count total number of updates that are unread"""
-        if status.id not in self.store.keys():
-            if status.user.screen_name!=self._params['user'] :
-                try :
-                     user_name=status.user.screen_name
-                     if self._notify[user_name]=='1' :
-                        self.count=self.count+1
-                except AttributeError:
-                    user_name=status.sender_screen_name
-                    if self._notify[user_name]=='1' :
-                        self.count=self.count+1
-    def _check_new_tweet(self,status) :
+        if self._filter_tweets(status)== True :
+            self.count=self.count+1
+
+    def _filter_tweets(self,status) :
+        WordList=self.StrFilter.split("|")
+
         if status.id not in self.store.keys():
             if status.user.screen_name==self._params['user'] :
                 self.store[status.id] = status
-                return
+                return False
             try :
                  user_name=status.user.screen_name
-                 print user_name
-                 print self._notify[user_name]
+                 status_flag=False
                  if self._notify[user_name]=='1' :
-                       self.notification._notify_tweet(status)
+                     status_flag=True
+                     for i in WordList :
+                         i=i.strip()
+                         if i.encode('latin-1','replace')=='' :
+                             break
+                         if re.search(i,status.text) :
+                             status_flag=False
+                             break
+
             except AttributeError:
                  user_name=status.sender_screen_name
                  if self._notify[user_name]=='1' :
-                        self.notification._notify_tweet(status)
-            self.store[status.id] = status
+                     status_flag=True
+                     for i in WordList :
+                         i=i.strip()
+                         if i.encode('latin-1','replace')=='' :
+                             break
+                         if re.search(i,status.text) :
+                             status_flag=False
+                             break
+            if status_flag==False :
+                self.store[status.id] = status
+            return status_flag
+        return False
+    def _check_new_tweet(self,status) :
+        if self._filter_tweets(status)==True :
+                self.store[status.id] = status
+                self.notification._notify_tweet(status)
+
 
     def _create_notifications(self) :
         self.notification=pwNotification.PwytterNotify(self.api )
