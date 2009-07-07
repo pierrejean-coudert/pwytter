@@ -3,6 +3,8 @@ import time
 import sys
 import os
 from pwTools import platform
+import os.path
+from pwytter import __app_path__
 
 if platform() == 'linux' :
     import pygst
@@ -20,9 +22,11 @@ class PwytterNotify(object):
         self.api=api
         self.image_directory="~/.pwytter/images"
         self.image_storage = os.path.expanduser(self.image_directory)
+        self._DefaultImagePath =  os.path.join(__app_path__,'media')
+        self._DefaultFileName = os.path.join(self._DefaultImagePath,'loading.png')
         if not os.path.exists(self.image_storage):
             os.makedirs(self.image_storage)
-	
+
     def _display_count(self,user,count) :
         text=" %s ,you have %d new tweets" % (user,count)
         imagenm="pwytter.png"
@@ -30,6 +34,7 @@ class PwytterNotify(object):
                self._send_note("Pwytter",text,imagenm)
 
     def _notify_tweet(self, status):
+            self.status=status
             try:
                 username = status.user.screen_name.encode('latin-1','replace')
             except AttributeError:
@@ -57,10 +62,29 @@ class PwytterNotify(object):
 
     def _send_note(self,user, message, imageurl):
         """Send the note to the desktop."""
+
+        if not imageurl:
+            #imageurl= self._paramFileName
+            try:
+                profile_image = self.status.user.profile_image_url
+            except AttributeError:
+                profile_image = self.api.GetUser(\
+                                user).GetProfileImageUrl()
+            fileextension = profile_image.rpartition('.')[-1]
+            imageurl = self.image_storage + "/" + user + "." + fileextension
+            try :
+              urllib.urlretrieve(profile_image, imageurl)
+            except Exception,e :
+                print "time out",e
+                imageurl=self._DefaultFileName
+        else :
+            imageurl=self.image_storage+ "/" + imageurl
+
+
         try:
             ascii_message = message.encode('ascii','replace')
-            imageurl=self.image_storage+ "/" + imageurl
-	    if platform() == 'linux' :
+            print imageurl
+            if platform() == 'linux' :
                print "Linux notifications"
                if not pynotify.init("Pwytter"):
                    try :
@@ -75,14 +99,13 @@ class PwytterNotify(object):
                    except Exception ,inst:
                       print "Error :",inst
             elif platform() == 'windows' :
-               str = 'growlnotify /t:"%s" /a:pwytter /i:"%s" /s:true "%s"' % (user,imageurl,ascii_message)
+               str = 'growlnotify /t:"%s" /a:"pwytter" /r:""  /i:"%s"  /s:true "%s"' % (user,imageurl,ascii_message)
                os.system(str)
             elif platform() == 'mac' :
                str = 'growlnotify -t "%s" -a "pwytter" -i "%s" -m"%s"\n' % (user,imageurl,ascii_message)
-               print str
                os.system(str)
-        except:
-            print "notify error"
+        except Exception,e :
+            print "notify error",e
 
     def _create_sound(self):
         # This will create pipeline pwytter
