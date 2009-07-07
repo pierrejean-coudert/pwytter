@@ -48,6 +48,7 @@ import pickle
 import pwNotification
 import pwNotifyParams
 import re
+
 class MainPanel(Frame):
     """ Main tk Frame """
     def __init__(self, master=None):
@@ -141,6 +142,7 @@ class MainPanel(Frame):
         self.tw=twclient.TwClient(__version__, self._params['user'], self._params['password'])
         self._applyParameters()
         self.api=twclient.twitter.Api(username=self._params['user'], password=self._params['password'])
+
         self._notify=pwNotifyParams.PwytterNotifications(self.api)
         self._notify.readFromXML()
         self._defaultTwitText = _('Enter your message here...')
@@ -817,6 +819,7 @@ class MainPanel(Frame):
                 loaded, aImage= self.tw.imageFromCache(fname)
                 text=self.storageImage + "/" + fname +"." + aImage.format
                 aImage.save(text)
+
                 self._imagesFriendsLoaded = self._imagesFriendsLoaded and loaded
                 try :
                     self.FriendImages[i]['ImageRef'].paste(aImage.resize(self._display['thumbnailSize'],Image.ANTIALIAS))
@@ -928,9 +931,14 @@ class MainPanel(Frame):
         WordList=self.StrFilter.split("|")
 
         if status.id not in self.store.keys():
-            if status.user.screen_name==self._params['user'] :
-                self.store[status.id] = status
-                return False
+            try :
+               if status.user.screen_name==self._params['user'] :
+                    self.store[status.id] = status
+                    return False
+            except AttributeError :
+                if status.sender_screen_name==self._params['user'] :
+                    self.store[status.id]=status
+                    return False
             try :
                  user_name=status.user.screen_name
                  status_flag=False
@@ -940,9 +948,12 @@ class MainPanel(Frame):
                          i=i.strip()
                          if i.encode('latin-1','replace')=='' :
                              break
-                         if re.search(i,status.text) :
+			 try :
+                          if re.search(i,status.text) :
                              status_flag=False
                              break
+                         except Exception,e :
+				print "regular expression is not entered correctly"   
 
             except AttributeError:
                  user_name=status.sender_screen_name
@@ -1149,6 +1160,7 @@ class MainPanel(Frame):
             if self._needToRefreshMe:
                 self._refresh_mySelfBox()
                 self._refresh_lines()
+
             if not self._imagesFriendsLoaded :
                 self._refresh_friendsBox()
             if not self._versionChecked :

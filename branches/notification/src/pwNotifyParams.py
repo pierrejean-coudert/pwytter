@@ -9,11 +9,12 @@ class PwytterNotifications(object):
         self.api=api
         self.storage_notification_directory="~/.pwytter/Notifications"
         self.storageNotifications=os.path.expanduser(self.storage_notification_directory)
-        if not os.path.exists(self.storageNotifications):
-            os.makedirs(self.storageNotifications)
         self._notificationFileName = os.path.join(self.storageNotifications,'notification.xml')
         self.values={}
         self._resetDefaults()
+        if not os.path.exists(self.storageNotifications):
+            os.makedirs(self.storageNotifications)
+            self.writeToXML()
 
     def _resetDefaults(self):
         self.Friends=self.api.GetFriends()
