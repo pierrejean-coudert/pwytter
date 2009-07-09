@@ -7,17 +7,17 @@ class PwytterNotifications(object):
     """
     def __init__(self,api):
         self.api=api
-        self.storage_notification_directory="~/.pwytter/Notifications"
-        self.storageNotifications=os.path.expanduser(self.storage_notification_directory)
+        self.storage_notification_directory = "~/.pwytter/Notifications"
+        self.storageNotifications = os.path.expanduser(self.storage_notification_directory)
         self._notificationFileName = os.path.join(self.storageNotifications,'notification.xml')
-        self.values={}
+        self.values = {}
         self._resetDefaults()
         if not os.path.exists(self.storageNotifications):
             os.makedirs(self.storageNotifications)
             self.writeToXML()
 
     def _resetDefaults(self):
-        self.Friends=self.api.GetFriends()
+        self.Friends = self.api.GetFriends()
         for frnd in self.Friends :
             self.values[frnd.screen_name]='1'
         self.values['FilterString']=''
@@ -34,8 +34,8 @@ class PwytterNotifications(object):
         assert self._notifyDoc.tagName == 'notifications'
         for val in self.values.keys():
             try :
-                node=self._notifyDoc.getElementsByTagName(val)
-                self.values[val]=node[0].firstChild.data.strip()
+                node = self._notifyDoc.getElementsByTagName(val)
+                self.values[val] = node[0].firstChild.data.strip()
             except Exception, e:
                 print '!! Exception in process_node_string'+str(e)
                 #self.values[val]=''
@@ -46,9 +46,9 @@ class PwytterNotifications(object):
         self._notifyDoc = impl.createDocument(None, 'notifications', None)
         top_element = self._notifyDoc.documentElement
         for val in self.values.keys():
-            Element=self._notifyDoc.createElement(val)
+            Element = self._notifyDoc.createElement(val)
             Element.appendChild(self._notifyDoc.createTextNode(str(self.values[val])))
             top_element.appendChild(Element)
-        f=open(self._notificationFileName, 'w')
+        f = open(self._notificationFileName, 'w')
         f.write(self._notifyDoc.toprettyxml())
         f.close()

@@ -19,8 +19,8 @@ class PwytterNotify(object):
     """Manages history of Twitter status updates."""
 
     def __init__(self,api):
-        self.api=api
-        self.image_directory="~/.pwytter/images"
+        self.api = api
+        self.image_directory = "~/.pwytter/images"
         self.image_storage = os.path.expanduser(self.image_directory)
         self._DefaultImagePath =  os.path.join(__app_path__,'media')
         self._DefaultFileName = os.path.join(self._DefaultImagePath,'loading.png')
@@ -28,13 +28,13 @@ class PwytterNotify(object):
             os.makedirs(self.image_storage)
 
     def _display_count(self,user,count) :
-        text=" %s ,you have %d new tweets" % (user,count)
-        imagenm="pwytter.png"
+        text = " %s ,you have %d new tweets" % (user,count)
+        imagenm = "pwytter.png"
         if count!=0:
                self._send_note("Pwytter",text,imagenm)
 
     def _notify_tweet(self, status):
-            self.status=status
+            self.status = status
             try:
                 username = status.user.screen_name.encode('latin-1','replace')
             except AttributeError:
@@ -76,9 +76,9 @@ class PwytterNotify(object):
               urllib.urlretrieve(profile_image, imageurl)
             except Exception,e :
                 print "time out",e
-                imageurl=self._DefaultFileName
+                imageurl = self._DefaultFileName
         else :
-            imageurl=self.image_storage+ "/" + imageurl
+            imageurl = self.image_storage+ "/" + imageurl
 
 
         try:
@@ -123,9 +123,9 @@ class PwytterNotify(object):
         self.pipeline.add(self.filesrc)
 
         # This will create elements like mad ,audioconvert , audioresample and sink
-        self.mad=gst.element_factory_make("mad","mad")
-        self.audioconvert=gst.element_factory_make("audioconvert","convert")
-        self.audioresample=gst.element_factory_make("audioresample","resample")
+        self.mad = gst.element_factory_make("mad","mad")
+        self.audioconvert = gst.element_factory_make("audioconvert","convert")
+        self.audioresample = gst.element_factory_make("audioresample","resample")
         self.sink = gst.element_factory_make("osssink", "sink")
 
 
