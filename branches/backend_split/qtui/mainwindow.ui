@@ -5,8 +5,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>366</width>
-    <height>682</height>
+    <width>367</width>
+    <height>823</height>
    </rect>
   </property>
   <property name="windowTitle" >
@@ -23,30 +23,79 @@
      <verstretch>0</verstretch>
     </sizepolicy>
    </property>
-   <layout class="QHBoxLayout" name="horizontalLayout_2" >
+   <layout class="QHBoxLayout" name="horizontalLayout_3" >
     <item>
      <widget class="QSplitter" name="splitter" >
       <property name="orientation" >
        <enum>Qt::Vertical</enum>
       </property>
-      <widget class="TweetView" name="tweetView" />
+      <widget class="TweetView" name="tweetView" >
+       <property name="sizePolicy" >
+        <sizepolicy vsizetype="Expanding" hsizetype="Expanding" >
+         <horstretch>0</horstretch>
+         <verstretch>1</verstretch>
+        </sizepolicy>
+       </property>
+      </widget>
       <widget class="QWidget" name="" >
        <layout class="QVBoxLayout" name="verticalLayout_2" >
         <item>
-         <widget class="QLabel" name="replyLabel" >
-          <property name="text" >
-           <string>&lt;b>Reply to&lt;/b></string>
-          </property>
-         </widget>
+         <layout class="QHBoxLayout" name="horizontalLayout_2" >
+          <item>
+           <widget class="QLabel" name="replyLabel" >
+            <property name="sizePolicy" >
+             <sizepolicy vsizetype="Fixed" hsizetype="Expanding" >
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text" >
+             <string>&lt;b>Reply to&lt;/b></string>
+            </property>
+            <property name="scaledContents" >
+             <bool>false</bool>
+            </property>
+            <property name="alignment" >
+             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+            </property>
+            <property name="wordWrap" >
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QToolButton" name="clearReplyButton" >
+            <property name="toolTip" >
+             <string>Clear reply/direct message settings for this message.</string>
+            </property>
+            <property name="text" >
+             <string>...</string>
+            </property>
+            <property name="icon" >
+             <iconset resource="ressources.qrc" >
+              <normaloff>:/icons/icons/tango/22x22/actions/edit-clear.png</normaloff>:/icons/icons/tango/22x22/actions/edit-clear.png</iconset>
+            </property>
+            <property name="popupMode" >
+             <enum>QToolButton::DelayedPopup</enum>
+            </property>
+            <property name="toolButtonStyle" >
+             <enum>Qt::ToolButtonIconOnly</enum>
+            </property>
+            <property name="autoRaise" >
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </item>
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout" >
           <item>
            <widget class="QPlainTextEdit" name="MessageTextEdit" >
             <property name="sizePolicy" >
-             <sizepolicy vsizetype="Ignored" hsizetype="MinimumExpanding" >
+             <sizepolicy vsizetype="Expanding" hsizetype="Expanding" >
               <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
+              <verstretch>1</verstretch>
              </sizepolicy>
             </property>
            </widget>
@@ -56,7 +105,7 @@
             <item>
              <widget class="QPushButton" name="postButton" >
               <property name="text" >
-               <string>Post update</string>
+               <string>Update</string>
               </property>
              </widget>
             </item>
@@ -83,7 +132,7 @@
                <enum>Qt::Vertical</enum>
               </property>
               <property name="sizeType" >
-               <enum>QSizePolicy::MinimumExpanding</enum>
+               <enum>QSizePolicy::Expanding</enum>
               </property>
               <property name="sizeHint" stdset="0" >
                <size>
@@ -108,7 +157,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>366</width>
+     <width>367</width>
      <height>26</height>
     </rect>
    </property>

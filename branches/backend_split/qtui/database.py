@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import threading
-from pysqlite2 import dbapi2 as sqlite3
+import sqlite3
 from Queue import Queue 
 
 class ThreadSafeDatabase:

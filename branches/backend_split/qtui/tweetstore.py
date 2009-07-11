@@ -8,7 +8,7 @@ import database
 from urllib2 import urlopen
 import time
 import urllib
-from pysqlite2 import dbapi2 as sqlite3
+import sqlite3
 
 """
 Database tables:
@@ -72,12 +72,20 @@ direct_messages:
 	direct_at	User id this is a reply at
 
 The TODO list:
+	notification_blacklist		list of user identifiers no notifications are wanted for.
+	settings_table				Settings for frontend, notifications settings (filter strings)
+	onNewNotification
+	refactor _syncMessages
+		Add __newTweets = (), and __newReplies, etc.
+		Add and integer called __synching_accounts = 0
+			Add one to this when an account is being synchronized
+			Remove one when account is done synchronizing
+			When it hits 0, raise onNewTweets with __newTweets and argument, and clear __newTweets
 
 public methods for tweetstore:
 	BlockFollower(User)
 	AddFriend(User)
 	RemoveFriend(User)
-	RemoveAccount(Account)
 	
 
 Implement search queries
@@ -102,35 +110,35 @@ def asynchronous(f):
 class TweetStore:
 	"""	Pwytter backend that manages accounts, connections, threading and database storage."""
 
+	onStatusChange = Event()
 	"""Occurs whenever an account changes status
 		Eventhandlers should take two parameters: account and status
 	"""
-	onStatusChange = Event()
 
+	onNewTweets = Event()
 	"""Occurs whenever an account have been synchronized and there's new tweets in the timeline
 		Eventhandlers should take two parameters: account and a tuple of new tweets
 	"""
-	onNewTweets = Event()
 	
+	onNewReplies = Event()
 	"""Occurs whenever an account has been synchronized and there's a new reply at the user of the account
 		Eventhandlers should take two parameters: account and a tuple of new replies
 	"""
-	onNewReplies = Event()
 	
+	onNewDirectMessages = Event()
 	"""Occurs whenever an account has been synchronized and there's a new direct message at the user of the account
 		Eventhandlers should take two parameters: account and a tuple of new direct messages
 	"""
-	onNewDirectMessages = Event()
 
+	onNewFollowers = Event()
 	"""Occurs whenever an account has been synchronized and there's a new follower
 		Eventhandlers should take two parameters: account and a tuple of new followers
 	"""
-	onNewFollowers = Event()
 	
+	onNewFriends = Event()
 	"""Occurs whenever an account has been synchronized and there's a new friend
 		Eventhandlers should take two parameters: account and a tuple of new friends
 	"""
-	onNewFriends = Event()
 
 	def __init__(self, database_path = ":memory:"):
 		"""Initialize an instance of TweetStore"""
@@ -345,7 +353,7 @@ class TweetStore:
 			if follower["id"] in follower_ids:
 				follower_ids.remove(follower["id"])
 			else:
-				self.__db.execute("DELETE FROM followers WHERE account = ? AND id = ?", account_id, follower)
+				self.__db.execute("DELETE FROM followers WHERE account = ? AND id = ?", account_id, follower["id"])
 		#Insert new followers
 		for follower in follower_ids:
 			self.__db.execute("INSERT INTO followers (id, account) VALUES (?,?)", follower, account_id)
@@ -528,7 +536,7 @@ class TweetStore:
 		assert isinstance(identifier, (int, long)), "identifier must be an integer"
 		user = self.__db.fetchone("SELECT * FROM users WHERE id = ? LIMIT 1", identifier)
 		if not user:
-			raise Exception, "Userid does not exists in database"
+			raise NotInDatabaseError, "Userid does not exists in database"
 		return self.__parseUserRow(user)
 
 	def _getUserID(self, username, service):
@@ -809,6 +817,56 @@ class TweetStore:
 		for msg in msgs:
 			yield self.__parseTweetRow(msg)
 
+	def isFriend(self, user, account = None):
+		"""Returns True if the user is a friend of the given account
+		
+			user:		User to determine if is a friend
+			account:	Account the user should be a friend of, default to None meaning all accounts
+			
+			Note: The account must be added to this TweetStore and synchronized.
+		"""
+		assert isinstance(user, User), "user must be an instance of User"
+		assert isinstance(account, Account) or account == None, "account must be None or an instance of Account"
+		service_id = self._getServiceID(user.getService())
+		sql = "SELECT COUNT(id) as relations FROM friends WHERE id = ?"
+		try:
+			params = self._getUserID(user.getUsername(), service_id)
+		except NotInDatabaseError:
+			#If username for the specified service isn't in database it cannot be a friend
+			return False
+		#If account is provided add it to the query
+		if account:
+			sql += " AND account_id = ?"
+			params += self.__getAccountID(account)
+		#Execute query, user is friend if relations is bigger than 0
+		row = self.__db.fetchone(sql, *params)
+		return row["relations"] > 0
+		
+	def isFollower(self, user, account = None):
+		"""Returns True if the user is a follower of the given account
+		
+			user:		User to determine if is a follower
+			account:	Account the user should be a follower of, default to None meaning all accounts
+			
+			Note: The account must be added to this TweetStore and synchronized.
+		"""
+		assert isinstance(user, User), "user must be an instance of User"
+		assert isinstance(account, Account) or account == None, "account must be None or an instance of Account"
+		service_id = self._getServiceID(user.getService())
+		sql = "SELECT COUNT(id) as relations FROM followers WHERE id = ?"
+		try:
+			params = self._getUserID(user.getUsername(), service_id)
+		except NotInDatabaseError:
+			#If username for the specified service isn't in database it cannot be a follower
+			return False
+		#If account is provided add it to the query
+		if account:
+			sql += " AND account_id = ?"
+			params += self.__getAccountID(account)
+		#Execute query, user is follower if relations is bigger than 0
+		row = self.__db.fetchone(sql, *params)
+		return row["relations"] > 0
+
 	def __parseTweetRow(self, row):
 		"""Parse a database from the table of tweets"""
 		return CachedMessage(self, self.__db, row)
@@ -931,6 +989,19 @@ class User:
 	def __str__(self):
 		"""Get string representation of this user on this service"""
 		return self.getUsername() + " - " + self.getService()
+
+	def __eq__(self, other):
+		"""Compare username and service of two users"""
+		if isinstance(other, User):
+			return self.getUsername() == other.getUsername() and self.getService() == other.getService()
+		return NotImplemented
+		
+	def __ne__(self, other):
+		"""Compare username and service of two users"""
+		result = self.__eq__(other)
+		if result is NotImplemented:
+			return result
+		return not result
 
 
 class CachedUser(User):
@@ -1221,6 +1292,19 @@ class OwnerNotSetError(Exception):
 			return "Account has no owner: " + text
 		else:
 			return "Account has no owner."
+			
+class NotInDatabaseError(Exception):
+	"""Thrown if item is not in database
+		
+		This can only be thrown by internal methods that assumes an item is database
+	"""
+	def __init__(self, text = None):
+		self._text = text
+	def __str__(self):
+		if test:
+			return "Item not in database: " + text
+		else:
+			return "Item not in database."
 
 class Account:
 	"""	An account for TweetStore
@@ -1229,8 +1313,6 @@ class Account:
 		however, subclasses should at all times return a user from getUser(). The other
 		methods should also work, unless offline, once TweetStore.addAccount is called.
 	"""
-	#TODO: Extend this with some sort of icon support
-
 	def _getMessages(self):
 		"""Returns messages in a list of tuples: [(message, created, username, account), ] or False
 		If false is return user interaction is needed and status have been changed to reflect this.
@@ -1292,3 +1374,72 @@ class Account:
 			 * bad authendication
 		"""
 		raise NotImplementedError, "getStatus must be overwritten in subclasses of Account"
+
+	def getCapabilities(self):
+		"""Returns an subclass of AccountCapabilities that describes the capabilities this account has"""
+		raise NotImplementedError, "getCapabilities must be overwritten in subclasses of Account"
+
+class AccountCapabilities:
+	"""	Describes the capabilities of an Account
+	"""
+	def canReply(self, user, message = None):
+		"""	Returns True if a reply to the given user is possible
+		
+			user:		User you wish to test for reply ability to
+			message:	Message the reply will be in-reply-to, some protocols might need this.
+		"""
+		raise NotImplementedError, "canReply must be overwritten in subclasses of AccountCapabilities"
+	
+	def replyPrefix(self, user):
+		"""	Returns a message prefix for a reply at the given user
+		
+			Note: If prefixes are not needed for replies, then return an empty string, unicode please.
+		"""
+		raise NotImplementedError, "replyPrefix must be overwritten in subclasses of AccountCapabilities"
+		
+	def isReplyPrefix(self, text):
+		"""	Returns the user that the text is a reply at, or False if text is not a reply
+		
+			Note: A user returned by this method may only have username and nothing more.
+			Consumers should remember to check if canReply for the returned user of this method returns True.
+			If replies by prefixing is not supported then always return False.
+		"""
+		raise NotImplementedError, "isReplyPrefix must be overwritten in subclasses of AccountCapabilities"
+	
+	def canDirect(self, user, message = None):
+		"""	Returns True if direct messages can be send to the given user
+		
+			user:		User you wish to test if direct messages can be send to
+			message:	Message the direct message will be in-reply-to, some protocols might need this.
+		"""
+		raise NotImplementedError, "canDirect must be overwritten in subclasses of AccountCapabilities"
+	
+
+	def directPrefix(self, user):
+		"""	Returns a message prefix for a direct message at the given user
+			
+			Note: If direct messages doesn't need a prefix this method should return an empty unicode string.
+		"""
+		raise NotImplementedError, "directPrefix must be overwritten in subclasses of AccountCapabilities"
+		
+	def isDirectPrefix(self, text):
+		"""	Returns the user that the text is a direct message at, or False if text is not a direct message
+		
+			Note: A user returned by this method may only have username and nothing more.
+			Consumers should remember to check if canDirect for the returned user of this method returns True.
+			If direct messages by prefixing is not supported then always return False
+		"""
+		raise NotImplementedError, "isDirectPrefix must be overwritten in subclasses of AccountCapabilities"
+		
+	def updateMessageSize(self):
+		"""Number of characters an update can consist of, -1 if there's no practical limit"""
+		raise NotImplementedError, "updateMessageSize must be overwritten in subclasses of AccountCapabilities"
+		
+	def replyMessageSize(self):
+		"""Number of characters a reply can consist of, -1 if there's no practical limit"""
+		raise NotImplementedError, "replyMessageSize must be overwritten in subclasses of AccountCapabilities"
+		
+	def directMessageSize(self):
+		"""Number of characters a direct message can consist of, -1 if there's no practical limit"""
+		raise NotImplementedError, "directMessageSize must be overwritten in subclasses of AccountCapabilities"
+		
