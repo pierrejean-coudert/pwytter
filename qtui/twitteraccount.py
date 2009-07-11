@@ -176,6 +176,11 @@ class TwitterAccount(tweetstore.Account):
 			return self._store._getUser(user_id)
 		return self._user
 
+	def getCapabilities(self):
+		"""Get account capabilities"""
+		if not self._store: raise tweetstore.OwnerNotSetError, "Cannot assert capabilities without owner."
+		return TwitterCapabilities(self._store, self)
+
 	def reauthendicate(password = None):
 		"""Attempt login with another password
 
@@ -338,3 +343,43 @@ class TwitterMessage(tweetstore.Message):
 		if not self._service_id:
 			self._service_id = self.__store._getServiceID(self.getService())
 		return self._service_id
+
+class TwitterCapabilities(tweetstore.AccountCapabilities):
+	def __init__(self, store, account):
+		assert isinstance(store, tweetstore.TweetStore), "store must be an instance of tweetstore"
+		self._store = store
+		self._account = account
+	
+	def canReply(self, user):
+		return user.getService() == service_string
+	
+	def replyPrefix(self, user):
+		return "@" + user.getUsername() + " "
+		
+	def isReplyPrefix(self, text):
+		if text.startswith("@"):
+			parts = text[1:].split(" ")
+			if len(parts) == 1:
+					return False
+			return tweetstore.User(self._store, parts[0], service_string)
+		return False
+	
+	def canDirect(self, user):
+		#Twitter accounts can only send direct message to people who follow them
+		return self._store.isFollower(user, self._account)
+	
+	#TODO: Consider support the "d <username>" prefix, do it if serverside of webservices do
+	def directPrefix(self, user):
+		return u""
+		
+	def isDirectPrefix(self, text):
+		return False
+	
+	def updateMessageSize(self):
+		return 140
+		
+	def replyMessageSize(self):
+		return 140
+		
+	def directMessageSize(self):
+		return 140

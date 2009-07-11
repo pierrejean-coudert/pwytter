@@ -5,7 +5,7 @@
 <body>
 <ul>
 [% for User in Users %]
-	<li>[% var User['Name'] %] on [% var User['Service'] %]</li>
+	<li>[% var User['Name'] %] on [% var User['Service'] %], <b onclick="window.pwytter.reply([% var User['Id'] %])">reply</b></li>
 [% done %]
 </ul>
 <br>
