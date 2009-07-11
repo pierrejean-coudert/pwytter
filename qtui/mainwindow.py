@@ -447,6 +447,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 			for account in self._store.getAccounts():
 				if self.PostFromComboBox.findText(str(account)) != -1:
 					accounts += (account,)
+		print accounts
 		#If we're writing a programmatic reply
 		if self._newMessageState:
 			for account in accounts:
@@ -478,6 +479,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 				else:
 					#Write an update
 					msg = Message(self._store, text, account.getUser())
+				#Post whatever message
+				self._store.postMessage(msg)
 		#Clear once message has been sent
 		self.on_clearReplyButton_clicked()
 		self.MessageTextEdit.document().clear()
