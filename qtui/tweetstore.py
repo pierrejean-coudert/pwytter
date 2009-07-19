@@ -4,7 +4,7 @@
 import threading
 from event import Event
 import pickle
-import database
+from database import ThreadSafeDatabase
 from urllib2 import urlopen
 import time
 import urllib
@@ -71,6 +71,14 @@ direct_messages:
 	reply_to	Tweet id this is a reply to, 0 if none
 	direct_at	User id this is a reply at
 
+settings:
+	key
+	value
+
+notification_blacklist:
+	id				User id
+	blacklisted		Bool, true if user is blacklisted, false if user is not blacklisted.
+
 The TODO list:
 	notification_blacklist		list of user identifiers no notifications are wanted for.
 	settings_table				Settings for frontend, notifications settings (filter strings)
@@ -114,43 +122,63 @@ class TweetStore:
 	"""Occurs whenever an account changes status
 		Eventhandlers should take two parameters: account and status
 	"""
+	
+	onSyncCompleted = Event()
+	"""Occurs whenever synchronization have been completed.
+	
+		Note: If multiple calls to sync() is made before this event is called, this event will ONLY be raised one
+		time, e.g. when all these synchronization requests have been completed.
+		Eventhandlers should take any parameters to handle this event.
+	"""
 
 	onNewTweets = Event()
-	"""Occurs whenever an account have been synchronized and there's new tweets in the timeline
-		Eventhandlers should take two parameters: account and a tuple of new tweets
+	"""Occurs whenever the onSyncCompleted is raised and there's new tweets in the timeline
+		Eventhandlers should take a tuple of new tweets as parameter.
 	"""
 	
 	onNewReplies = Event()
-	"""Occurs whenever an account has been synchronized and there's a new reply at the user of the account
-		Eventhandlers should take two parameters: account and a tuple of new replies
+	"""Occurs whenever the onSyncCompleted is raised and there's a new reply at the user of the account
+		Eventhandlers should take a tuple of new replies as parameter.
 	"""
 	
 	onNewDirectMessages = Event()
-	"""Occurs whenever an account has been synchronized and there's a new direct message at the user of the account
-		Eventhandlers should take two parameters: account and a tuple of new direct messages
+	"""Occurs whenever the onSyncCompleted is raised and there's a new direct message at the user of the account
+		Eventhandlers should take a tuple of new direct messages as parameter.
 	"""
 
 	onNewFollowers = Event()
-	"""Occurs whenever an account has been synchronized and there's a new follower
-		Eventhandlers should take two parameters: account and a tuple of new followers
+	"""Occurs whenever the onSyncCompleted is raised and there's a new follower
+		Eventhandlers should take a tuple of new followers as parameter.
 	"""
 	
 	onNewFriends = Event()
-	"""Occurs whenever an account has been synchronized and there's a new friend
-		Eventhandlers should take two parameters: account and a tuple of new friends
+	"""Occurs wheneverthe the onSyncCompleted is raised and there's a new friend
+		Eventhandlers should take a tuple of new friends as parameter.
+	"""
+	
+	settings = None
+	"""Settings object that has string keys and object values, used to store settings.
+		This is an instance of CatchedSettings, see it's documentation for more information.
+	"""
+
+	notification = None
+	"""NotificationEngine for this instance of TweetStore, access this object to change
+		notification settings and handle the onNotification event
+		
+		Note: This is an instance of NotificationEngine.
 	"""
 
 	def __init__(self, database_path = ":memory:"):
 		"""Initialize an instance of TweetStore"""
 		#Create/connect to database
 		assert isinstance(database_path, basestring), "dbpath is not a string"
-		self.__db = database.ThreadSafeDatabase(database_path)
+		self.__db = ThreadSafeDatabase(database_path)
 		self.__database_path = database_path
 
 		#Check that tables are present if not create them
-		tables = []
+		tables = ()
 		for row in self.__db.execute("SELECT name from sqlite_master WHERE type='table'"):
-			tables += [row["name"]]
+			tables += (row["name"],)
 		if "tweets" not in tables:
 			self.__db.execute("""
 				CREATE TABLE tweets(
@@ -218,15 +246,27 @@ class TweetStore:
 					id			INT,
 					direct_at	INT,
 					reply_to	INT)""")
-
+		#Restore settings
+		self.settings = CatchedSettings(self.__db)
+		#Restore notification engine
+		if "notification" in self.settings:
+			self.notification = self.settings["notification"]
+			self.notification._setOwner(self, self.__db)
+			print "loaded settings"
+		else:
+			self.notification = NotificationEngine(self, self.__db)
 		#Load accounts from database
 		self.__restoreAccounts()
 
-	def __del__(self):
+	def save(self):
 		"""Save settings in database"""
+		#Store notification engine
+		self.settings["notification"] = self.notification
+		#Store accounts and save database
 		self.__storeAccounts()
+		self.__db.commit()
 		self.__db.close()
-
+	
 	@asynchronous
 	def sync(self, account = None):
 		"""	Synchronous database with services from one or all accounts
@@ -238,12 +278,18 @@ class TweetStore:
 				self.sync(account)
 		else:
 			assert isinstance(account, Account), "Cannot sync object that is not an instance of Account"
+			#Start synchronization
+			self.notification._beginSync()
 			#Synchronize, while aborting if user interaction is needed
-			if not self._syncActions(account): return
-			if not self._syncFriends(account): return
-			if not self._syncFollowers(account): return
-			if not self._syncMessages(account): return
-			self.__db.commit()
+			try:
+				run = self._syncActions(account)
+				if run: run = self._syncFriends(account)
+				if run: run = self._syncFollowers(account)
+				if run: run = self._syncMessages(account)
+				self.__db.commit()
+			finally:
+				#End synchronization
+				self.notification._endSync()
 
 	def _syncActions(self, account):
 		"""	Execute actions stored locally on account
@@ -263,7 +309,6 @@ class TweetStore:
 			pass #TODO: Handle more actions here
 		return True
 		
-
 	def _syncMessages(self, account):
 		"""	Synchronize messages from specified account
 
@@ -275,27 +320,22 @@ class TweetStore:
 		"""
 		assert isinstance(account, Account), "Cannot sync object that is not an instance of Account"
 		msgs = account._getMessages()
-		new_replies = ()
-		new_tweets = ()
-		new_directmessages = ()
 		if msgs == False: return False
 		acUserID = self._getUserID(account.getUser().getUsername(), account.getService())
 		acID = self.__getAccountID(account)
 		for msg in msgs:
+			#Cache the message, and check if it's a new message
 			if self.__cacheMessage(msg):
+				#If's a new reply at this account add it to new replies
 				if msg.isReply() and msg.getReplyAt()._dbid == acUserID:
-					new_replies += (msg,)
+					self.notification._newReply(msg)
+				#If it's a direct message to this account add it to new direct messages
 				if msg.isDirectMessage() and msg.getDirectAt()._dbid == acUserID:
-					new_directmessages += (msg,)
+					self.notification._newDirectMessage(msg)
+				#Check if it's in the timeline, if so, add it to the tuple of new tweets
 				isOnTimeline = self.__db.fetchone("SELECT COUNT(id) FROM friends WHERE id = ? AND account = ?", msg.getUser()._dbid, acID)
 				if isOnTimeline > 0:
-					new_tweets += (msg,)
-		if len(new_tweets) > 0:
-			self.onNewTweets.raiseEvent(account, new_tweets)
-		if len(new_replies) > 0:
-			self.onNewReplies.raiseEvent(account, new_replies)
-		if len(new_directmessages) > 0:
-			self.onNewDirectMessages.raiseEvent(account, new_directmessages)
+					self.notification._newTweet(msg)
 		return True
 
 	def _syncFriends(self, account):
@@ -310,10 +350,8 @@ class TweetStore:
 		if friends == False: return False
 		#Get ids for the friend that the account returned
 		friend_ids = []
-		new_friends = ()
 		for friend in friends:
-			if self.__cacheUser(friend):
-				new_friends += (friend,)
+			self.__cacheUser(friend)
 			friend_ids += [friend._dbid]
 		account_id = self.__getAccountID(account)
 		for friend in self.__db.execute("SELECT id from friends WHERE account = ?", account_id):
@@ -323,11 +361,13 @@ class TweetStore:
 			else:
 				self.__db.execute("DELETE FROM friends WHERE account = ? AND id = ?", account_id, friend)
 		#Insert new friends
-		for friend in friend_ids:
-			self.__db.execute("INSERT INTO friends (id, account) VALUES (?,?)", friend, account_id)
-		#Raise event
-		if len(new_friends) > 0:
-			self.onNewFriends.raiseEvent(account, new_friends)
+		for friend_id in friend_ids:
+			self.__db.execute("INSERT INTO friends (id, account) VALUES (?,?)", friend_id, account_id)
+		#For each friend that we've found
+		for friend in friends:
+			#Make a notification of new friends
+			if friend._dbid in friend_ids:
+				self.notification._newFriend(friend)
 		return True
 
 	def _syncFollowers(self, account):
@@ -342,10 +382,8 @@ class TweetStore:
 		if followers == False: return False
 		#Get ids for the followers that the account returned
 		follower_ids = []
-		new_followers = ()
 		for follower in followers:
-			if self.__cacheUser(follower):
-				new_followers += (follower,)
+			self.__cacheUser(follower)
 			follower_ids += [follower._dbid]
 		account_id = self.__getAccountID(account)
 		for follower in self.__db.execute("SELECT id from followers WHERE account = ?", account_id):
@@ -355,11 +393,13 @@ class TweetStore:
 			else:
 				self.__db.execute("DELETE FROM followers WHERE account = ? AND id = ?", account_id, follower["id"])
 		#Insert new followers
-		for follower in follower_ids:
-			self.__db.execute("INSERT INTO followers (id, account) VALUES (?,?)", follower, account_id)
-		#Raise event if needed
-		if len(new_followers) > 0:
-			self.onNewFollowers.raiseEvent(account, new_followers)
+		for follower_id in follower_ids:
+			self.__db.execute("INSERT INTO followers (id, account) VALUES (?,?)", follower_id, account_id)
+		#For each follower that we've found
+		for follower in followers:
+			#Make a notification of new followers
+			if follower._dbid in follower_ids:
+				self.notification._newFollower(follower)
 		return True
 
 	def __cacheMessage(self, message):
@@ -552,7 +592,7 @@ class TweetStore:
 			service = self._getServiceID(service)
 		userid = self.__db.fetchone("SELECT id from users WHERE username = ? AND service = ? LIMIT 1", username, service)
 		if not userid:
-			raise Exception, "User not found in database"
+			raise NotInDatabaseError, "User not found in database"
 		return userid["id"]
 
 	__accounts = {}
@@ -651,8 +691,8 @@ class TweetStore:
 			Note: Please set page_size unless all messages are wanted. This method returns a
 			generator, so performance should be quite good.
 		"""
-		assert isinstance(page, (int, long)), "page number must be an integer"
-		assert isinstance(page_size, (int, long)), "page_size must be an integer"
+		assert isinstance(page, (int, long)), "page number must be a positive integer"
+		assert isinstance(page_size, (int, long)), "page_size must be a positive integer"
 		#Prepare sql statement
 		params = []
 		if account != None:
@@ -683,21 +723,21 @@ class TweetStore:
 			Note: Please set page_size unless all friends are wanted. This method returns a
 			generator, so performance should be quite good.
 		"""
-		assert isinstance(page, (int, long)) and page >= 0, "page number must be an integer"
-		assert isinstance(page_size, (int, long)) and page_size >= 0, "page_size must be an integer"
+		assert isinstance(page, (int, long)) and page >= 0, "page number must be a positive integer"
+		assert isinstance(page_size, (int, long)) and page_size >= 0, "page_size must be a positive integer"
 		assert account == None or isinstance(account, Account), "if account is specified it must be an instance of Account"
 		#Prepare sql statement
-		params = []
+		params = ()
 		sql = "SELECT * FROM users WHERE id IN (SELECT id FROM friends"
 		if account != None:
 			sql += " WHERE account = ?"
-			params += [self.__getAccountID(account)]
+			params += (self.__getAccountID(account),)
 		sql += ") ORDER BY name"
 		if page_size > 0:
 			sql += " LIMIT ?"
-			params += [page_size]
+			params += (page_size,)
 			sql += " OFFSET ?"
-			params += [page * page_size]
+			params += (page * page_size,)
 		#Execute sql statement
 		friends = self.__db.execute(sql, *params)
 		#Return user generator
@@ -714,26 +754,63 @@ class TweetStore:
 			Note: Please set page_size unless all followers are wanted. This method returns a
 			generator, so performance should be quite good.
 		"""
-		assert isinstance(page, (int, long)) and page >= 0, "page number must be an integer"
-		assert isinstance(page_size, (int, long)) and page_size >= 0, "page_size must be an integer"
+		assert isinstance(page, (int, long)) and page >= 0, "page number must be a positive integer"
+		assert isinstance(page_size, (int, long)) and page_size >= 0, "page_size must be a positive integer"
 		assert account == None or isinstance(account, Account), "if account is specified it must be an instance of Account"
 		#Prepare sql statement
-		params = []
+		params = ()
 		sql = "SELECT * FROM users WHERE id IN (SELECT id FROM followers"
 		if account != None:
 			sql += " WHERE account = ?"
-			params += [self.__getAccountID(account)]
+			params += (self.__getAccountID(account),)
 		sql += ") ORDER BY name"
 		if page_size > 0:
 			sql += " LIMIT ?"
-			params += [page_size]
+			params += (page_size,)
 			sql += " OFFSET ?"
-			params += [page * page_size]
+			params += (page * page_size,)
 		#Execute sql statement
 		followers = self.__db.execute(sql, *params)
 		#Return user generator
 		for follower in followers:
 			yield self.__parseUserRow(follower)
+			
+	def getCachedUsers(self, service = None, page = 0, page_size = 0):
+		"""Get all users cached in the database for a specified service, default to all.
+			This method is used for created notifications black/whitelist.
+		
+			service:	Service string or identifier for which all cached users are wanted.
+			page:		Page number to return, default to 0
+			page_size:	Number of entries on each page, default to 0, meaning unlimited
+			
+			Note: Please set page_size unless all users are wanted. This method returns a
+			generator, so performance should be quite good.
+		"""
+		assert isinstance(page, (int, long)) and page >= 0, "page number must be a positive integer"
+		assert isinstance(page_size, (int, long)) and page_size >= 0, "page_size must be a positive integer"
+		assert service == None or isinstance(service, (basestring, int, long)), "if service is specified it must be a string or an identifier."
+		#Prepare sql statement
+		params = ()
+		sql = "SELECT * FROM users"
+		#If service is provided
+		if service:
+			sql += " WHERE service = ?"
+			if isinstance(service, (basestring)):
+				service += (self._getServiceID(service),)
+			params += (service,)
+		#Add ordering
+		sql += " ORDER BY name"
+		#Add possible paging
+		if page_size > 0:
+			sql += " LIMIT ?"
+			params += (page_size,)
+			sql += " OFFSET ?"
+			params += (page * page_size,)
+		#Execute sql statement
+		users = self.__db.execute(sql, *params)
+		#Return user generator
+		for user in users:
+			yield self.__parseUserRow(user)
 
 	def getReplies(self, To = None, From = None, page = 0, page_size = 0):
 		"""Get replies
@@ -746,8 +823,8 @@ class TweetStore:
 			Note: Please set page_size unless all replies are wanted. This method returns a
 			generator, so performance should be quite good.
 		"""
-		assert isinstance(page, (int, long)) and page >= 0, "page number must be an integer"
-		assert isinstance(page_size, (int, long)) and page_size >= 0, "page_size must be an integer"		
+		assert isinstance(page, (int, long)) and page >= 0, "page number must be a positive integer"
+		assert isinstance(page_size, (int, long)) and page_size >= 0, "page_size must be a positive integer"		
 		params = []
 		sql = "SELECT * FROM tweets WHERE "
 		#Add to condition
@@ -787,8 +864,8 @@ class TweetStore:
 			Note: Please set page_size unless all direct messages are wanted. This method returns a
 			generator, so performance should be quite good.
 		"""
-		assert isinstance(page, (int, long)) and page >= 0, "page number must be an integer"
-		assert isinstance(page_size, (int, long)) and page_size >= 0, "page_size must be an integer"		
+		assert isinstance(page, (int, long)) and page >= 0, "page number must be a positive integer"
+		assert isinstance(page_size, (int, long)) and page_size >= 0, "page_size must be a positive integer"		
 		params = []
 		sql = "SELECT * FROM tweets WHERE "
 		#Add to condition
@@ -875,6 +952,349 @@ class TweetStore:
 		"""Parse a database from the table of users"""
 		return CachedUser(self, row)
 		
+
+class NotificationEngine:
+	"""Simple component that contains notification related logic of TweetStore"""
+	def __init__(self, store, database):
+		self._setOwner(store, database)
+		
+	def __getstate__(self):
+		"""Serialize settings"""
+		data = {}
+		data["Notification/blacklistStrings"] 			= self.blacklistStrings
+		data["Notification/whitelistStrings"] 			= self.whitelistStrings
+		data["Notification/blacklistByDefault"] 		= self.blacklistByDefault
+		data["Notification/notifyOnNewTweets"] 			= self.notifyOnNewTweets
+		data["Notification/notifyOnNewReplies"] 		= self.notifyOnNewReplies
+		data["Notification/notifyOnNewDirectMessages"] 	= self.notifyOnNewDirectMessages
+		data["Notification/notifyOnNewFollowers"] 		= self.notifyOnNewFollowers
+		data["Notification/notifyOnNewFriends"] 		= self.notifyOnNewFriends
+		data["Notification/notifyOnSynchronized"] 		= self.notifyOnSynchronized
+		return data
+		
+	def __setstate__(self, data):
+		"""Deserialize settings"""
+		self.blacklistStrings 			= data["Notification/blacklistStrings"]
+		self.whitelistStrings 			= data["Notification/whitelistStrings"]
+		self.blacklistByDefault 		= data["Notification/blacklistByDefault"]
+		self.notifyOnNewTweets 			= data["Notification/notifyOnNewTweets"]
+		self.notifyOnNewReplies 		= data["Notification/notifyOnNewReplies"]
+		self.notifyOnNewDirectMessages	= data["Notification/notifyOnNewDirectMessages"]
+		self.notifyOnNewFollowers 		= data["Notification/notifyOnNewFollowers"]
+		self.notifyOnNewFriends 		= data["Notification/notifyOnNewFriends"]
+		self.notifyOnSynchronized 		= data["Notification/notifyOnSynchronized"]
+	
+	def _setOwner(self, store, database):
+		"""Set TweetStore and database associated with this instance, needed when deserializing"""
+		assert isinstance(database, ThreadSafeDatabase), "database must be an instance of ThreadSafeDatabase"
+		assert isinstance(store, TweetStore), "store must be an instance of TweetStore"
+		self.__db = database
+		self.__store = store
+		#Check that tables are present if not create them
+		tables = ()
+		for row in self.__db.execute("SELECT name from sqlite_master WHERE type='table'"):
+			tables += (row["name"],)
+		if "notification_blacklist" not in tables:
+			self.__db.execute("""
+				CREATE TABLE notification_blacklist(
+					id			INT,
+					blacklisted	INT)""")
+	
+	def blacklist(self, user):
+		"""Blacklist a user, this means no notification about tweets from this user will appear."""
+		if not self.__store: raise OwnerNotSetError, "Cannot blacklist user."
+		assert isinstance(user, User), "user must be an instance of User"
+		#Get the user id
+		try:
+			user_id = self.__store._getUserID(user.getUsername(), user.getService())
+		except NotInDatabaseError:
+			self.__cacheUser(user)
+			user_id = user._dbid
+		#Check if already in the blacklist
+		row = self.__db.fetchone("SELECT blacklisted FROM notification_blacklist WHERE id = ? LIMIT 1", user_id)
+		#If user is in the black/whitelist and whitelisted:
+		if row and row["blacklisted"] == 0:
+			self.__db.execute("UPDATE notification_blacklist SET blacklisted = 1 WHERE id = ?", user_id)
+		elif not row:	#If user is not in the black/whitelist
+			self.__db.execute("INSERT INTO notification_blacklist (id, blacklisted) VALUES (?, 1)", user_id)
+	
+	def whitelist(self, user):
+		"""Whitelist a user, this means that all notification about tweets from this user will appear."""
+		if not self.__store: raise OwnerNotSetError, "Cannot whitelist user."
+		assert isinstance(user, User), "user must be an instance of User"
+		#Get the user id
+		try:
+			user_id = self.__store._getUserID(user.getUsername(), user.getService())
+		except NotInDatabaseError:
+			self.__cacheUser(user)
+			user_id = user._dbid
+		#Check if already in the blacklist
+		row = self.__db.fetchone("SELECT blacklisted FROM notification_blacklist WHERE id = ? LIMIT 1", user_id)
+		#If user is in the black/whitelist and blacklisted:
+		if row and row["blacklisted"] == 1:
+			self.__db.execute("UPDATE notification_blacklist SET blacklisted = 0 WHERE id = ?", user_id)
+		elif not row:	#If user is not in the black/whitelist
+			self.__db.execute("INSERT INTO notification_blacklist (id, blacklisted) VALUES (?, 0)", user_id)
+
+	def isBlacklisted(self, user):
+		"""Return True if the user is blacklist and False if the user if whitelisted,
+			If the user is not in the black/whitelist, blacklistByDefault is returned.
+		"""
+		if not self.__store: raise OwnerNotSetError, "Cannot check user."
+		assert isinstance(user, User), "user must be an instance of User"
+		#Get the user id
+		try:
+			user_id = self.__store._getUserID(user.getUsername(), user.getService())
+		except NotInDatabaseError:
+			#Return the default state if user is not in the black/whitelist
+			return self.blacklistByDefault
+		#Check if already in the blacklist
+		row = self.__db.fetchone("SELECT blacklisted FROM notification_blacklist WHERE id = ? LIMIT 1", user_id)
+		if not row:
+			return self.blacklistByDefault
+		#If user is in the black/whitelist
+		return row["blacklisted"] == 1
+	
+	blacklistStrings = ()
+	"""Tuple of strings (unicode) that if present in a message blocks it's notification"""
+	
+	whitelistStrings = ()
+	"""Tuple of strings (unicode) that if present in a message overwrites any blocks of notification"""
+	
+	blacklistByDefault = False
+	"""Block notifications from all users who are not explicitly whitelisted."""
+	
+	def __isBlocked(self, message):
+		"""Returns True if the messags blocked, e.g. user is blacklist or it contains a blacklist string."""
+		assert isinstance(message, Message), "message must be an instance of Message"
+		#Check if message contains whitelist strings
+		for string in self.whitelistStrings:
+			if string in message.getMessage():
+				return False
+		#Check if message contains blacklist strings
+		for string in self.blacklistStrings:
+			if string in message.getMessage():
+				return True
+		#If it doesn't contain a whitelist or blacklist string, check if user is blocked
+		return self.isBlacklisted(message.getUser())
+	
+	notifyOnNewTweets = True
+	"""Generate a notification whenever a new tweet appears in the timeline."""
+	
+	notifyOnNewReplies = True
+	"""Generate a notification whenever a new reply at the user appears."""
+	
+	notifyOnNewDirectMessages = True
+	"""Generate a notification whenever a new direct message to the user appears."""
+	
+	notifyOnNewFollowers = True
+	"""Generate a notification whenever a new follower of the user appears."""
+	
+	notifyOnNewFriends = False
+	"""Generate a notification whenever a new friend of the user appears."""
+	
+	notifyOnSynchronized = True
+	"""Generate a notification when synchronization is completed."""
+	
+	onNotification = Event()
+	"""Occurs whenever there's is a notification that should be shown to the user
+		Eventhandlers should take three parameters, notification title, notification text and an optional image (as buffer or None)
+	"""
+	
+	__synchronizing = 0
+	"""Synchronizatoin semaphor, used to determine when all synchronizations are completed."""
+	
+	def _beginSync(self):
+		"""Inform the notification engine that synchronization of an account is starting"""
+		self.__synchronizing += 1
+		
+	def _endSync(self):
+		"""Inform the notification engine that synchronization of an account has ended, this may possibly raise events"""
+		self.__synchronizing -= 1
+		if self.__synchronizing == 0:
+			if not self.__store: raise OwnerNotSetError, "Cannot end synchronization."
+			#Get the states and reset them, do this at once to avoid concurrency issues
+			newTweets = self.__newTweets
+			self.__newTweets = ()
+			newReplies = self.__newReplies
+			self.__newReplies = ()
+			newDirectMessages = self.__newDirectMessages
+			self.__newDirectMessages = ()
+			newFollowers = self.__newFollowers
+			self.__newFollowers = ()
+			newFriends = self.__newFriends
+			self.__newFriends = ()
+			
+			#Raise synchronization completed event
+			self.__store.onSyncCompleted.raiseEvent()
+			
+			#Generate events
+			if len(newTweets) > 0:
+				self.__store.onNewTweets.raiseEvent(newTweets)
+			if len(newReplies) > 0:
+				self.__store.onNewReplies.raiseEvent(newReplies)
+			if len(newDirectMessages) > 0:
+				self.__store.onNewDirectMessages.raiseEvent(newDirectMessages)
+			if len(newFollowers) > 0:
+				self.__store.onNewFollowers.raiseEvent(newFollowers)
+			if len(newFriends) > 0:
+				self.__store.onNewFriends.raiseEvent(newFriends)
+			
+			#Generate synchronization completed notification, to sum up
+			if self.notifyOnSynchronized:
+				msgs = ()
+				if len(newTweets) > 0:
+					msgs += (str(len(newTweets)) + " new tweets",) 
+				if len(newReplies) > 0:
+					msgs += (str(len(newReplies)) + " new replies",) 
+				if len(newDirectMessages) > 0:
+					msgs += (str(len(newDirectMessages)) + " new direct messages",) 
+				if len(newFollowers) > 0:
+					msgs += (str(len(newFollowers)) + " new followers",) 
+				if len(newFriends) > 0:		
+					msgs += (str(len(newFriends)) + " new friends",)
+				if len(msgs) == 0:
+					notification = "You have nothing new."
+				elif len(msgs) == 1:
+					notification = "You have " + msgs[0] + "."
+				else:
+					notification = "You have " + ", ".join(msgs[:-1]) + " and " + msgs[-1] + "."
+				#Raise the notification event
+				self.onNotification.raiseEvent("Synchronization completed", notification, None)	#TODO: Consider having a image
+	
+	__newTweets = ()
+	"""Tuple of new tweets from users timeline that appeared during synchronization"""
+	
+	__newReplies = ()
+	"""Tuple of new replies at the user that appeared during synchronization"""
+	
+	__newDirectMessages = ()
+	"""Tuple of new direct messages to the user that appeared during synchronization"""
+	
+	__newFollowers = ()
+	"""Tuple of new followers of the user that appeared during synchronization"""
+	
+	__newFriends = ()
+	"""Tuple of new friends of the user that appeared during synchronization"""
+	
+	def _newTweet(self, message):
+		"""Inform the notification engine that a new tweets from users timeline appeared during synchronization"""
+		assert isinstance(message, Message), "message must an instance of Message"
+		self.__newTweets += (message,)
+		#Generate event if needed
+		if self.notifyOnNewTweets and not self.__isBlocked(message):
+			self.onNotification.raiseEvent("New tweet by " + message.getUser().getName(), message.getMessage(), message.getUser().getImage())
+	
+	def _newReply(self, message):
+		"""Inform the notification engine that a new reply at the user appeared during synchronization"""
+		assert isinstance(message, Message), "message must an instance of Message"
+		self.__newReplies += (message,)
+		#Generate event if needed
+		if self.notifyOnNewReplies and not self.__isBlocked(message):
+			self.onNotification.raiseEvent("New reply from " + message.getUser().getName(), message.getMessage(), message.getUser().getImage())
+		
+	def _newDirectMessage(self, message):
+		"""Inform the notification engine that a new direct message to the user appeared during synchronization"""
+		assert isinstance(message, Message), "message must an instance of Message"
+		self.__newDirectMessages += (message,)
+		#Generate event if needed
+		if self.notifyOnNewDirectMessages and not self.__isBlocked(message):
+			self.onNotification.raiseEvent("New direct message from " + message.getUser().getName(), message.getMessage(), message.getUser().getImage())
+	
+	def _newFollower(self, user):
+		"""Inform the notification engine that a new follower of the user user appeared during synchronization"""
+		assert isinstance(user, User), "user must an instance of User"
+		self.__newFollowers += (user,)
+		#Generate event if needed
+		if self.notifyOnNewFollowers and not self.isBlacklisted(user):
+			self.onNotification.raiseEvent("New follower", user.getName() + " on " + user.getService() + " is now following you.", user.getImage())
+	
+	def _newFriend(self, user):
+		"""Inform the notification engine that a new friend of the user user appeared during synchronization"""
+		assert isinstance(user, User), "user must an instance of User"
+		self.__newFriends += (user,)
+		#Generate event if needed
+		if self.notifyOnNewFriends and not self.isBlacklisted(user):
+			self.onNotification.raiseEvent("New friend", user.getName() + " on " + user.getService() + " is now a friend of yours.", user.getImage())
+	
+
+class CatchedSettings:
+	"""	Simple database wrapper for store settings
+	
+		This type acts as a dictionary, e.g. consumers can add, get and remove keys as in a directionary.
+		This type also supports the in keyword. The keys and values are stored in a database table as pickled
+		strings, this may not offer a good performance, however, if this was to become a problem this class
+		could be implemented more effectively.
+		Note: For performance issues, keys are NOT pickled and only string keys is supported.
+	"""
+	def __init__(self, database):
+		assert isinstance(database, ThreadSafeDatabase), "database must be an instance of ThreadSafeDatabase"
+		self.__db = database
+		#Check that tables are present if not create them
+		tables = ()
+		for row in self.__db.execute("SELECT name from sqlite_master WHERE type='table'"):
+			tables += (row["name"],)
+		if "settings" not in tables:
+			self.__db.execute("""
+				CREATE TABLE settings(
+					key		TEXT,
+					value	TEXT)""")
+		self.__db.commit()
+	
+	def __getitem__(self, key):
+		"""Get settings value from key
+		
+			Note: Key must be a string
+		"""
+		if not isinstance(key, basestring):
+			raise TypeError, "key must be a string"
+		value = self.__db.fetchone("SELECT value FROM settings WHERE key = ? LIMIT 1", key)
+		if not value:
+			raise KeyError, "Key does not exist in settings"
+		return pickle.loads(str(value["value"]))
+	
+	def get(self, key, default = None):
+		"""Gets settings value from key, if key doesn't exist return default, which defaults to None
+		
+			Note: Key must be a string. This method offers better performance than __contains__ and 
+			__getitem__ that can be used to perform the same task.
+		"""
+		if not isinstance(key, basestring):
+			raise TypeError, "key must be a string"
+		value = self.__db.fetchone("SELECT value FROM settings WHERE key = ? LIMIT 1", key)
+		if not value:
+			return default
+		return pickle.loads(str(value["value"]))
+	
+	def __setitem__(self, key, value):
+		"""Set settings value for a given key
+		
+			Note: Key must be a string
+		"""
+		if not isinstance(key, basestring):
+			raise TypeError, "key must be a string"
+		value = pickle.dumps(value)
+		self.__db.execute("INSERT INTO settings (key, value) VALUES (?, ?)", key, sqlite3.Binary(value))
+	
+	def __delitem__(self, key):
+		"""Delete settings value for a given key
+		
+			Note: Key must be a string
+		"""
+		if not isinstance(key, basestring):
+			raise TypeError, "key must be a string"
+		self.__db.execute("DELETE FROM settings WHERE key = ?", key)
+		
+	def __contains__(self, key):
+		"""Gets if a value for a given key exists
+		
+			Note: Key must be a string
+		"""
+		if not isinstance(key, basestring):
+			raise TypeError, "key must be a string"
+		value = self.__db.fetchone("SELECT key FROM settings WHERE key = ? LIMIT 1", key)
+		return value != None
+	
 
 class User:
 	def __init__(self, store, username = None, service = None, name = None, url = "", location = "Unknown", description = "", image_id = None, data = None):
@@ -1207,7 +1627,7 @@ class CachedMessage(Message):
 			Note: User, reply and direct message information is loaded lazily.
 		"""
 		assert isinstance(store, TweetStore), "store must be an instance of TweetStore"
-		assert isinstance(db, database.ThreadSafeDatabase), "db must be an instance of ThreadSafeDatabase"
+		assert isinstance(db, ThreadSafeDatabase), "db must be an instance of ThreadSafeDatabase"
 		self.__store = store
 		self.__db = db
 		self._row = row
@@ -1284,7 +1704,7 @@ class CachedMessage(Message):
 		return self._row["service"]
 
 class OwnerNotSetError(Exception):
-	"""Thrown if method on account is called before the instance have been assigned an owner"""
+	"""Thrown if method is called before the instance have been assigned an owner"""
 	def __init__(self, text = None):
 		self._text = text
 	def __str__(self):
