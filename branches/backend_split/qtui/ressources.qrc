@@ -1,5 +1,7 @@
 <RCC>
   <qresource prefix="icons" >
+    <file>icons/tango/22x22/actions/go-next.png</file>
+    <file>icons/tango/22x22/actions/go-previous.png</file>
     <file>icons/tango/16x16/actions/edit-clear.png</file>
     <file>icons/tango/22x22/actions/edit-clear.png</file>
     <file>icons/tango/32x32/apps/internet-group-chat.png</file>

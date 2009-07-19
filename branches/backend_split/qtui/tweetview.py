@@ -65,12 +65,12 @@ class TweetView(QWebView):
 		#Set the theme
 		self.setTheme()
 
-	_tweetPageSize = 5
+	_tweetPageSize = 10
 	def setTweetPageSize(self, tweetPageSize):
 		"""Set tweet page size"""
 		self._tweetPageSize = tweetPageSize
 
-	_userPageSize = 3
+	_userPageSize = 15
 	def setUserPageSize(self, userPageSize):
 		"""Set user page size"""
 		self._userPageSize = userPageSize

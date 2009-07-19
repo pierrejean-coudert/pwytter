@@ -90,7 +90,7 @@ class ThreadSafeDatabase:
 				lastrowid if a row was inserted.
 		"""
 		if not self.isRunning:
-			raise DatabaseClosedError, "cannot execute sql statement: " + sql
+			raise DatabaseClosedError, "cannot execute sql statement: " + str(sql)
 		results = Queue()
 		self.__requests.put((sql, args, results))
 		result = results.get()
@@ -125,7 +125,7 @@ class ThreadSafeDatabase:
 				lastrowid if a row was inserted.
 		"""
 		if not self.isRunning:
-			raise DatabaseClosedError, "cannot execute sql statement: " + sql
+			raise DatabaseClosedError, "cannot execute sql statement: " + str(sql)
 		results = Queue()
 		self.__requests.put((sql, args, results))
 		result = results.get()
@@ -151,7 +151,7 @@ class ThreadSafeDatabase:
 				lastrowid if a row was inserted.
 		"""
 		if not self.isRunning:
-			raise DatabaseClosedError, "cannot execute sql statement: " + sql
+			raise DatabaseClosedError, "cannot execute sql statement: " + str(sql)
 		results = Queue()
 		self.__requests.put((sql, args, results))
 		result = results.get()
@@ -172,20 +172,19 @@ class ThreadSafeDatabase:
 	def close(self):
 		"""Close the database connection"""
 		assert self.isRunning, "Database cannot be closed more that once."
-		self.__requests.put(("--close--", None, None))
 		self.isRunning = False
+		self.__requests.put(("--close--", None, None))
+		self.__thread.join()
 
 	def __del__(self):
 		"""Release ressources held by this instance"""
 		if self.isRunning:
 			self.close()
-		super.__del__()
 
 class DatabaseClosedError(Exception):
 	"""Exception that occurs if a ThreadSafeDatabase is invoked after being closed."""
 	def __init__(self, msg = None):
 		self.msg = msg
-		super.__init__()
 
 	def __str__(self):
 		if msg:

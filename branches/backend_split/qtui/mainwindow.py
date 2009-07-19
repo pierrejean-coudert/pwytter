@@ -15,6 +15,7 @@ from time import strftime, localtime, strptime
 import event
 from newtwitteraccountdialog import NewTwitterAccountDialog
 from newidenticaaccountdialog import NewIdenticaAccountDialog
+from preferencesdialog import PreferencesDialog
 
 #switch back to old locale, this fixes local bug in time.strptime()
 #see: http://www.mail-archive.com/python-bugs-list@python.org/msg11325.html
@@ -46,6 +47,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 		
 		#TODO: Find a good place to save this, follow freedesktop specs on Linux, and whatever on Windows and OS X
 		self._store = TweetStore("tweets.db")
+		
+		#Connect aboutToQuit to save settings
+		self.connect(QCoreApplication.instance(), SIGNAL("aboutToQuit()"), self.saveSettings)
+		
+		#Hide mainwindow if settings dictates that it should be hidden at startup
+		if not self._store.settings.get("MainWindow/ShowMainWindowOnStartUp", True):
+			self.on_HideWindowAction_triggered()
 		
 		#Provide store for TweetView
 		self.tweetView.setStore(self._store)
@@ -79,10 +87,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 		
 		#Subscribe to events by tweetstore
 		self._store.onStatusChange += self.statusChanged
-		self._store.onNewDirectMessages += self.newDirectMessages
-		self._store.onNewTweets += self.newTweets
-		self._store.onNewReplies += self.newReplies
-		self._store.onNewFollowers += self.newFollowers
+		self._store.notification.onNotification += self.displayNotification
 		
 		#Setup splitter index 0 to not be collapsable, e.g. TweetView cannot be collapsed
 		self.splitter.setCollapsible(0, False)
@@ -92,6 +97,29 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 		#Hide the writing reply to... label initially
 		self.replyLabel.hide()
 		self.clearReplyButton.hide()
+		
+		#Load settings
+		self.loadSettings()
+
+	def loadSettings(self):
+		"""Loads settings, to be invoked during initialization and when settings have been altered."""
+		#Load settings for TweetView
+		self.tweetView.setTweetPageSize(self._store.settings.get("MainWindow/TweetsPerPage", 10))
+		self.tweetView.setUserPageSize(self._store.settings.get("MainWindow/UsersPerPage", 15))
+		#TODO: Load settings for synchronizations timer, interval is self._store.settings.get("MainWindow/SynchronizationInterval", 180)
+
+	def saveSettings(self):
+		"""Save various settings, before closing"""
+		self._store.save()
+		print "save settings"
+		#TODO: Save form size etc. if we want to... 
+
+	def closeEvent(self, event):
+		"""Hide mainWindow when it's suppose to close
+			e.g. <alt> + F4 or if user clicks on the close button.
+		"""
+		self.on_HideWindowAction_triggered()
+		event.ignore()
 
 	@pyqtSignature("")
 	def on_CollapseMessageEditAction_triggered(self):
@@ -104,6 +132,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 			self.splitter.moveSplitter(max, 1)
 
 	def displayMessageEditPane(self):
+		"""Ensure that MessageEdit is not collapsed"""
 		min, max = self.splitter.getRange(1)
 		if self.splitter.widget(1).size().height() == 0:
 			height = self.splitter.widget(1).sizeHint().height()
@@ -549,6 +578,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 			self._statusbarLabels[account].setPixmap(self._statusIconLinks[account.getStatus()])
 			self._statusbarLabels[account].setToolTip(str(account) + "\n" + account.getStatus())
 			self.statusbar.addWidget(self._statusbarLabels[account])
+		#TODO: 	Figure out how to make the comboboxes adjust their size.
+		#		This is only relevat for first time runs, as it will be auto size at startup
+		#		Note: self.PostFromComboBox.adjustSize() does not work.
 	
 	def removeAccount(self, account):
 		"""Remove an account, triggered by remove account menu"""
@@ -565,6 +597,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 		self._statusbarLabels[account].setToolTip(str(account) + "\n" + status)
 		#TODO: Attempt reauthendicate if status is "bad authendication"
 		
+		
+	@pyqtSignature("")
+	def on_PreferencesAction_triggered(self):
+		dlg = PreferencesDialog(self._store, self)
+		#Update settings if they are changed
+		if dlg.exec_() == QDialog.Accepted:
+			self.loadSettings()
+	
 	@pyqtSignature("")
 	def on_HelpAction_triggered(self):
 		print "TODO: Open help pages in a browser"
@@ -595,30 +635,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 		"""Hide window"""
 		self.setVisible(False)
 
-	def newDirectMessages(self, account, new_msgs):
-		"""Handle new direct message event"""
-		if len(new_msgs) == 1:
-			self.TrayIcon.showMessage("New direct message", "You have a new direct message from " + new_msgs[0].getUser().getName() + " on " + account.getService() + ".")
-		else:
-			self.TrayIcon.showMessage("New direct messages", "You have " + str(len(new_msgs)) + " new direct messages on " + account.getService() + ".")
-		
-	def newTweets(self, account, new_msgs):
-		"""Handle new tweets event"""
-		if len(new_msgs) == 1:
-			self.TrayIcon.showMessage("New tweet", "You have a new tweet in your timeline from " + new_msgs[0].getUser().getName() + " on " + account.getService() + ".")
-		else:
-			self.TrayIcon.showMessage("New tweets", "You have " + str(len(new_msgs)) + " new tweets in your timeline on " + account.getService() + ".")
-		
-	def newReplies(self, account, new_msgs):
-		"""Handle new replies event"""
-		if len(new_msgs) == 1:
-			self.TrayIcon.showMessage("New reply", "You have a new reply from " + new_msgs[0].getUser().getName() + " on " + account.getService() + ".")
-		else:
-			self.TrayIcon.showMessage("New replies", "You have " + str(len(new_msgs)) + " new replies via " + account.getService() + ".")
-		
-	def newFollowers(self, account, new_followers):
-		"""Handle new followers event"""
-		if len(new_followers) == 1:
-			self.TrayIcon.showMessage("New follower",  new_followers[0].getName() + " is now following you on " + account.getService() + ".")
-		else:
-			self.TrayIcon.showMessage("New followers", "You have " + str(len(new_followers)) + " new followers on " + account.getService() + ".")
+	def displayNotification(self, title, text, image = None):
+		"""Displays a message"""
+		self.TrayIcon.showMessage(title, text)
+		#TODO: Change this to use bindings for growl and libnotify
+		#Please do ensure that the bubbles are associated with the tray icon.
+		#Otherwise it will look ugly on desktops that uses this association to draw speech bubbles.
+		#Example of this association: https://wiki.ubuntu.com/NotifyOSD?action=AttachFile&do=get&target=3g-finished.png

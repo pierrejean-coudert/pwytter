@@ -5,6 +5,7 @@ import os
 commands = ("pyuic4 mainwindow.ui -o ui_mainwindow.py",
 			"pyuic4 newtwitteraccountdialog.ui -o ui_newtwitteraccountdialog.py",
 			"pyuic4 newidenticaaccountdialog.ui -o ui_newidenticaaccountdialog.py",
+			"pyuic4 preferencesdialog.ui -o ui_preferencesdialog.py",
 			"pyrcc4 ressources.qrc -o ressources_rc.py"
 )
 

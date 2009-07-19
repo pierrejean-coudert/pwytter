@@ -37,7 +37,7 @@
         </sizepolicy>
        </property>
       </widget>
-      <widget class="QWidget" name="" >
+      <widget class="QWidget" name="layoutWidget" >
        <layout class="QVBoxLayout" name="verticalLayout_2" >
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout_2" >
@@ -210,7 +210,14 @@
     <addaction name="separator" />
     <addaction name="AboutAction" />
    </widget>
+   <widget class="QMenu" name="menu_Edit" >
+    <property name="title" >
+     <string>&amp;Edit</string>
+    </property>
+    <addaction name="PreferencesAction" />
+   </widget>
    <addaction name="menuFile" />
+   <addaction name="menu_Edit" />
    <addaction name="menuView" />
    <addaction name="menuAccounts" />
    <addaction name="menu_Help" />
@@ -252,7 +259,7 @@
      <normaloff>:/icons/icons/tango/32x32/actions/system-log-out.png</normaloff>:/icons/icons/tango/32x32/actions/system-log-out.png</iconset>
    </property>
    <property name="text" >
-    <string>Quit</string>
+    <string>&amp;Quit</string>
    </property>
   </action>
   <action name="AboutAction" >
@@ -302,6 +309,15 @@
    </property>
    <property name="text" >
     <string>Toggle new message field.</string>
+   </property>
+  </action>
+  <action name="PreferencesAction" >
+   <property name="icon" >
+    <iconset resource="ressources.qrc" >
+     <normaloff>:/icons/icons/tango/22x22/categories/preferences-system.png</normaloff>:/icons/icons/tango/22x22/categories/preferences-system.png</iconset>
+   </property>
+   <property name="text" >
+    <string>&amp;Preferences</string>
    </property>
   </action>
  </widget>
