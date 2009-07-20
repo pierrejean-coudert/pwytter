@@ -111,7 +111,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 	def saveSettings(self):
 		"""Save various settings, before closing"""
 		self._store.save()
-		print "save settings"
 		#TODO: Save form size etc. if we want to... 
 
 	def closeEvent(self, event):
