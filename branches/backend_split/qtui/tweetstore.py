@@ -252,7 +252,6 @@ class TweetStore:
 		if "notification" in self.settings:
 			self.notification = self.settings["notification"]
 			self.notification._setOwner(self, self.__db)
-			print "loaded settings"
 		else:
 			self.notification = NotificationEngine(self, self.__db)
 		#Load accounts from database
@@ -428,18 +427,20 @@ class TweetStore:
 			to = message.getReplyTo()
 			if to != None:
 				self.__cacheMessage(to)
+				to = to._dbid
 			else:
 				to = 0
-			self.__db.execute("INSERT INTO replies (id, reply_at, reply_to) VALUES (?, ?, ?)", identifier, at._dbid, to._dbid)
+			self.__db.execute("INSERT INTO replies (id, reply_at, reply_to) VALUES (?, ?, ?)", identifier, at._dbid, to)
 		if message.isDirectMessage():
 			at = message.getDirectAt()
 			self.__cacheUser(at)
 			to = message.getReplyTo()
 			if to != None:
 				self.__cacheMessage(to)
+				to = to._dbid
 			else:
 				to = 0
-			self.__db.execute("INSERT INTO direct_messages (id, direct_at, reply_to) VALUES (?, ?, ?)", identifier, at._dbid, to._dbid)
+			self.__db.execute("INSERT INTO direct_messages (id, direct_at, reply_to) VALUES (?, ?, ?)", identifier, at._dbid, to)
 		return True
 
 	def __cacheUser(self, user):
