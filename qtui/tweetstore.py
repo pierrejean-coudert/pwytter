@@ -1728,49 +1728,87 @@ class NotInDatabaseError(Exception):
 			return "Item not in database."
 
 class Account:
-	"""	An account for TweetStore
+	"""	Abstractions for an account for TweetStore
 
-		How accounts subclasses of this is initialized should not matter to TweetStore,
-		however, subclasses should at all times return a user from getUser(). The other
-		methods should also work, unless offline, once TweetStore.addAccount is called.
+		Note: How subclasses of this is initialized should not matter to TweetStore, however, 
+		subclasses should at all times return a user from getUser(). The other methods should
+		also work, unless offline, once TweetStore._addAccount have been called.
+		See: twitteraccount.TwitterAccount for an example of how to do this.
+		
+		Remarks:
+		Instance of Account should be serializable, overwrite __getstate__ and __setstate__ to
+		alter the serialization behavior. Note that (de)serialization should not access any
+		network ressources synchronously, e.g. perform network requests and wait for the
+		response. This applies to all other methods as well unless explicitly stated otherwise.
 	"""
 	def _getMessages(self):
-		"""Returns messages in a list of tuples: [(message, created, username, account), ] or False
-		If false is return user interaction is needed and status have been changed to reflect this.
-
+		"""Returns messages as a list of Message or False
+		
+		If false is returned user interaction is needed and status have been changed to reflect this.
+		E.g. connection must be restored or account reauthendicated, anyway synchronization of 
+		this account shouldn't preceed.
+		
 		This method should return all messages that need to be cached. E.g. the users timeline, replies to
-		the user.
+		the user and direct messages to the user.
+		This method may access network ressources synchronously.
 		"""
 		raise NotImplementedError, "_getMessages must be overwritten in subclasses of Account"
 
 	def _getFriends(self):
-		"""Returns friends in a list of User or False
-		If False is returned user interactions is required to fix the problem.
+		"""Returns friends as a list of User or False
+		
+		If false is returned user interaction is needed and status have been changed to reflect this.
 		E.g. connection must be restored or account reauthendicated, anyway synchronization of 
 		this account shouldn't preceed.
+		
+		This method may access network ressources synchronously.
 		"""
 		raise NotImplementedError, "_getFriends must be overwritten in subclasses of Account"
 
 	def _getFollowers(self):
-		"""Get followers as a list of followers"""
+		"""Get followers as a list of User or False
+		
+		If false is returned user interaction is needed and status have been changed to reflect this.
+		E.g. connection must be restored or account reauthendicated, anyway synchronization of 
+		this account shouldn't preceed.
+		
+		This method may access network ressources synchronously.
+		"""
 		raise NotImplementedError, "_getFollowers must be overwritten in subclasses of Account"
 
 	def _postMessage(self, message):
 		"""Post a message
 
-			If authendication fails or service is offline, onStatusChange event on store should be raised.
+			If the message is a reply or a direct message it should be posted as such.
+
+			If authendication fails or service is offline, return False and change the status to
+			reflect this.
+			
+			This method may access network ressources synchronously.
 		"""
 		raise NotImplementedError, "_postMessage must be overwritten in subclasses of Account"
 
 	def reauthendicate(self, password = None):
 		"""Reauthendicate, called if status = 'bad authendication'
-		Note this method changes password, if login is successfull
+		
+			This method attempts authendication with the old password if None is provided,
+			if another password it attempts authendication with that password. And stores the
+			new password if it's successfull.
+			
+			This method may access network ressources synchronously.
+			
+			Remarks: No implementation of this method have been tested, and this part of the API
+			may be subject to changes, as an asynchronious method probably will be preffered.
 		"""
 		raise NotImplementedError, "reauthendicate must be overwritten in subclasses of Account"
 
 	def _setOwner(self, store):
 		"""Sets the owner of this Account, must be called before, getUser(), reauthendicate or any of the
-			_get....() methods are called."""
+			_get....() methods are called.
+			
+			When a new instance of an Account is created the owner should be passed as an argument to the constructor,
+			so that settings the owner shouldn't be necessary. However, after deserialization this method need be called.
+		"""
 		raise NotImplementedError, "set owner must be implemented in subclasses of Account"
 
 	def __str__(self):
@@ -1782,7 +1820,7 @@ class Account:
 		raise NotImplementedError, "getUser must be overwritten in subclasses of Account"
 
 	def getService(self):
-		"""Gets the name of the service that this account is connected to"""
+		"""Gets the name of the service that this account is connected to."""
 		raise NotImplementedError, "getService must be overwritten in subclasses of Account"
 
 	def getStatus(self):
@@ -1793,11 +1831,14 @@ class Account:
 			 * idle
 			 * updating
 			 * bad authendication
+			 
+			Note: When status changes the onStatusChange event on the TweetStore instance 
+			associated with this account should be raised.
 		"""
 		raise NotImplementedError, "getStatus must be overwritten in subclasses of Account"
 
 	def getCapabilities(self):
-		"""Returns an subclass of AccountCapabilities that describes the capabilities this account has"""
+		"""Returns an subclass of AccountCapabilities that describes the capabilities that this account has."""
 		raise NotImplementedError, "getCapabilities must be overwritten in subclasses of Account"
 
 class AccountCapabilities:
@@ -1819,7 +1860,7 @@ class AccountCapabilities:
 		raise NotImplementedError, "replyPrefix must be overwritten in subclasses of AccountCapabilities"
 		
 	def isReplyPrefix(self, text):
-		"""	Returns the user that the text is a reply at, or False if text is not a reply
+		"""	Returns the user that the text is a reply at, or False if text is not a reply by prefix.
 		
 			Note: A user returned by this method may only have username and nothing more.
 			Consumers should remember to check if canReply for the returned user of this method returns True.
@@ -1834,7 +1875,6 @@ class AccountCapabilities:
 			message:	Message the direct message will be in-reply-to, some protocols might need this.
 		"""
 		raise NotImplementedError, "canDirect must be overwritten in subclasses of AccountCapabilities"
-	
 
 	def directPrefix(self, user):
 		"""	Returns a message prefix for a direct message at the given user
@@ -1853,14 +1893,14 @@ class AccountCapabilities:
 		raise NotImplementedError, "isDirectPrefix must be overwritten in subclasses of AccountCapabilities"
 		
 	def updateMessageSize(self):
-		"""Number of characters an update can consist of, -1 if there's no practical limit"""
+		"""Number of characters an update can consist of, 2 to the power of 16 if there's no practical limit"""
 		raise NotImplementedError, "updateMessageSize must be overwritten in subclasses of AccountCapabilities"
 		
 	def replyMessageSize(self):
-		"""Number of characters a reply can consist of, -1 if there's no practical limit"""
+		"""Number of characters a reply can consist of, 2 to the power of 16 if there's no practical limit"""
 		raise NotImplementedError, "replyMessageSize must be overwritten in subclasses of AccountCapabilities"
 		
 	def directMessageSize(self):
-		"""Number of characters a direct message can consist of, -1 if there's no practical limit"""
+		"""Number of characters a direct message can consist of, 2 to the power of 16 if there's no practical limit"""
 		raise NotImplementedError, "directMessageSize must be overwritten in subclasses of AccountCapabilities"
 		
