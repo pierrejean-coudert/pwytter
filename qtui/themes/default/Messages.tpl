@@ -12,6 +12,7 @@ body{
 </head>
 <body>
 [% for Message in Messages %]
+<div style="border-bottom:1px solid #ddd">
 <table cellspacing="0"  style="background-image: url('pwytter://image/theme/bg.png');margin: 5;" width="100%">
 	<tr><td width="30">
 	<img src='[% var Message["User"]["Image"] %]'>
@@ -23,6 +24,7 @@ body{
 	[%endif%]
 	</td></tr>
 </table>
+</div>
 [% done %]
 <br>
 [% if HasPrevPage %]<a href="[% var PrevPage %]">prev page</a>[% endif %]
