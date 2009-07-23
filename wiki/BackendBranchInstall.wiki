@@ -1,0 +1,5 @@
+#How to install required lib to run the backend branch
+
+= Windows Install =
+  * QT install http://www.qtsoftware.com/downloads
+
