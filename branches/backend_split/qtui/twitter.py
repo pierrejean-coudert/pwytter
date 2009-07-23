@@ -7,7 +7,6 @@
 __author__ = 'dewitt@google.com'
 __version__ = '0.5'
 
-
 import base64
 import md5
 import os
@@ -1053,7 +1052,8 @@ class Api(object):
     if len(text) > 140:
       raise TwitterError("Text must be less than or equal to 140 characters.")
     url = 'http://twitter.com/statuses/update.json'
-    data = {'status': text}
+    data = {'status': text,
+            'source':'pwytter'}
     json = self._FetchUrl(url, post_data=data)
     data = simplejson.loads(json)
     return Status.NewFromJsonDict(data)
