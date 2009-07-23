@@ -1,5 +1,6 @@
-#How to install required lib to run the backend branch
+#summary How to install required lib to run the backend branch
+#labels Phase-Support
 
 = Windows Install =
   * QT install http://www.qtsoftware.com/downloads
-
+  * pyQT http://www.riverbankcomputing.co.uk/software/pyqt/download
