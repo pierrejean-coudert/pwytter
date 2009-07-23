@@ -1,6 +1,23 @@
 #summary How to install required lib to run the backend branch
 #labels Phase-Support
 
+= Get Source Code=
+{{{
+svn checkout http://pwytter.googlecode.com/svn/branches/backend_split/ pwytter-qt
+}}}
+
+for registered developper
+{{{
+svn checkout https://pwytter.googlecode.com/svn/branches/backend_split/ pwytter-qt --username your.user.name
+}}}
+
 = Windows Install =
+==Mandatory==
   * pyQT http://www.riverbankcomputing.co.uk/software/pyqt/download
-  * if you need Qt documenttaion: QT install http://www.qtsoftware.com/downloads
+==Optional==
+  * if you need Qt documentaion: QT install http://www.qtsoftware.com/downloads
+
+= Run Pwytter =
+{{{
+python main.pyw
+}}}
