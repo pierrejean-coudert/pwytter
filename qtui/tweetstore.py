@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 import threading
@@ -514,6 +513,52 @@ class TweetStore:
 			self.__db.execute("INSERT INTO actions (type, param, account) VALUES (?, ?, ?)", "post_message", message.dumps(), self.__getAccountID(account))
 			self.__db.commit()
 
+	def getOutbox(self, account = None, page = 0, page_size = 0):
+		"""Gets messages waiting for transmission by a specified account, or all accounts if none specified
+
+			account:	Account to get outgoing messages for, default to all
+			page:		Page number to return, default to 0
+			page_size:	Number of entries on each page, default to 0, meaning unlimited
+
+			Note: Please set page_size unless all messages are wanted. This method returns a
+			generator, so performance should be quite good.
+		"""
+		assert isinstance(page, (int, long)), "page number must be a positive integer"
+		assert isinstance(page_size, (int, long)), "page_size must be a positive integer"
+		assert account == None or isinstance(account, Account), "if provided account must be an instance of Account"
+		sql = "SELECT id, param FROM actions WHERE type = ?"
+		params = ("post_message",)
+		if account:
+			sql += " AND account = ?"
+			params += (self.__getAccountID(account))
+		sql += " ORDER BY id"
+		#Do paging
+		if page_size > 0:
+			sql += " LIMIT ?"
+			params += (page_size,)
+			sql += " OFFSET ?"
+			params += (page * page_size,)
+		#Execute sql statement
+		for action in self.__db.execute(sql, *params):
+			#Deserialize and return each message using a generator
+			msg = Message(self, data = action["param"])
+			msg._outboxID = action["id"]	#This ID is used if message is to be deleted later on
+			yield msg
+
+	def removeFromOutbox(self, message):
+		"""Removes a given message from Outbox
+			
+			Returns True if the message was found and successfully removed.
+			
+			Note: The message instance passed to this method must originate from TweetStore.getOutbox().
+		"""
+		#Instances from getOutbox has an _outboxID attribute
+		if not hasattr(msg, "_outboxID"):
+			return False
+		#Delete the message
+		self.__db.execute("DELETE FROM actions WHERE id = ?", msg._outboxID)
+		return True
+
 	def _cacheImage(self, url):
 		"""	Catch an image and return an id for it
 		"""
@@ -595,6 +640,22 @@ class TweetStore:
 		if not userid:
 			raise NotInDatabaseError, "User not found in database"
 		return userid["id"]
+
+	def getUser(self, username, service):
+		"""Gets a user from username and service
+			
+			username:	Username of the user, who is wanted
+			service:	Service unique string or integer identifier for the service
+			
+			Returns instance of User or None, if not in database
+		"""
+		#Try to get the user
+		try:
+			identifier = self._getUserID(username, service)
+			return self._getUser(identifier)
+		except NotInDatabaseError:
+			#If not in database return None
+			return None
 
 	__accounts = {}
 	def _addAccount(self, account):
@@ -908,14 +969,14 @@ class TweetStore:
 		service_id = self._getServiceID(user.getService())
 		sql = "SELECT COUNT(id) as relations FROM friends WHERE id = ?"
 		try:
-			params = self._getUserID(user.getUsername(), service_id)
+			params = (self._getUserID(user.getUsername(), service_id),)
 		except NotInDatabaseError:
 			#If username for the specified service isn't in database it cannot be a friend
 			return False
 		#If account is provided add it to the query
 		if account:
-			sql += " AND account_id = ?"
-			params += self.__getAccountID(account)
+			sql += " AND account = ?"
+			params += (self.__getAccountID(account),)
 		#Execute query, user is friend if relations is bigger than 0
 		row = self.__db.fetchone(sql, *params)
 		return row["relations"] > 0
@@ -933,14 +994,14 @@ class TweetStore:
 		service_id = self._getServiceID(user.getService())
 		sql = "SELECT COUNT(id) as relations FROM followers WHERE id = ?"
 		try:
-			params = self._getUserID(user.getUsername(), service_id)
+			params = (self._getUserID(user.getUsername(), service_id),)
 		except NotInDatabaseError:
 			#If username for the specified service isn't in database it cannot be a follower
 			return False
 		#If account is provided add it to the query
 		if account:
-			sql += " AND account_id = ?"
-			params += self.__getAccountID(account)
+			sql += " AND account = ?"
+			params += (self.__getAccountID(account),)
 		#Execute query, user is follower if relations is bigger than 0
 		row = self.__db.fetchone(sql, *params)
 		return row["relations"] > 0
@@ -1275,7 +1336,12 @@ class CatchedSettings:
 		if not isinstance(key, basestring):
 			raise TypeError, "key must be a string"
 		value = pickle.dumps(value)
-		self.__db.execute("INSERT INTO settings (key, value) VALUES (?, ?)", key, sqlite3.Binary(value))
+		oldValue = self.__db.fetchone("SELECT value FROM settings WHERE key = ? LIMIT 1", key)
+		if oldValue:
+			if oldValue != value:
+				self.__db.execute("UPDATE settings SET value = ? WHERE key = ?", sqlite3.Binary(value), key)
+		else:
+			self.__db.execute("INSERT INTO settings (key, value) VALUES (?, ?)", key, sqlite3.Binary(value))
 	
 	def __delitem__(self, key):
 		"""Delete settings value for a given key
@@ -1478,15 +1544,26 @@ class CachedUser(User):
 		return self._row["image"]
 
 class Message:
+	"""Message abstraction for TweetStore
+	
+		Remarks:
+		Serialization of this instance is done using dumps() and it is deserialized using the constructor, by providing the store and data arguments only.
+		Serialization is done in this manner so that subclass of this class does not need to implement any serialization.
+		
+		Notes on terminology:
+		"reply at" is the user a reply is at, to might be more appropriate, but "reply_to" is used for the message that a message is in-reply-to. For
+		consistency "direct at" is the user a direct message is sendt to.
+	"""
+	
 	def __init__(self, store, message = None, user = None, service = None, created = None, suid = 0, reply_at = None, reply_to = None, direct_at = None, data = None):
 		""" Create an instance of Message
 
 			store:		TweetStore associated with this Message instance
 			message:	Message text
 			user:		User who wrote this message
-			created:	Timestamp of message creation
-			service:	Service string or identifier
-			suid:		Service unique identifier, need not be unique
+			created:	Timestamp of message creation (optional, defaults to now)
+			service:	Service string or identifier (optional, defaults to whatever user has)
+			suid:		Service unique identifier, need not be unique (optional)
 			reply_at:	User who this message is to (optional)
 			reply_to:	Message this message is a reply to (optional)
 			direct_at:	User this message is direct to (optional)
@@ -1509,7 +1586,7 @@ class Message:
 			self._suid = data["suid"]
 			self._user = User(self.__store, data = data["user"])
 			self._reply_at = User(self.__store, data = data["reply_at"])
-			self._reply_to = User(self.__store, data = data["reply_to"])
+			self._reply_to = Message(self.__store, data = data["reply_to"])
 			self._direct_at = User(self.__store, data = data["direct_at"])
 			return None
 		#If creating new instance

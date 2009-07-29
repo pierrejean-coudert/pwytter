@@ -5,10 +5,13 @@ from PyQt4.QtGui import *
 from PyQt4.QtNetwork import *
 from PyQt4.QtWebKit import *
 import tinpy
+from theme import Theme
 
 from time import strftime, localtime
 import webbrowser
 import tweetstore
+from os import path
+import traceback
 
 """ Add a pwytter:// protocol to a QtWebView see:
 	http://diotavelli.net/PyQtWiki/Using%20a%20Custom%20Protocol%20with%20QtWebKit
@@ -24,14 +27,18 @@ class TweetView(QWebView):
 		pwytter://view/timeline/<account>/<page>
 		pwytter://view/replies/<account>/<page>
 		pwytter://view/direct messages/<account>/<page>
+		pwytter://view/outbox/<account>/<page>
 		pwytter://view/followers/<account>/<page>
 		pwytter://view/friends/<account>/<page>
 		
 		<account> can be the string representation of an account or the string 'all'
 		<page> is a number, can be omitted
 		
+		Display a single user using:
+		pwytter://view/user/<service>/<username>
+		
 		pwytter://image/cache/<image-id>
-		pwytter://image/theme/<image>
+		pwytter://theme/<path-relative-theme-dir>
 		
 		In the future we might add:
 		pwytter://search/<account>/<query>
@@ -61,9 +68,6 @@ class TweetView(QWebView):
 		oldManager = self.page().networkAccessManager()
 		self.manager = NetworkAccessManager(oldManager, self)
 		self.page().setNetworkAccessManager(self.manager)
-		
-		#Set the theme
-		self.setTheme()
 
 	_tweetPageSize = 10
 	def setTweetPageSize(self, tweetPageSize):
@@ -75,12 +79,10 @@ class TweetView(QWebView):
 		"""Set user page size"""
 		self._userPageSize = userPageSize
 
-	theme = {}
-	def setTheme(self, theme = "default"):
-		self.theme["messagesTemplate"] = open("themes/" + theme + "/Messages.tpl").read()
-		self.theme["usersTemplate"] = tinpy.compile(open("themes/" + theme + "/Users.tpl").read())
-		self.theme["userTemplate"] = open("themes/" + theme + "/DetailedUser.tpl").read()
-		self.theme["name"] = theme
+	__theme = None
+	def setTheme(self, theme):
+		assert isinstance(theme, Theme), "theme must be an instance of Theme"
+		self.__theme = theme
 		self.reload()
 
 	def linkClicked(self, url):
@@ -89,28 +91,44 @@ class TweetView(QWebView):
 			self.page().mainFrame().load(url)
 		else:
 			#If it's an external link, for whatever I don't care! open it in a webbrowser :)
-			webbrowser.open(url, 1)
+			webbrowser.open(url.toString(), 1)
 
 	def _setReplyContent(self, reply):
 		"""Put some content into a reply, note reply need not be filled when this method returns"""
-		urlparts = str(reply.url().toString()).split("/")
-		if urlparts[2] == "view":
-			self.__setReplyContentView(reply)
-		elif urlparts[2] == "image":
-			if urlparts[3] == "cache":
-				img_id = int(urlparts[4])
-				data = self._store._getImage(img_id)
-				reply.setContent(str(data))
-			elif urlparts[3] == "theme":
-				image = "themes/" + self.theme["name"] + "/Images/" + urlparts[4]
-				reply.setContent(open(image).read())
-		else:
-			print "Invalid url: " + url.toString()
-			reply.setContent("<h1>404</h1><br>File not found!", "text/html; charset=UTF-8")
+		try:
+			assert self.__theme != None, "Theme must be provided before content can be viewed."
+			urlparts = str(reply.url().toString()).split("/")
+			if urlparts[2] == "view":
+				self.__setReplyContentView(reply)
+			elif urlparts[2] == "image":
+				if urlparts[3] == "cache":
+					img_id = int(urlparts[4])
+					data = self._store._getImage(img_id)
+					reply.setContent(str(data))
+			elif urlparts[2] == "theme":
+				ressource = path.join(self.__theme.getPath(), *urlparts[3:])
+				reply.setContent(open(ressource).read())
+			else:
+				print "Invalid url: " + url.toString()
+				reply.setContent("<h1>404</h1><br>File not found!", "text/html; charset=UTF-8")
+		except:
+			reply.setContent("<h1>500</h1><br>Internal Server Error!<br><br><pre>" + traceback.format_exc() + "</pre>", "text/html; charset=UTF-8")
 
 	def __setReplyContentView(self, reply):
 		"""Set a pwytterReply to a view, assume it is a view"""
 		urlparts = str(reply.url().toString()).split("/")
+		
+		#If we're asked to view a specific user
+		if urlparts[3] == "user":
+			#Get the user to display
+			user = self._store.getUser(urlparts[5], urlparts[4])
+			if user == None:
+				reply.setContent(u"<h1>User not found</h1>Username " + urlparts[5] + " on " + urlparts[4] + " was not found in the database.", "text/html; charset=UTF-8")
+			else:
+				html = tinpy.build(self.__theme.getDetailedUserTemplate(), {"User" : UserWrapper(user, self._store, 0)}, strict = __debug__)
+				reply.setContent(unicode(html).encode('utf-8'), "text/html; charset=UTF-8")
+			return None
+
 		#Get the account
 		account = None
 		for ac in self._store.getAccounts():
@@ -126,12 +144,16 @@ class TweetView(QWebView):
 		except:
 			page = 0
 		#Get data
+		isOutbox = False	#If the messages can be deleted, ONLY true for outbox
 		if urlparts[3] == "timeline":	
 			self._content = tuple(self._store.getTimeline(account, page = page, page_size = self._tweetPageSize))
 		elif urlparts[3] == "replies":
 			self._content = tuple(self._store.getReplies(user, page = page, page_size = self._tweetPageSize))
 		elif urlparts[3] == "direct messages":
 			self._content = tuple(self._store.getDirectMessages(user, page = page, page_size = self._tweetPageSize))
+		elif urlparts[3] == "outbox":
+			self._content = tuple(self._store.getOutbox(account, page = page, page_size = self._tweetPageSize))
+			isOutbox = True
 		elif urlparts[3] == "followers":
 			self._content = tuple(self._store.getFollowers(account, page = page, page_size = self._userPageSize))
 		elif urlparts[3] == "friends":
@@ -149,25 +171,27 @@ class TweetView(QWebView):
 			vars["NextPage"] = "/".join(urlparts[0:5]) + "/" + str(page+1)
 			vars["PrevPage"] = "/".join(urlparts[0:5]) + "/" + str(page-1)
 			#Parse users template
-			html = tinpy.build(self.theme["usersTemplate"], vars, strict = __debug__)
+			html = tinpy.build(self.__theme.getUsersTemplate(), vars, strict = __debug__)
 			reply.setContent(unicode(html).encode('utf-8'), "text/html; charset=UTF-8")
 		else:
 			vars = {}
 			vars["Messages"] = ()
 			pageUniqueId = 0
 			for message in self._content:
-				vars["Messages"] += (MessageWrapper(message, self._store, pageUniqueId),)
+				vars["Messages"] += (MessageWrapper(message, self._store, pageUniqueId, isOutbox),)
 				pageUniqueId += 1
 			vars["HasNextPage"] = True
 			vars["HasPrevPage"] = page != 0
 			vars["NextPage"] = "/".join(urlparts[0:5]) + "/" + str(page+1)
 			vars["PrevPage"] = "/".join(urlparts[0:5]) + "/" + str(page-1)
 			#Parse template
-			html = tinpy.build(self.theme["messagesTemplate"], vars, strict = __debug__)
+			html = tinpy.build(self.__theme.getMessagesTemplate(), vars, strict = __debug__)
 			reply.setContent(unicode(html).encode('utf-8'), "text/html; charset=UTF-8")
 	
 	def _reply(self, id):
 		"""Handle javascript callback to create a reply for message or user with id"""
+		if id == -1:
+			return "Cannot use item in current view, there's likely a bug in the template!"
 		try:
 			#Get message and user we wish to reply to
 			item = self._content[id]
@@ -181,9 +205,13 @@ class TweetView(QWebView):
 			self.emit(SIGNAL("reply(QVariant, QVariant)"), QVariant(user), QVariant(msg))
 		except IndexError:
 			return "Item does not exist, there's likely a bug in the template!"
+		except:
+			return "Exception occured: \n" + traceback.format_exc()
 	
 	def _direct(self, id):
 		"""Handle javascript callback to create a direct for message or user with id"""
+		if id == -1:
+			return "Cannot use item in current view, there's likely a bug in the template!"
 		try:
 			#Get message and user we wish send a direct message to
 			item = self._content[id]
@@ -196,7 +224,21 @@ class TweetView(QWebView):
 			#Emit signal for the mainWindow to handle
 			self.emit(SIGNAL("direct(QVariant, QVariant)"), QVariant(user), QVariant(msg))
 		except IndexError:
-			return "Item does not exist, there's likely a bug in the template!"		
+			return "Item does not exist, there's likely a bug in the template!"
+		except:
+			return "Exception occured: \n" + traceback.format_exc()
+
+	def _delete(self, id):
+		"""Handle javascript callback to delete a message, MUST be a message in outbox"""
+		if id == -1:
+			return "Cannot use item in current view, there's likely a bug in the template!"
+		try:
+			if not self._store.removeFromOutbox(self._content[id]):
+				return "Message was not deleted, ensure that it could be deleted."
+		except IndexError:
+			return "Item does not exist, there's likely a bug in the template!"
+		except:
+			return "Exception occured: \n" + traceback.format_exc()
 
 class PwytterReply(QNetworkReply):
 	"""A reply for a pwytter:// request, does nothing but waits for someone to set it's content"""
@@ -258,9 +300,8 @@ class NetworkAccessManager(QNetworkAccessManager):
 			return reply
 		return QNetworkAccessManager.createRequest(self, operation, request, data)
 
-
 class UserWrapper:
-	def __init__(self, user, store, id):
+	def __init__(self, user, store, id = -1):
 		"""Wraps a user as if it was a dictionary
 			For use in template system, as we don't want template designers to deal with pwytter backend internals
 			
@@ -268,7 +309,7 @@ class UserWrapper:
 			store:	instance of tweetstore, used later to add stuff like isFriend
 			id:		Page specific id, note ONLY page unique!
 					Used for getting hold of this user on the serverside.
-			
+					Use -1 if no identifier is assigned.
 		"""
 		self.__user = user
 		self.__store = store
@@ -300,6 +341,7 @@ class UserWrapper:
 		if key == "IsFollower":
 			return self.__store.isFollower(self.__user)
 		if key == "CanReply":
+			if self.__id == -1: return False
 			#Determine if we can reply to this user
 			accounts = self.__store.getAccounts(self.__user.getService())
 			for account in accounts:
@@ -307,6 +349,7 @@ class UserWrapper:
 					return True
 			return False
 		if key == "CanSendDirectMessage":
+			if self.__id == -1: return False
 			#Determine if we send direct messages to this user
 			accounts = self.__store.getAccounts(self.__user.getService())
 			for account in accounts:
@@ -315,14 +358,14 @@ class UserWrapper:
 			return False
 		if key == "Id":
 			return self.__id
-		else:
-			raise KeyError, "Key not found"
+		#Key wasn't found if we got here:
+		raise KeyError, "Key not found"
 	
 	def __repr__(self):
 		return str(self.__user)
 
 class MessageWrapper:
-	def __init__(self, message, store, id):
+	def __init__(self, message, store, id = -1, isOutbox = False):
 		"""Wraps a message as if it was a dictionary
 			For use in template system, as we don't want template designers to deal with pwytter backend internals
 			
@@ -330,11 +373,13 @@ class MessageWrapper:
 			store:		instance of tweetstore, used later to add stuff like isFriend
 			id:			Page specific id, note ONLY page unique!
 						Used for getting hold of this user on the serverside.
-			
+						Use -1 if no identifier is assigned.
+			isOutbox:	Boolean indicates if a message is an outbox message and thus can be deleted.
 		"""
 		self.__message = message
 		self.__store = store
 		self.__id = id
+		self.__isOutbox = isOutbox
 	
 	def get(self, key, default = ""):
 		try:
@@ -346,25 +391,28 @@ class MessageWrapper:
 		if key == "Text":
 			return self.__message.getMessage()
 		if key == "User":
-			return UserWrapper(self.__message.getUser(), self.__store, self.__id)
+			return UserWrapper(self.__message.getUser(), self.__store, -1)
 		if key == "Service":
 			return self.__message.getService()
 		if key == "Created":
 			#TODO: Use a suitable date format
 			return strftime("the %d of %m, %Y", localtime(self.__message.getCreated()))
 		if key == "InReplyTo":
-			return self.__message.getReplyTo()
+			return MessageWrapper(self.__message.getReplyTo(), self.__store, -1)
 		if key == "ReplyAt":
-			return self.__message.getReplyAt()
+			return UserWrapper(self.__message.getReplyAt(), self.__store, -1)
 		if key == "IsReply":
 			return self.__message.isReply()
-		if key == "IsReplyTo":
+		if key == "IsInReplyTo":
 			return self.__message.getReplyTo() != None
 		if key == "IsDirectMessage":
 			return self.__message.isDirectMessage()
 		if key == "DirectMessageAt":
-			return self.__message.getDirectAt()
+			return UserWrapper(self.__message.getDirectAt(), self.__store, -1)
 		if key == "CanReply":
+			if self.__id == -1: return False
+			#Cannot ever reply to an outbox message!
+			if self.__isOutbox: return False
 			#Determine if we can reply to this message
 			accounts = self.__store.getAccounts(self.__message.getService())
 			for account in accounts:
@@ -372,16 +420,23 @@ class MessageWrapper:
 					return True
 			return False
 		if key == "CanSendDirectMessage":
+			if self.__id == -1: return False
+			#Cannot ever send direct to an outbox message!
+			if self.__isOutbox: return False
 			#Determine if we send direct messages as reply to this message
 			accounts = self.__store.getAccounts(self.__message.getService())
 			for account in accounts:
 				if account.getCapabilities().canDirect(self.__message.getUser(), self.__message):
 					return True
 			return False
+		if key == "CanDelete":
+			if self.__id == -1: return False
+			#Can delete messages in outbox
+			return self.__isOutbox
 		if key == "Id":
 			return self.__id
-		else:
-			raise KeyError, "Key not found"
+		#Key wasn't found if we got here:
+		raise KeyError, "Key not found"
 
 class JavascriptAPI(QObject):
 	"""Simple object that exposes the javascript API of tweetview"""
@@ -396,3 +451,7 @@ class JavascriptAPI(QObject):
 	@pyqtSignature("int")	
 	def direct(self, id):
 		return self._view._direct(id)
+		
+	@pyqtSignature("int")	
+	def delete(self, id):
+		return self._view._delete(id)

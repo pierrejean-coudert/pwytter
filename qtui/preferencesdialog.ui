@@ -6,7 +6,7 @@
     <x>0</x>
     <y>0</y>
     <width>522</width>
-    <height>660</height>
+    <height>614</height>
    </rect>
   </property>
   <property name="windowTitle" >
@@ -16,7 +16,7 @@
    <item>
     <widget class="QTabWidget" name="tabWidget" >
      <property name="currentIndex" >
-      <number>1</number>
+      <number>2</number>
      </property>
      <widget class="QWidget" name="tab" >
       <attribute name="title" >
@@ -313,8 +313,6 @@
              </layout>
             </item>
            </layout>
-           <zorder>WhitelistTagListWidget</zorder>
-           <zorder>BlacklistTagListWidget</zorder>
           </widget>
          </item>
         </layout>
@@ -325,25 +323,57 @@
       <attribute name="title" >
        <string>Theme</string>
       </attribute>
-      <layout class="QVBoxLayout" name="verticalLayout_11" >
+      <layout class="QVBoxLayout" name="verticalLayout_10" >
        <item>
         <widget class="QGroupBox" name="groupBox_4" >
          <property name="title" >
           <string>Theme information</string>
          </property>
-         <layout class="QVBoxLayout" name="verticalLayout_10" >
+         <layout class="QHBoxLayout" name="horizontalLayout_7" >
           <item>
-           <widget class="QLabel" name="label_3" >
-            <property name="text" >
-             <string>TextLabel</string>
+           <widget class="QSplitter" name="splitter" >
+            <property name="orientation" >
+             <enum>Qt::Vertical</enum>
             </property>
-            <property name="alignment" >
-             <set>Qt::AlignCenter</set>
-            </property>
+            <widget class="QScrollArea" name="scrollArea" >
+             <property name="widgetResizable" >
+              <bool>true</bool>
+             </property>
+             <widget class="QWidget" name="scrollAreaWidgetContents" >
+              <property name="geometry" >
+               <rect>
+                <x>0</x>
+                <y>0</y>
+                <width>456</width>
+                <height>143</height>
+               </rect>
+              </property>
+              <layout class="QHBoxLayout" name="horizontalLayout_2" >
+               <item>
+                <widget class="QLabel" name="PreviewLabel" >
+                 <property name="sizePolicy" >
+                  <sizepolicy vsizetype="Expanding" hsizetype="Expanding" >
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <property name="text" >
+                  <string>preview</string>
+                 </property>
+                 <property name="alignment" >
+                  <set>Qt::AlignCenter</set>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </widget>
+            <widget class="QTextBrowser" name="ThemeDescriptionTextBrowser" >
+             <property name="openLinks" >
+              <bool>false</bool>
+             </property>
+            </widget>
            </widget>
-          </item>
-          <item>
-           <widget class="QTextBrowser" name="textBrowser" />
           </item>
          </layout>
         </widget>
@@ -356,7 +386,14 @@
         </widget>
        </item>
        <item>
-        <widget class="QListWidget" name="listWidget_5" />
+        <widget class="QListWidget" name="ThemeListWidget" >
+         <property name="sizePolicy" >
+          <sizepolicy vsizetype="Minimum" hsizetype="Expanding" >
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+        </widget>
        </item>
       </layout>
      </widget>

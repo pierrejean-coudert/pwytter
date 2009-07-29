@@ -16,6 +16,7 @@ import event
 from newtwitteraccountdialog import NewTwitterAccountDialog
 from newidenticaaccountdialog import NewIdenticaAccountDialog
 from preferencesdialog import PreferencesDialog
+from theme import Theme
 
 #switch back to old locale, this fixes local bug in time.strptime()
 #see: http://www.mail-archive.com/python-bugs-list@python.org/msg11325.html
@@ -58,6 +59,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 		#Provide store for TweetView
 		self.tweetView.setStore(self._store)
 		
+		#Load settings
+		self.loadSettings()
+		
 		self._statusIconLinks = {"unconfigured":QPixmap(":/icons/icons/tango/22x22/categories/preferences-system.png"), 
 						"idle":					QPixmap(":/icons/icons/tango/22x22/status/network-idle.png"),
 						"offline":				QPixmap(":/icons/icons/tango/22x22/status/network-offline.png"),
@@ -66,10 +70,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 		
 		#Add combobox to select view, cannot be done in QtDesigner
 		self.ViewComboBox = QComboBox(self.ViewToolBar)
+		self.ViewComboBox.setObjectName("ViewComboBox")
 		self.ViewToolBar.addWidget(self.ViewComboBox)
-		self.ViewComboBox.addItems(["Timeline", "Replies", "Direct messages", "Friends", "Followers"])	#TODO: Add icons for these
-		self.connect(self.ViewComboBox, SIGNAL("currentIndexChanged(int)"), self.showMessages)
+		self.ViewComboBox.addItems(["Timeline", "Replies", "Direct messages", "Outbox", "Friends", "Followers"])	#TODO: Add icons for these
 		self.ViewComboBox.setCurrentIndex(0)
+		self.connect(self.ViewComboBox, SIGNAL("currentIndexChanged(int)"), self.showMessages)
 		
 		#Add ToolButton for toggling MessageEdit collapsation
 		collapseToolbutton = QToolButton(self)
@@ -79,9 +84,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 		self.statusbarMessageLabel = QLabel("", self)
 		self.statusbar.addWidget(self.statusbarMessageLabel, 1)
 		
-		
 		#Update account list
 		self.updateAccountList()
+		
 		#Setup tray icon
 		self.setupTrayIcon()
 		
@@ -97,21 +102,26 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 		#Hide the writing reply to... label initially
 		self.replyLabel.hide()
 		self.clearReplyButton.hide()
-		
-		#Load settings
-		self.loadSettings()
 
 	def loadSettings(self):
 		"""Loads settings, to be invoked during initialization and when settings have been altered."""
 		#Load settings for TweetView
 		self.tweetView.setTweetPageSize(self._store.settings.get("MainWindow/TweetsPerPage", 10))
 		self.tweetView.setUserPageSize(self._store.settings.get("MainWindow/UsersPerPage", 15))
+		try: #Load theme from settings
+			self.theme = Theme(self._store.settings["MainWindow/Theme"])
+		except: #If cannot load from settings load default theme
+			self.theme = Theme()
+		#Set the theme on TweetView and load Qt stylesheet
+		self.tweetView.setTheme(self.theme)
+		QCoreApplication.instance().setStyleSheet(self.theme.getQtStylesheet())
 		#TODO: Load settings for synchronizations timer, interval is self._store.settings.get("MainWindow/SynchronizationInterval", 180)
+		#TODO: Load form size, position etc. if we want to... 
 
 	def saveSettings(self):
 		"""Save various settings, before closing"""
 		self._store.save()
-		#TODO: Save form size etc. if we want to... 
+		#TODO: Save form size, position etc. if we want to... 
 
 	def closeEvent(self, event):
 		"""Hide mainWindow when it's suppose to close
@@ -333,7 +343,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 			#Find limit if needed
 			if not self._newMessageState.startswith("prefixed"):
 				for account in accounts:
-					if state.endswith("reply"):
+					if self._newMessageState.endswith("reply"):
 						limit = min(limit, account.getCapabilities().replyMessageSize())
 					else:
 						limit = min(limit, account.getCapabilities().directMessageSize())
