@@ -13,7 +13,8 @@ svn checkout https://pwytter.googlecode.com/svn/branches/backend_split/ pwytter-
 
 = Windows Install =
 ==Mandatory==
-  * pyQT http://www.riverbankcomputing.co.uk/software/pyqt/download
+  * [pyQT http://www.riverbankcomputing.co.uk/software/pyqt/download]
+  * [PyYAML http://pyyaml.org/]
 ==Optional==
   * if you need Qt documentaion: QT install http://www.qtsoftware.com/downloads
 
