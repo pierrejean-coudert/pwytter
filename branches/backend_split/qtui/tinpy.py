@@ -175,7 +175,7 @@ class DictEnhanceAccessor:
                         {'__builtins__':{}}, # globals is restricted.
                         {'val':val}) # locals is only 'val'
         except Exception, e:
-            if self.strict: raise Exception, e
+            if self.strict: raise#Remove the following to reraise correctly: Exception, e
         return  ''
 
     def __setitem__(self, key, val):

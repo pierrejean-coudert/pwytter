@@ -346,7 +346,7 @@ class IdenticaCapabilities(tweetstore.AccountCapabilities):
 		self._store = store
 		self._account = account
 	
-	def canReply(self, user):
+	def canReply(self, user, message = None):
 		return user.getService() == service_string
 	
 	def replyPrefix(self, user):
@@ -360,7 +360,7 @@ class IdenticaCapabilities(tweetstore.AccountCapabilities):
 			return tweetstore.User(self._store, parts[0], service_string)
 		return False
 	
-	def canDirect(self, user):
+	def canDirect(self, user, message = None):
 		#Identica accounts can only send direct message to people who follow them
 		return self._store.isFollower(user, self._account)
 	

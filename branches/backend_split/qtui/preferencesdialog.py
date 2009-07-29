@@ -4,6 +4,8 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from ui_preferencesdialog import Ui_PreferencesDialog
 from tweetstore import TweetStore
+from theme import getThemes
+import webbrowser
 
 class PreferencesDialog(QDialog, Ui_PreferencesDialog):
 	def __init__(self, store, parent = None):
@@ -48,7 +50,16 @@ class PreferencesDialog(QDialog, Ui_PreferencesDialog):
 		#Load whitelist tags
 		for tag in self.__store.notification.whitelistStrings:
 			self.WhitelistTagListWidget.addItem(tag)
-		
+		#Load theme settings
+		currentTheme = self.__store.settings.get("MainWindow/Theme", "default")
+		themeItem = None
+		for theme in getThemes():
+			item = QListWidgetItem(str(theme), self.ThemeListWidget, QListWidgetItem.Type)
+			item.setData(Qt.UserRole, QVariant(theme))
+			if theme.getName() == currentTheme:
+				themeItem = item
+		if themeItem:
+			self.ThemeListWidget.setCurrentItem(themeItem)
 
 	@pyqtSignature("")
 	def on_buttonBox_accepted(self):
@@ -83,6 +94,8 @@ class PreferencesDialog(QDialog, Ui_PreferencesDialog):
 		for row in range(0, self.WhitelistTagListWidget.count()):
 			tag = unicode(self.WhitelistTagListWidget.item(row).text())
 			self.__store.notification.whitelistStrings += (tag,)
+		#Save theme selection
+		self.__store.settings["MainWindow/Theme"] = self.ThemeListWidget.currentItem().data(Qt.UserRole).toPyObject().getName()
 		#Return the dialog
 		self.accept()
 	
@@ -132,3 +145,20 @@ class PreferencesDialog(QDialog, Ui_PreferencesDialog):
 		text = self.WhitelistTagLineEdit.text()
 		self.WhitelistTagListWidget.addItem(text)
 		self.WhitelistTagLineEdit.clear()
+
+	@pyqtSignature("")
+	def on_ThemeListWidget_itemSelectionChanged(self):
+		#TODO: Make this work...
+		theme = self.ThemeListWidget.currentItem().data(Qt.UserRole).toPyObject()
+		#Display description
+		#TODO: Insert author etc.
+		self.ThemeDescriptionTextBrowser.setHtml("<h3>" + theme.getTitle() + "</h3>" + theme.getDescription())
+		#Display preview
+		pix = QPixmap()
+		pix.loadFromData(theme.getPreview())
+		self.PreviewLabel.setPixmap(pix)
+
+	@pyqtSignature("QUrl")
+	def on_ThemeDescriptionTextBrowser_anchorClicked(self, url):
+		#Open all links in external browser, regardless of what it is
+		webbrowser.open(url.toString(), 1)

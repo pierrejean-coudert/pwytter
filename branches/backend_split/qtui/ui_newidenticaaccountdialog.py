@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'newidenticaaccountdialog.ui'
 #
-# Created: Sun Jul 19 12:40:50 2009
+# Created: Tue Jul 28 17:39:30 2009
 #      by: PyQt4 UI code generator 4.4.4
 #
 # WARNING! All changes made in this file will be lost!
