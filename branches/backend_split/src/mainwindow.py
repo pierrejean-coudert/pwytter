@@ -54,6 +54,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         configdir = os.environ.get("XDG_CONFIG_HOME")
         if not configdir:
             configdir = os.path.join(os.path.expanduser("~"), ".config")
+        if not os.path.isdir(configdir):
+            os.makedirs(configdir)
         self._store = TweetStore(os.path.join(configdir, "pwytter.db"))
         
         #Connect aboutToQuit to save settings

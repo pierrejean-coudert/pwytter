@@ -50,7 +50,7 @@ class Theme:
                             path = os.path.join(directory, name) #If it is a theme, set path and break
                             break
         if not path: #If we haven't got a path by now, the theme does not exists
-            raise Exception, "A theme with the name '%' does not exist in any of the search directories.", name
+            raise Exception, "A theme with the name '" + name + "' does not exist in any of the search directories."
         self.__path = path
         self.__info = yaml.load(open(os.path.join(self.__path, "info.yaml")).read())
         
