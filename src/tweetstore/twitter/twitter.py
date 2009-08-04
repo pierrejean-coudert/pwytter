@@ -1,4 +1,4 @@
-#!/usr/bin/python
+# -*- coding: utf-8 -*-
 #
 # Copyright 2007 Google Inc. All Rights Reserved.
 
@@ -17,7 +17,6 @@ import time
 import urllib
 import urllib2
 import urlparse
-import twitter
 import locale
 
 class TwitterError(Exception):
