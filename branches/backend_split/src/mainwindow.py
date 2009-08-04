@@ -4,6 +4,7 @@ import locale
 from functools import partial
 from Queue import Queue
 from time import strftime, localtime, strptime
+import os
 
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
@@ -48,8 +49,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         #Setup event synchronization
         event.synchronizeEvent = EventSynchronizer(self)
         
-        #TODO: Find a good place to save this, follow freedesktop specs on Linux, and whatever on Windows and OS X
-        self._store = TweetStore("tweets.db")
+        #Find place to save user settings, e.g. the database
+        #Comply with XDG Base Directory Specification v0.6
+        configdir = os.environ.get("XDG_CONFIG_HOME")
+        if not configdir:
+            configdir = os.path.join(os.path.expanduser("~"), ".config")
+        self._store = TweetStore(os.path.join(configdir, "pwytter.db"))
         
         #Connect aboutToQuit to save settings
         self.connect(QCoreApplication.instance(), SIGNAL("aboutToQuit()"), self.saveSettings)

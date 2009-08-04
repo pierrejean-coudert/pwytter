@@ -10,6 +10,10 @@ commands = ("pyuic4 " + path.join("ui", "mainwindow.ui") + " -o " + path.join("u
             "pyrcc4 " + path.join("ui", "ressources.qrc") + " -o " + path.join("ui", "ressources_rc.py")
 )
 
-for command in commands:
-    print command
-    os.system(command)
+def build():
+    for command in commands:
+        print command
+        os.system(command)
+
+if __name__ == "__main__":
+    build()
