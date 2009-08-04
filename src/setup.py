@@ -14,6 +14,14 @@
      - navigate to ./deb_dist/pwytter-x.y.z/
      - run dpkg-buildpackage -rfakeroot -uc -us
     Note: This barely works and does NOT conform with Debian python policy!
+
+    Instruction for Windows:
+     - Install dependencies uncompressed:
+         easy_install -Z simplejson
+         easy_install -Z pyyaml
+         For details see: http://www.py2exe.org/index.cgi/ExeWithEggs
+     - Generate binaries using setup.py py2exe
+     - TODO: Write an NSIS installer
 """
 
 #Build stuff before setup
@@ -36,8 +44,17 @@ if platform.system() == "Linux":
     pass
 #Windows specific options
 elif platform.system() == "Windows":
-    pass
-    #TODO: py2exe specifics
+    #py2exe specific options
+    import py2exe
+    platform_options["windows"] = ["pwytter.pyw",]
+    platform_options["options"] = {
+        "py2exe": {
+            #Hack that fixes something:
+            "dll_excludes": ["MSVCP90.dll"],
+            #Hack that includes sip: http://www.py2exe.org/index.cgi/Py2exeAndPyQt
+            "includes": ["sip"]
+        }
+    }
 #OS X specific options
 elif platform.system() == "Darwin":
     pass
@@ -79,7 +96,7 @@ setup(
     packages = find_packages(),
     py_modules = ["mainwindow", "newidenticaaccountdialog", "newtwitteraccountdialog", "preferencesdialog", "theme", "tinpy", "tweetview"],
     scripts = ["pwytter.pyw"],
-    install_requires = ["pyyaml>=2.0", "simplejson>=1.9"],
+    install_requires = ["pyyaml>=2.0", "simplejson>=1.9", "setuptools"],
     include_package_data = False,
     data_files = datafiles(os.path.join("share", "pwytter", "themes"), "themes"),
     #Platform specifics, py2exe, py2app, etc.
