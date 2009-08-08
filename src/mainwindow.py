@@ -68,6 +68,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         #Provide store for TweetView
         self.tweetView.setStore(self._store)
         
+        #Save default style
+        self.__defaultStyle = QApplication.style().objectName()
         #Load settings
         self.loadSettings()
         
@@ -121,8 +123,19 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.theme = Theme(self._store.settings["MainWindow/Theme"])
         except: #If cannot load from settings load default theme
             self.theme = Theme()
-        #Set the theme on TweetView and load Qt stylesheet
+        #Set the theme on TweetView
         self.tweetView.setTheme(self.theme)
+        #Set QStyle
+        styleSet = False
+        print self.theme.getQStyles()
+        for identifier in self.theme.getQStyles():
+            if QApplication.setStyle(identifier):
+                styleSet = True
+                break
+        if not styleSet:
+            #Note: This we find default style using objectName(), this is undocumented and may not work in the future.
+            assert QApplication.setStyle(self.__defaultStyle) != None, "Couldn't set default QStyle."
+        #Load Qt stylesheet
         QCoreApplication.instance().setStyleSheet(self.theme.getQtStylesheet())
         #TODO: Load settings for synchronizations timer, interval is self._store.settings.get("MainWindow/SynchronizationInterval", 180)
         #TODO: Load form size, position etc. if we want to... 

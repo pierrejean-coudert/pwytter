@@ -7,7 +7,7 @@ from os import path
 
 from ui import translations_rc
 from PyQt4.QtCore import QLocale, QTranslator
-from PyQt4.QtGui import QApplication
+from PyQt4.QtGui import QApplication,QStyleFactory
 from mainwindow import MainWindow
 __version__ = "0.1"
 
