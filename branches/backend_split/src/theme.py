@@ -40,15 +40,17 @@ class Theme:
         
             Note: name must the be theme name of a theme in one of the search directories.
         """
+        for directory in search_directories:
+            print directory
         self.__name = name
         #If path is not provided search for it
-        if not path:
-            for directory in search_directories:
-                for entry in os.listdir(unicode(directory)):
-                    if entry == name: #First check the name, then check if it's a dir that contains an yaml file
-                        if os.path.isdir(os.path.join(directory, name)) and os.path.isfile(os.path.join(directory, name, "info.yaml")):
-                            path = os.path.join(directory, name) #If it is a theme, set path and break
-                            break
+        for directory in search_directories:
+            if path: break
+            for entry in os.listdir(unicode(directory)):
+                if entry == name: #First check the name, then check if it's a dir that contains an yaml file
+                    if os.path.isdir(os.path.join(directory, name)) and os.path.isfile(os.path.join(directory, name, "info.yaml")):
+                        path = os.path.join(directory, name) #If it is a theme, set path and break
+                        break
         if not path: #If we haven't got a path by now, the theme does not exists
             raise Exception, "A theme with the name '" + name + "' does not exist in any of the search directories."
         self.__path = path
@@ -134,3 +136,13 @@ class Theme:
             return open(path).read()
         else:
             return ""
+
+    def getQStyles(self):
+        """Gets a list of strings identifing QStyles.
+            If the first style on the list on unavailable use the next,
+            and if none of them are available use the default style.
+        """
+        try:
+            return self.__info["QtStyles"]
+        except KeyError:
+            return []
