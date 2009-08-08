@@ -5,6 +5,7 @@ import sys
 from os import path
 #from pkg_resources import Requirement, resource_filename
 
+from ui import translations_rc
 from PyQt4.QtCore import QLocale, QTranslator
 from PyQt4.QtGui import QApplication
 from mainwindow import MainWindow
@@ -33,8 +34,14 @@ if __name__ == "__main__":
     if path.isdir(installed_themes):
         theme.search_directories += (installed_themes,)
     
-    #Create application and main window
+    #Create application
     application = QApplication(sys.argv)
+    #Load translations if available
+    locale = QLocale.system().name()
+    translator = QTranslator()
+    if translator.load("pwytter." + locale, ":/translations/locale/"):
+        application.installTranslator(translator)
+    #Create main window
     mainWindow = MainWindow()
     mainWindow.show()
     #Start main loop
