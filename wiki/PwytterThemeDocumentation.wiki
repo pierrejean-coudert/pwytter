@@ -11,11 +11,12 @@ In each theme directory there must be a file called `info.yaml` and `preview.png
 
 || *Key*	    || *Description* ||
 || `Title`        || The title of the theme, this will be presented to the user instead if the theme name. ||
-|| `Authors`      || A list of authors, author name as key and e-mail as value. ||
+|| `Authors`      || A dictionary of authors, author name as key and e-mail as value. ||
 || `Website`      || Website for the theme, a link that will be available to the user. ||
 || `Version`      || Version of the theme, as string, add two dots or use quotation to ensure it's not interpreted as a float. ||
 || `Requires`     || Required API version that this theme is written for, as string, add two dots or use quotation to ensure it's not interpreted as a float. ||
 || `Description`  || Text that describes this theme, this text will be presented to the user when selecting theme. ||
+|| `QtStyles` || An optional list of QStyles to be used with the theme. The first QStyle will be used if it is available, otherwise the next QStyle on the list will be used. See [http://www.riverbankcomputing.co.uk/static/Docs/PyQt4/html/qstylefactory.html#create Qt documentation] for information on available QStyles. If no style is provided system default QStyle is used. ||
 
 *Note:* info.yaml must be UTF-8 encoded.
 
