@@ -107,7 +107,7 @@ class TweetView(QWebView):
                     reply.setContent(str(data))
             elif urlparts[2] == "theme":
                 ressource = path.join(self.__theme.getPath(), *urlparts[3:])
-                reply.setContent(open(ressource).read())
+                reply.setContent(open(ressource, "rb").read())
             else:
                 print "Invalid url: " + url.toString()
                 reply.setContent("<h1>404</h1><br>File not found!", "text/html; charset=UTF-8")
