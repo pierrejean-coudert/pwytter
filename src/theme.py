@@ -93,7 +93,7 @@ class Theme:
         
     def getPreview(self):
         """Gets a preview of this theme as buffer."""
-        return str(open(os.path.join(self.__path, "preview.png")).read())
+        return open(os.path.join(self.__path, "preview.png"), "rb").read()
         
     def __repr__(self):
         """Gets a string representation of this theme."""
