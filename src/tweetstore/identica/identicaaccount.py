@@ -370,6 +370,14 @@ class IdenticaCapabilities(tweetstore.AccountCapabilities):
     def isDirectPrefix(self, text):
         return False
     
+    def canRetweet(self, msg):
+        """ Returns True if this class can be used to generate a retweet message for a message"""
+        return msg.getService() == service_string
+        
+    def retweetText(self, msg):
+        """ Returns the retweet text for a retweet to a message"""
+        return "RT @" + msg.getUser().getUsername() + ": " + msg.getMessage()
+    
     def updateMessageSize(self):
         return 140
         

@@ -127,7 +127,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.tweetView.setTheme(self.theme)
         #Set QStyle
         styleSet = False
-        print self.theme.getQStyles()
         for identifier in self.theme.getQStyles():
             if QApplication.setStyle(identifier):
                 styleSet = True
@@ -279,6 +278,28 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         #Force update UI
         self.displayMessageEditPane()
         self.on_MessageTextEdit_textChanged()   #Consider removing this if not needed
+        
+    @pyqtSignature("QVariant")
+    def on_tweetView_retweet(self, msg):
+        """Prepare to send a retweet at msg
+        
+            This method initiates a retweet by inserting a message and does not set any programmatic state
+        """
+        #Clear any state set
+        self.on_clearReplyButton_clicked()
+        #Get the user and message object
+        msg = msg.toPyObject()
+        #Generate a retweet
+        for account in self._store.getAccounts():
+            capability = account.getCapabilities()
+            if capability.canRetweet(msg):
+                self.MessageTextEdit.document().setPlainText(capability.retweetText(msg))
+                break
+        #Select 'All' in PostFromComboBox
+        self.PostFromComboBox.setCurrentIndex(0)
+        #Force update UI
+        self.displayMessageEditPane()
+        self.on_MessageTextEdit_textChanged()
         
     @pyqtSignature("QVariant, QVariant")
     def on_tweetView_direct(self, user, msg):

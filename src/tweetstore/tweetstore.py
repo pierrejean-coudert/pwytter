@@ -1968,7 +1968,15 @@ class AccountCapabilities:
             If direct messages by prefixing is not supported then always return False
         """
         raise NotImplementedError, "isDirectPrefix must be overwritten in subclasses of AccountCapabilities"
+    
+    def canRetweet(self, msg):
+        """ Returns True if this class can be used to generate a retweet message for a message"""
+        raise NotImplementedError, "canRetweet must be overwritten in subclasses of AccountCapabilities"
         
+    def retweetText(self, msg):
+        """ Returns the retweet text for a retweet to a message"""
+        raise NotImplementedError, "retweetText must be overwritten in subclasses of AccountCapabilities"
+    
     def updateMessageSize(self):
         """Number of characters an update can consist of, 2 to the power of 16 if there's no practical limit"""
         raise NotImplementedError, "updateMessageSize must be overwritten in subclasses of AccountCapabilities"
