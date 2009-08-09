@@ -44,7 +44,7 @@ class TweetView(QWebView):
         pwytter://search/<account>/<query>
         pwytter://view/timeline/<account>/<page>/by/<index>
     """
-    __pyqtSignals__ = ("reply(QVariant, QVariant)", "direct(QVariant, QVariant)")
+    __pyqtSignals__ = ("reply(QVariant, QVariant)", "direct(QVariant, QVariant)", "retweet(QVariant)")
     
     def __init__(self, parent = None):
         #Initialize the underlying widget
@@ -209,6 +209,22 @@ class TweetView(QWebView):
         except:
             return "Exception occured: \n" + traceback.format_exc()
     
+    def _retweet(self, id):
+        """Handle javascript callback to create a retweet for message with id"""
+        if id == -1:
+            return "Cannot use item in current view, there's likely a bug in the template!"
+        try:
+            #Get message and user we wish to reply to
+            msg = self._content[id]
+            if not isinstance(msg, tweetstore.Message):
+                return "Cannot retweet to a user, this is likely a template bug!"
+            #Emit signal for the mainWindow to handle
+            self.emit(SIGNAL("retweet(QVariant)"), QVariant(msg))
+        except IndexError:
+            return "Item does not exist, there's likely a bug in the template!"
+        except:
+            return "Exception occured: \n" + traceback.format_exc()
+            
     def _direct(self, id):
         """Handle javascript callback to create a direct for message or user with id"""
         if id == -1:
@@ -420,6 +436,16 @@ class MessageWrapper:
                 if account.getCapabilities().canReply(self.__message.getUser(), self.__message):
                     return True
             return False
+        if key == "CanRetweet":
+            if self.__id == -1: return False
+            #Cannot ever reply to an outbox message!
+            if self.__isOutbox: return False
+            #Determine if we can reply to this message
+            accounts = self.__store.getAccounts(self.__message.getService())
+            for account in accounts:
+                if account.getCapabilities().canRetweet(self.__message):
+                    return True
+            return False
         if key == "CanSendDirectMessage":
             if self.__id == -1: return False
             #Cannot ever send direct to an outbox message!
@@ -456,3 +482,7 @@ class JavascriptAPI(QObject):
     @pyqtSignature("int")   
     def delete(self, id):
         return self._view._delete(id)
+        
+    @pyqtSignature("int")   
+    def retweet(self, id):
+        return self._view._retweet(id)

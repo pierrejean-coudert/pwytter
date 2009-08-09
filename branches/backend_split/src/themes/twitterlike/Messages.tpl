@@ -58,6 +58,9 @@ a.name:hover{
 			[%if Message["CanReply"]%]
 				<img src="pwytter://theme/images/reply-all.png" title="Reply" onclick="window.pwytter.reply([% var Message["Id"] %])">
 			[%endif%]
+			[%if Message["CanRetweet"]%]
+				<img src="pwytter://theme/images/mail-forward.png" title="Retweet" onclick="window.pwytter.retweet([% var Message["Id"] %])">
+			[%endif%]
 			[%if Message["CanSendDirectMessage"]%]
 				<img src="pwytter://theme/images/reply-sender.png" title="Direct message" onclick="window.pwytter.direct([% var Message["Id"] %])">
 			[%endif%]

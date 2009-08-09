@@ -18,6 +18,7 @@ import urllib
 import urllib2
 import urlparse
 import locale
+import twitter
 
 class TwitterError(Exception):
   '''Base class for Twitter errors'''

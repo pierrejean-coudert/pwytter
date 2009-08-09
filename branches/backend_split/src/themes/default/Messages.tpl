@@ -33,6 +33,9 @@ a.name:hover{
 		[%if Message["CanReply"]%]
 			<u class='cmd' onclick='window.pwytter.reply([% var Message["Id"]%])'>reply</u>
 		[%endif%]
+		[%if Message["CanRetweet"]%]
+			<u class='cmd' onclick='window.pwytter.retweet([% var Message["Id"]%])'>retweet</u>
+		[%endif%]
 		[%if Message["CanSendDirectMessage"]%]
 			<u class='cmd' onclick='window.pwytter.direct([% var Message["Id"]%])'>direct message</u>
 		[%endif%]
