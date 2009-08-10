@@ -22,7 +22,7 @@ svn checkout https://pwytter.googlecode.com/svn/branches/backend_split/src/ pwyt
   * simplejson
   * [http://py2exe.org/ py2exe] (optional)
 
-If you wish to build py2exe bundles using the included setup.py script, pyyaml and simplejson must be installed and extracted, e.g. not installed as compressed eggs. You can install and extract pyyaml and simplejson using ´easy_install -Z pyyaml´ and ´easy_install -Z simplejson´. Alternately, if you don't wish to build bundles using py2exe, pyyaml and simplejson can be installed using ´setup.py develop´ (the setup.py script is included in the source folder).
+If you wish to build py2exe bundles using the included setup.py script, pyyaml and simplejson must be installed and extracted, e.g. not installed as compressed eggs. You can install and extract pyyaml and simplejson using `easy_install -Z pyyaml` and `easy_install -Z simplejson`. Alternately, if you don't wish to build bundles using py2exe, pyyaml and simplejson can be installed using `setup.py develop` (the setup.py script is included in the source folder).
 
 = Ubuntu/Debian =
 
