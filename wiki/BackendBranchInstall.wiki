@@ -1,24 +1,39 @@
 #summary How to install required lib to run the backend branch
 #labels Phase-Support
 
+These installation methods should only be used by developers and beta testers.
+
 = Get Source Code=
 {{{
-svn checkout http://pwytter.googlecode.com/svn/branches/backend_split/ pwytter-qt
+svn checkout http://pwytter.googlecode.com/svn/branches/backend_split/src/ pwytter-qt
 }}}
 
 for registered developper
 {{{
-svn checkout https://pwytter.googlecode.com/svn/branches/backend_split/ pwytter-qt --username your.user.name
+svn checkout https://pwytter.googlecode.com/svn/branches/backend_split/src/ pwytter-qt --username your.user.name
 }}}
 
-= Windows Install =
-==Mandatory==
-  * [http://www.riverbankcomputing.co.uk/software/pyqt/download pyQT]
-  * [http://pyyaml.org/ PyYAML]
-==Optional==
-  * if you need Qt documentaion: QT install http://www.qtsoftware.com/downloads
+= Windows =
+
+== Dependencies ==
+  * [http://python.org/ftp/python/2.6.2/python-2.6.2.msi Python 2.6]
+  * [http://www.riverbankcomputing.co.uk/software/pyqt/download PyQT]
+  * pyyaml
+  * simplejson
+  * [http://py2exe.org/ py2exe] (optional)
+
+If you wish to build py2exe bundles using the included setup.py script, pyyaml and simplejson must be installed and extracted, e.g. not installed as compressed eggs. You can install and extract pyyaml and simplejson using ´easy_install -Z pyyaml´ and ´easy_install -Z simplejson´. Alternately, if you don't wish to build bundles using py2exe, pyyaml and simplejson can be installed using ´setup.py develop´ (the setup.py script is included in the source folder).
+
+= Ubuntu/Debian =
+
+== Dependencies ==
+   * python-yaml >= 3.0
+   * python-simplejson >= 1.9
+   * python-qt4 >= 4.4
+
+All dependencies can be installed using the package manager.
 
 = Run Pwytter =
 {{{
-python main.pyw
+python pwytter.pyw
 }}}
