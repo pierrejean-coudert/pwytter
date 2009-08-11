@@ -1,7 +1,9 @@
 #!/usr/bin
+
 import sys,time,os
 from Queue import *
-import xmpp 
+
+import xmpp
 
 from PyQt4.QtGui import *
 from PyQt4.QtCore import *
@@ -9,7 +11,7 @@ from PyQt4.QtCore import *
 import Presence
 
 from login import *
-from AddFriend import * 
+from AddFriend import *
 from MainWindow import *
 from ChatWindow import *
 
@@ -19,20 +21,20 @@ class LogInScreen(QDialog,Ui_frm_login):
 	photo_directory="./photos"
         if not os.path.exists(photo_directory):
 	  os.makedirs(photo_directory)
-        
+
         self.nameQueue = Queue(10)
         self.msgQueue = Queue(10)
-	
+
         super(LogInScreen,self).__init__(parent)
         self.setupUi(self)
-	self.mutex = QMutex()	
+	self.mutex = QMutex()
         self.presence = Presence.PresenceStatus(self)
         self.success = False
-	
+
         self.connect(self.buttonCancel,SIGNAL("clicked()"),self,SLOT("close()"))
         self.connect(self.buttonSignIn,SIGNAL("clicked()"),self.authenticateUser)
-	
-    
+
+
     def authenticateUser(self):
 
         self.username = str(self.lEditUserName.text())
@@ -40,44 +42,44 @@ class LogInScreen(QDialog,Ui_frm_login):
         if not self.username.find("@gmail.com") > 0 :
 
             self.username = self.username + "@gmail.com"
-            
+
         self.threadRotate = Rotate(self)
         self.threadRotate.start()
-       
+
         self.threadAuthenticate=Authenticate(self)
         self.threadAuthenticate.start()
-        
+
 	self.connect(self.threadRotate,SIGNAL("finished()"),self.threadRotate,SLOT("deleteLater()"))
 	self.connect(self.threadAuthenticate,SIGNAL("finished()"),self.checkAuthentication)
-	self.connect(self.threadAuthenticate,SIGNAL("finished()"),self.threadAuthenticate,SLOT("deleteLater()"))		
-    
-    def checkAuthentication(self) :	
-	
+	self.connect(self.threadAuthenticate,SIGNAL("finished()"),self.threadAuthenticate,SLOT("deleteLater()"))
+
+    def checkAuthentication(self) :
+
         if self.success :
 
             self.threadRotate.success = False
 	    self.presence.askForProbe()
-	   
+
 	    self.threadReAuthenticate = Authenticate(self)
 	    self.threadReAuthenticate.start()
-	 
+
 	    self.connect(self.threadReAuthenticate,SIGNAL("finished()"),self.displayMainWindow)
 	    self.connect(self.threadReAuthenticate,SIGNAL("finished()"),self.threadReAuthenticate,SLOT("deleteLater()"))
-	    
-			
+
+
         else :
 	    self.threadRotate.success = False
 	    QMessageBox.warning(self,"Authentication error !","Please check your username and password !")
             self.lEditPassword.setText("")
-            
+
 
 
     def displayMainWindow(self):
-	    
+
             self.download = Presence.Download(self)
             self.main_frm = MainWindow(self)
-	    self.download.start()	
-            
+	    self.download.start()
+
 	    self.main_frm.show()
 	    self.setHidden(True)
             time.sleep(9)
@@ -85,61 +87,61 @@ class LogInScreen(QDialog,Ui_frm_login):
             self.connect(self.addBuddies,SIGNAL("photoLoad()"),self.load)
 	    self.connect(self,SIGNAL("popup()"),self.main_frm.popup)
 	    self.addBuddies.start()
-	    mypath = self.presence.getFilename(self.username)	
+	    mypath = self.presence.getFilename(self.username)
 	    try :
 		pic=QPixmap(mypath)
-                self.main_frm.lblPhoto.setPixmap(pic)    
+                self.main_frm.lblPhoto.setPixmap(pic)
 	    except Exception ,e :
 		pass
-          	
+
     def load(self):
 
             pic=QPixmap(self.addBuddies.path)
             ico=QIcon(pic)
             self.addBuddies.buddy.setIcon(ico)
-		  	    	
+
     def ping(self):
-                
+
                 if not self.nameQueue.empty():
                         self.sender=self.nameQueue.get()
                 	if not self.msgQueue.empty():
                  	       self.msg=self.msgQueue.get()
 	           	       self.emit(SIGNAL("popup()"))
-	
+
 
 class AddBuddies(QThread):
-        
+
 
    def __init__(self,parent=None):
-            
+
 	    super(AddBuddies,self).__init__(parent)
             self.login_frm = parent
             self.main_frm = parent.main_frm
             self.close = True
             self.Frndlist = {}
             self.presence = parent.presence
-	    self.deleteFrnds = [] 
-	
+	    self.deleteFrnds = []
+
    def run(self):
 
 
             count=len(self.login_frm.nmtopresence)
-	   
+
             for i in range(count):
                   try :
                        nameOfFrnd=self.login_frm.nmtopresence[i]
                   except Exception,e:
-                       pass 
+                       pass
                   self.addFriends(nameOfFrnd)
 
 
 
-           
+
             while self.close:
-		       	
+
                        time.sleep(30)
                        present = self.Frndlist.keys()
-		       deleteCount = 0	
+		       deleteCount = 0
 
                        sortedlist = []
                        sortedlist = present
@@ -149,55 +151,55 @@ class AddBuddies(QThread):
                                         pass
                                 else :
 
-					
+
                                         self.addFriends(changes)
                                         time.sleep(1)
 		       len(present)
-		       
+
                        for keyname in present:
                                 if keyname in self.login_frm.nmtopresence :
                                         pass
                                 else:
-                                         
+
                                         index = 0
                                         for temp in sortedlist  :
 
                                                 if keyname == temp :
                                                         break
                                                 index = index+1
-									
+
                                         self.deleteFrnds.append(keyname)
                                         try:
                                                 if deleteCount > 0 :
 						    index = index - deleteCount
-						
+
 						self.login_frm.mutex.lock()
-						
+
                                                 removeditem = self.main_frm.lstFrndList.takeItem(index)
 						deleteCount = deleteCount + 1
 						time.sleep(2)
 						self.login_frm.mutex.unlock()
                                         except Exception,e:
-                                                pass 
-						pass	
-		      
-		       		
+                                                pass
+						pass
+
+
 		       for frnd in self.deleteFrnds :
-				
+
 				if frnd in sortedlist :
-		
+
 					del self.Frndlist[frnd]
-                       
-		       self.deleteFrnds = [] 
-		       keys = self.Frndlist.keys()	
+
+		       self.deleteFrnds = []
+		       keys = self.Frndlist.keys()
 		       for frnd in keys :
-			
+
 		       		listitem = self.Frndlist[frnd]
 				try :
                 			nmtoshw = self.login_frm.nmtoshow[frnd]
                 			nms = self.login_frm.nmtostatus[frnd]
         			except Exception ,e :
-                		        pass	
+                		        pass
 					pass
         			if nmtoshw == "away" :
                 			nmtoshw = " Away "
@@ -214,17 +216,17 @@ class AddBuddies(QThread):
         			if len(nms)>40 :
               					nms = nms[0:40]
               					nms = nms+"..."
-        			text = frnd 
+        			text = frnd
 
         			if len(text)>45 :
               				text = name[0:40]
               				text = text+"..."
         			text = text + nmtoshw + "\n" +nms
         			listitem.setText(text)
-				
+
 
    def addFriends(self,name):
-	
+
 	self.buddy = QListWidgetItem()
         self.path = self.presence.getFilename(name)
         if  not self.path :
@@ -232,24 +234,24 @@ class AddBuddies(QThread):
 
         self.emit(SIGNAL("photoLoad()"))
         time.sleep(0.5)
-	
+
 
 	text =self.getText(name)
         self.buddy.setText(text)
         self.Frndlist[name] = self.buddy
-               
+
         self.main_frm.lstFrndList.addItem(self.buddy)
-		
+
         self.main_frm.lstFrndList.setSortingEnabled(True)
         self.main_frm.lstFrndList.sortItems(0)
-		
-	
+
+
    def getText(self,name) :
 	try :
 		nmtoshw = self.login_frm.nmtoshow[name]
 	        nms = self.login_frm.nmtostatus[name]
 	except Exception ,e :
-		pass 
+		pass
         if nmtoshw == "away" :
                 nmtoshw = " Away "
         elif nmtoshw == "dnd" :
@@ -272,9 +274,9 @@ class AddBuddies(QThread):
               text = text+"..."
         text = text + nmtoshw + "\n" +nms
 	return text
-  	
+
 class Rotate(QThread):
-    
+
     def __init__(self,frm):
         super(Rotate,self).__init__(frm)
         self.login_frm = frm
@@ -301,16 +303,16 @@ class Authenticate(QThread):
 
         super(Authenticate,self).__init__(frm)
         self.login_frm=frm
-        
+
 
     def run(self):
-               
+
                  self.login_frm.success = self.login_frm.presence.login(self.login_frm.username,self.login_frm.password)
 
 
 
 
-    
+
 class MainWindow(QMainWindow,Ui_BuddyList):
 
     def __init__(self,parent = None):
@@ -318,13 +320,13 @@ class MainWindow(QMainWindow,Ui_BuddyList):
         super(MainWindow,self).__init__(parent)
         self.parent = parent
         self.setupUi(self)
-        
+
 	if not self.lstFrndList.hasMouseTracking():
                         self.lstFrndList.setMouseTracking(True)
 	self.connect(self,SIGNAL("destroyed(QObject*)"),self,SLOT("closeEvent(QCloseEvent*)"))
         self.connect(self,SIGNAL("rejected()"),self.parent,SLOT("close()"))
 	self.connect(self.action_Add_Contact,SIGNAL("triggered()"),self.addFriend)
-	
+
 	if not self.lstFrndList.hasMouseTracking():
                         self.lstFrndList.setMouseTracking(True)
         self.connect(self.lstFrndList,SIGNAL("itemEntered(QListWidgetItem *)"),self.setToolTipText)
@@ -349,7 +351,7 @@ class MainWindow(QMainWindow,Ui_BuddyList):
 		QCoreApplication.quit()
 
     def setShow(self, index) :
-	
+
 	show = self.cmdSetStatus.currentText()
 	if show == "Available" :
 		show = 'None'
@@ -360,10 +362,10 @@ class MainWindow(QMainWindow,Ui_BuddyList):
 	try :
 		self.con.send(xmpp.Presence(show = show))
 	except Exception ,e :
-		pass 
+		pass
 
     def setStatus(self)	:
-	
+
 	status =unicode(self.lEditStatusUpdate.toPlainText())
         if status.find('\n') >= 0 :
                 self.lEditStatusUpdate.setText("")
@@ -373,12 +375,12 @@ class MainWindow(QMainWindow,Ui_BuddyList):
 		pass
 
     def popup(self):
-                
+
                 self.sender = self.parent.sender
 		self.msg = self.parent.msg
 
 		keys = self.activeWindows.keys()
-		
+
 		if  self.sender not in keys :
 			member = self.parent.addBuddies.Frndlist
     		  	chat=ChatWindow(self,self.sender)
@@ -394,24 +396,24 @@ class MainWindow(QMainWindow,Ui_BuddyList):
 			text = chat.ShowChat.toPlainText()
 			text = text + self.sender + " :- " + self.msg
 			chat.ShowChat.setText(text)
-			
-		
+
+
     def setToolTipText(self,member):
                 fname = unicode(member.text())
 		p = fname.find(' ')
 		sname = fname[:p]
-		              
+
                 sname = sname.rstrip()
                 try :
 			stext = self.parent.nmtostatus[sname]
 		except Exception ,e :
-                        pass 
+                        pass
 			stext = ""
 		p = fname.find('\n')
 	        imagepath = self.parent.presence.getFilename(sname)
 
 		sname = fname[:p]
-		
+
 		try :
                   if imagepath:
                         text= '<img src=%s style="float:left"></img><div style="float:left"><b>%s</b><br><br>%s</div>' % (imagepath,sname,stext)
@@ -419,19 +421,19 @@ class MainWindow(QMainWindow,Ui_BuddyList):
                         text = '%s%s' % (sname,stext)
 
                 except Exception ,e :
-                       pass 	
-		
+                       pass
+
 		member.setToolTip(text)
-  	
- 		
+
+
 
     def memberClicked(self,member) :
-	 
+
 	sendTo = unicode(member.text())
 	pos = sendTo.find(' ')
-	 	
+
 	sendTo = sendTo[:pos]
-	sendTo = sendTo.rstrip() 
+	sendTo = sendTo.rstrip()
 	keys = self.activeWindows.keys()
 	if sendTo not in keys :
 		chat=ChatWindow(self,sendTo)
@@ -440,9 +442,9 @@ class MainWindow(QMainWindow,Ui_BuddyList):
        		self.activeWindows[sendTo] = chat
 
     def closeEvent(self,event):
-        	
+
 	self.closeAll()
-  
+
     def closeAll(self):
 	self.parent.close=False
         self.emit(SIGNAL("rejected()"))
@@ -457,12 +459,12 @@ class ChatWindow(QMainWindow,Ui_ChatWindow):
         def __init__(self,parent,sendTo):
                 super(ChatWindow,self).__init__(parent)
                 self.setupUi(self)
-		
+
 		self.parent=parent
 		self.sendTo = sendTo
 		self.lblName.setText(self.sendTo)
 		self.jabber = self.parent.parent.success
-		
+
 		self.connect(self,SIGNAL("destroyed(QObject*)"),self,SLOT("closeEvent(QCloseEvent*)"))
                 self.connect(self.txtMsgSend,SIGNAL("textChanged()"),self.send)
 
@@ -479,14 +481,14 @@ class ChatWindow(QMainWindow,Ui_ChatWindow):
         			self.jabber.send(msg)
 			except Exception ,e :
 				QMessageBox.warning(self,"Network error !","Message sending failed !")
-			        pass  	
+			        pass
 
-	
+
 	def closeEvent(self,event):
                 try :
-                        
+
                     del self.parent.activeWindows[self.sendTo]
-                                  
+
                 except Exception,e:
                       pass
 
@@ -497,7 +499,7 @@ class ChatWindow(QMainWindow,Ui_ChatWindow):
                  try:
                         self.ShowChat.setText(display)
                  except Exception ,e:
-			pass                        
+			pass
 
 
 class AddFriend(QDialog,Ui_AddDialog):
@@ -510,7 +512,7 @@ class AddFriend(QDialog,Ui_AddDialog):
                 self.parent=parent
 
         def addme(self):
-                
+
                 frndsname=str(self.txtAddFrnd.text())
                 if not frndsname.find("@gmail.com") > 0 :
                                   QMessageBox.warning(self,"Invalid Input !","Please check entered name !")
@@ -519,11 +521,11 @@ class AddFriend(QDialog,Ui_AddDialog):
                         self.jabber=self.parent.parent.success
         		pres=xmpp.Presence(to=frndsname,typ="subscribe")
                         self.jabber.send(pres)
-                       
-                        self.emit(SIGNAL("closed()"))          
+
+                        self.emit(SIGNAL("closed()"))
 
 if __name__ == "__main__" :
-    	
+
     app = QApplication(sys.argv)
     LoginForm=LogInScreen()
     LoginForm.show()
