@@ -68,6 +68,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         #Provide store for TweetView
         self.tweetView.setStore(self._store)
         
+        #Create synchronization timer
+        self.syncTimer = QTimer(self)
+        self.connect(self.syncTimer, SIGNAL("timeout()"), self.on_SynchronizeAllAccountsAction_triggered)
+        
         #Save default style
         self.__defaultStyle = QApplication.style().objectName()
         #Load settings
@@ -104,6 +108,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         #Subscribe to events by tweetstore
         self._store.onStatusChange += self.statusChanged
         self._store.notification.onNotification += self.displayNotification
+        self._store.onSyncCompleted += self.onSyncCompleted
         
         #Setup splitter index 0 to not be collapsable, e.g. TweetView cannot be collapsed
         self.splitter.setCollapsible(0, False)
@@ -113,9 +118,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         #Hide the writing reply to... label initially
         self.replyLabel.hide()
         self.clearReplyButton.hide()
+        
+        #Start synchronization, everytime the application starts
+        self._store.sync()
 
     def loadSettings(self):
         """Loads settings, to be invoked during initialization and when settings have been altered."""
+        #Setup synchronization timer
+        self.syncTimer.stop()
+        self.syncTimer.setInterval(self._store.settings.get("MainWindow/SynchronizationInterval", 180) * 1000)
+        self.syncTimer.start()
         #Load settings for TweetView
         self.tweetView.setTweetPageSize(self._store.settings.get("MainWindow/TweetsPerPage", 10))
         self.tweetView.setUserPageSize(self._store.settings.get("MainWindow/UsersPerPage", 15))
@@ -174,8 +186,26 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         min, max = self.splitter.getRange(1)
         self.CollapseMessageEditAction.setChecked(x != max)
 
+    @pyqtSignature("bool")
+    def on_PauseSynchronizationAction_toggled(self, checked):
+        """ Pauses timed synchronizations, e.g. stops and resets the syncTimer
+        """
+        if checked:
+            self.syncTimer.stop()
+        else:
+            self.syncTimer.start()
+
     @pyqtSignature("")
-    def on_SynchronizeAccountsAction_triggered(self):
+    def on_SynchronizeAllAccountsAction_triggered(self):
+        """ Synchronize all accounts on TweetStore
+            Handle syncTimer timeout and the synchronize all accounts action used in 
+            tray icon context menu and the edit menu
+        """
+        self._store.sync()
+
+    @pyqtSignature("")
+    def on_SynchronizeSelectedAccountsAction_triggered(self):
+        """Synchronize the selected account or all if 'All' is selected"""
         #Get the account
         account = None
         actext = self.ViewAccountComboBox.currentText()
@@ -184,6 +214,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 account = ac
         #Sync the account, None for syncing all accounts
         self._store.sync(account)
+    
+    def onSyncCompleted(self):
+        """Handle synchronization completed events from TweetStore"""
+        self.tweetView.reload()
     
     def showMessages(self, *whatever):
         """Shows messages depending on comboboxes"""
@@ -528,7 +562,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             for account in self._store.getAccounts():
                 if self.PostFromComboBox.findText(str(account)) != -1:
                     accounts += (account,)
-        print accounts
         #If we're writing a programmatic reply
         if self._newMessageState:
             for account in accounts:
@@ -649,7 +682,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self._statusbarLabels[account].setToolTip(str(account) + "\n" + status)
         #TODO: Attempt reauthendicate if status is "bad authendication"
         
-        
     @pyqtSignature("")
     def on_PreferencesAction_triggered(self):
         dlg = PreferencesDialog(self._store, self)
@@ -673,14 +705,25 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def setupTrayIcon(self):
         """Setup the tray icon"""
         self.TrayIcon = QSystemTrayIcon(QIcon(":/icons/icons/pwytter.png"), self)
-        #TODO: Add menu to the tray icon
+        #TODO: Add dynamic tooltip
+        #Create a context menu for the tray icon
+        self.TrayContextMenu = QMenu("Pwytter", self)
+        self.TrayContextMenu.addAction("View/Hide &Pwytter", self.ViewOrHide)
+        self.TrayContextMenu.addSeparator()
+        self.TrayContextMenu.addAction(self.SynchronizeAllAccountsAction)
+        self.TrayContextMenu.addAction(self.PauseSynchronizationAction)
+        self.TrayContextMenu.addSeparator()
+        self.TrayContextMenu.addAction(self.QuitAction)
+        #Set the context menu
+        self.TrayIcon.setContextMenu(self.TrayContextMenu)
         self.connect(self.TrayIcon, SIGNAL("activated(QSystemTrayIcon::ActivationReason)"), self.ViewOrHide)
         self.TrayIcon.show()
 
-    def ViewOrHide(self, reason):
+    def ViewOrHide(self, reason = None):
         """Handle clicks on the tray icon"""
-        if reason == QSystemTrayIcon.Trigger:
+        if reason == QSystemTrayIcon.Trigger or reason == None:
             self.setVisible(not self.isVisible())
+            self.setWindowState(Qt.WindowActive)
 
     @pyqtSignature("")
     def on_HideWindowAction_triggered(self):
