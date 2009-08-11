@@ -197,7 +197,7 @@
        <normaloff>:/icons/icons/tango/32x32/actions/list-remove.png</normaloff>:/icons/icons/tango/32x32/actions/list-remove.png</iconset>
      </property>
     </widget>
-    <addaction name="SynchronizeAccountsAction" />
+    <addaction name="SynchronizeSelectedAccountsAction" />
     <addaction name="separator" />
     <addaction name="menuConnect_to" />
     <addaction name="RemoveAccountMenu" />
@@ -214,6 +214,9 @@
     <property name="title" >
      <string>&amp;Edit</string>
     </property>
+    <addaction name="SynchronizeAllAccountsAction" />
+    <addaction name="PauseSynchronizationAction" />
+    <addaction name="separator" />
     <addaction name="PreferencesAction" />
    </widget>
    <addaction name="menuFile" />
@@ -242,7 +245,7 @@
    <attribute name="toolBarBreak" >
     <bool>false</bool>
    </attribute>
-   <addaction name="SynchronizeAccountsAction" />
+   <addaction name="SynchronizeSelectedAccountsAction" />
   </widget>
   <action name="NewTwitterAccountAction" >
    <property name="icon" >
@@ -276,13 +279,13 @@
     <string>&amp;Help</string>
    </property>
   </action>
-  <action name="SynchronizeAccountsAction" >
+  <action name="SynchronizeSelectedAccountsAction" >
    <property name="icon" >
     <iconset resource="ressources.qrc" >
      <normaloff>:/icons/icons/tango/32x32/actions/view-refresh.png</normaloff>:/icons/icons/tango/32x32/actions/view-refresh.png</iconset>
    </property>
    <property name="text" >
-    <string>&amp;Synchronize accounts</string>
+    <string>&amp;Synchronize selected accounts</string>
    </property>
   </action>
   <action name="NewIdenticaAccountAction" >
@@ -318,6 +321,28 @@
    </property>
    <property name="text" >
     <string>&amp;Preferences</string>
+   </property>
+  </action>
+  <action name="SynchronizeAllAccountsAction" >
+   <property name="icon" >
+    <iconset resource="ressources.qrc" >
+     <normaloff>:/icons/icons/tango/32x32/actions/view-refresh.png</normaloff>:/icons/icons/tango/32x32/actions/view-refresh.png</iconset>
+   </property>
+   <property name="text" >
+    <string>&amp;Synchronize all accounts</string>
+   </property>
+  </action>
+  <action name="PauseSynchronizationAction" >
+   <property name="checkable" >
+    <bool>true</bool>
+   </property>
+   <property name="icon" >
+    <iconset resource="ressources.qrc" >
+     <normaloff>:/icons/icons/tango/22x22/actions/media-playback-pause.png</normaloff>
+     <normalon>:/icons/icons/tango/22x22/actions/media-playback-start.png</normalon>:/icons/icons/tango/22x22/actions/media-playback-pause.png</iconset>
+   </property>
+   <property name="text" >
+    <string>Pause synchronization</string>
    </property>
   </action>
  </widget>

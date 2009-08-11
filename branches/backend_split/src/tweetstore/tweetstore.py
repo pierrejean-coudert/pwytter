@@ -127,7 +127,7 @@ class TweetStore:
     
         Note: If multiple calls to sync() is made before this event is called, this event will ONLY be raised one
         time, e.g. when all these synchronization requests have been completed.
-        Eventhandlers should take any parameters to handle this event.
+        Eventhandlers should take no parameters to handle this event.
     """
 
     onNewTweets = Event()
@@ -1152,10 +1152,10 @@ class NotificationEngine:
     notifyOnNewFollowers = True
     """Generate a notification whenever a new follower of the user appears."""
     
-    notifyOnNewFriends = False
+    notifyOnNewFriends = True
     """Generate a notification whenever a new friend of the user appears."""
     
-    notifyOnSynchronized = True
+    notifyOnSynchronized = False
     """Generate a notification when synchronization is completed."""
     
     onNotification = Event()
@@ -1202,27 +1202,64 @@ class NotificationEngine:
             if len(newFriends) > 0:
                 self.__store.onNewFriends.raiseEvent(newFriends)
             
-            #Generate synchronization completed notification, to sum up
-            if self.notifyOnSynchronized:
+            #Make list of stuff that the user should be notified about
+            nTweets = ()
+            for message in newTweets:
+                if self.notifyOnNewTweets and not self.__isBlocked(message):
+                    nTweets += (message,)
+            nReplies = ()
+            for reply in newReplies:
+                if self.notifyOnNewReplies and not self.__isBlocked(reply):
+                    nReplies += (reply,)
+            nDirectMessages = ()
+            for message in newDirectMessages:
+                if self.notifyOnNewDirectMessages and not self.__isBlocked(message):
+                    nDirectMessages += (message,)
+            nFollowers = ()
+            for follower in newFollowers:
+                if self.notifyOnNewFollowers and not self.isBlacklisted(follower):
+                    nFollowers += (follower,)
+            nFriends = ()
+            for friend in newFriends:
+                if self.notifyOnNewFriends and not self.isBlacklisted(friend):
+                    nFriends += (friend,)
+            
+            #Count how many things the user needs to be notified about
+            notifications = len(nTweets) + len(nReplies) + len(nDirectMessages) + len(nFollowers) + len(nFriends)
+            
+            #If we have only one thing to notify about do that...
+            if notifications == 1:
+                if len(nTweets) > 0:
+                    self.onNotification.raiseEvent("New tweet by " + nTweets[0].getUser().getName(), nTweets[0].getMessage(), nTweets[0].getUser().getImage())
+                elif len(nReplies) > 0:
+                    self.onNotification.raiseEvent("New reply from " + nReplies[0].getUser().getName(), nReplies[0].getMessage(), nReplies[0].getUser().getImage())
+                elif len(nDirectMessages) > 0:
+                    self.onNotification.raiseEvent("New direct message from " + nDirectMessages[0].getUser().getName(), nDirectMessages[0].getMessage(), nDirectMessages[0].getUser().getImage())
+                elif len(nFollowers) > 0:
+                    self.onNotification.raiseEvent("New follower", nFollowers[0].getName() + " on " + nFollowers[0].getService() + " is now following you.", nFollowers[0].getImage())
+                elif len(nFriends) > 0:
+                    self.onNotification.raiseEvent("New friend", nFriends[0].getName() + " on " + nFriends[0].getService() + " is now a friend of yours.", nFriends[0].getImage())
+            #If we have multiple things to notify about do
+            elif notifications > 1:
                 msgs = ()
-                if len(newTweets) > 0:
+                if len(nTweets) > 0:
                     msgs += (str(len(newTweets)) + " new tweets",) 
-                if len(newReplies) > 0:
+                if len(nReplies) > 0:
                     msgs += (str(len(newReplies)) + " new replies",) 
-                if len(newDirectMessages) > 0:
+                if len(nDirectMessages) > 0:
                     msgs += (str(len(newDirectMessages)) + " new direct messages",) 
-                if len(newFollowers) > 0:
+                if len(nFollowers) > 0:
                     msgs += (str(len(newFollowers)) + " new followers",) 
-                if len(newFriends) > 0:     
+                if len(nFriends) > 0:     
                     msgs += (str(len(newFriends)) + " new friends",)
-                if len(msgs) == 0:
-                    notification = "You have nothing new."
-                elif len(msgs) == 1:
+                if len(msgs) == 1:
                     notification = "You have " + msgs[0] + "."
                 else:
                     notification = "You have " + ", ".join(msgs[:-1]) + " and " + msgs[-1] + "."
-                #Raise the notification event
                 self.onNotification.raiseEvent("Synchronization completed", notification, None) #TODO: Consider having a image
+            #If we have no notifications, but the user demands us to notify on synchronized
+            elif self.notifyOnSynchronized:
+                self.onNotification.raiseEvent("Synchronization completed", "Synchronization completed, nothing was retrieved.", None)
     
     __newTweets = ()
     """Tuple of new tweets from users timeline that appeared during synchronization"""
@@ -1243,41 +1280,26 @@ class NotificationEngine:
         """Inform the notification engine that a new tweets from users timeline appeared during synchronization"""
         assert isinstance(message, Message), "message must an instance of Message"
         self.__newTweets += (message,)
-        #Generate event if needed
-        if self.notifyOnNewTweets and not self.__isBlocked(message):
-            self.onNotification.raiseEvent("New tweet by " + message.getUser().getName(), message.getMessage(), message.getUser().getImage())
     
     def _newReply(self, message):
         """Inform the notification engine that a new reply at the user appeared during synchronization"""
         assert isinstance(message, Message), "message must an instance of Message"
         self.__newReplies += (message,)
-        #Generate event if needed
-        if self.notifyOnNewReplies and not self.__isBlocked(message):
-            self.onNotification.raiseEvent("New reply from " + message.getUser().getName(), message.getMessage(), message.getUser().getImage())
         
     def _newDirectMessage(self, message):
         """Inform the notification engine that a new direct message to the user appeared during synchronization"""
         assert isinstance(message, Message), "message must an instance of Message"
         self.__newDirectMessages += (message,)
-        #Generate event if needed
-        if self.notifyOnNewDirectMessages and not self.__isBlocked(message):
-            self.onNotification.raiseEvent("New direct message from " + message.getUser().getName(), message.getMessage(), message.getUser().getImage())
     
     def _newFollower(self, user):
         """Inform the notification engine that a new follower of the user user appeared during synchronization"""
         assert isinstance(user, User), "user must an instance of User"
         self.__newFollowers += (user,)
-        #Generate event if needed
-        if self.notifyOnNewFollowers and not self.isBlacklisted(user):
-            self.onNotification.raiseEvent("New follower", user.getName() + " on " + user.getService() + " is now following you.", user.getImage())
     
     def _newFriend(self, user):
         """Inform the notification engine that a new friend of the user user appeared during synchronization"""
         assert isinstance(user, User), "user must an instance of User"
         self.__newFriends += (user,)
-        #Generate event if needed
-        if self.notifyOnNewFriends and not self.isBlacklisted(user):
-            self.onNotification.raiseEvent("New friend", user.getName() + " on " + user.getService() + " is now a friend of yours.", user.getImage())
     
 
 class CatchedSettings:
