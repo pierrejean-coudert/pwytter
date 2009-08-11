@@ -27,7 +27,10 @@ def photo_update_handler(session, stanza):
     photo = vupdate.getTag('photo')
     if not photo:
         return
-    photo = photo.getData()
+    try :
+    	photo = photo.getData()
+    except Exception , e :
+	pass 	
     if not photo:
         return
     #request the photo only if we don't have it already
@@ -35,7 +38,8 @@ def photo_update_handler(session, stanza):
         try:
 		request_vcard(session, JID)
 	except Exception,e :
-		print "123",e
+		pass
+
 def get_photo(photo_hash):
     for ext in PHOTO_TYPES.values():
         filepath = append_directory(photo_hash + ext)

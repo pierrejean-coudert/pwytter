@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'main.ui'
 #
-# Created: Tue Aug  4 20:34:01 2009
+# Created: Tue Aug 11 17:02:32 2009
 #      by: PyQt4 UI code generator 4.5.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -26,10 +26,10 @@ class Ui_BuddyList(object):
         self.cmdSetStatus.setGeometry(QtCore.QRect(10, 10, 161, 27))
         self.cmdSetStatus.setObjectName("cmdSetStatus")
         self.lblPhoto = QtGui.QLabel(self.centralwidget)
-        self.lblPhoto.setGeometry(QtCore.QRect(190, 0, 71, 51))
+        self.lblPhoto.setGeometry(QtCore.QRect(220, 0, 71, 51))
         self.lblPhoto.setObjectName("lblPhoto")
-        self.lEditStatusUpdate = QtGui.QLineEdit(self.centralwidget)
-        self.lEditStatusUpdate.setGeometry(QtCore.QRect(20, 460, 231, 28))
+        self.lEditStatusUpdate = QtGui.QTextEdit(self.centralwidget)
+        self.lEditStatusUpdate.setGeometry(QtCore.QRect(10, 450, 271, 31))
         self.lEditStatusUpdate.setObjectName("lEditStatusUpdate")
         BuddyList.setCentralWidget(self.centralwidget)
         self.menubar = QtGui.QMenuBar(BuddyList)
@@ -59,7 +59,6 @@ class Ui_BuddyList(object):
         self.actionIdentica = QtGui.QAction(BuddyList)
         self.actionIdentica.setObjectName("actionIdentica")
         self.menu_Buddies.addAction(self.action_Add_Contact)
-        self.menu_Buddies.addAction(self.action_Change_Photo)
         self.menu_Buddies.addAction(self.action_Quit)
         self.menuAccounts.addAction(self.actionTwitter)
         self.menuAccounts.addAction(self.actionIdentica)

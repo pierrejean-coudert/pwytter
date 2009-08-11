@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'chatwindow.ui'
 #
-# Created: Sat Aug  8 20:31:52 2009
+# Created: Tue Aug 11 15:07:30 2009
 #      by: PyQt4 UI code generator 4.5.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -38,7 +38,10 @@ class Ui_ChatWindow(object):
         self.txtMsgSend.setSizePolicy(sizePolicy)
         self.txtMsgSend.setObjectName("txtMsgSend")
         self.ShowChat = QtGui.QTextEdit(self.centralwidget)
+        self.ShowChat.setEnabled(True)
         self.ShowChat.setGeometry(QtCore.QRect(30, 50, 391, 191))
+        self.ShowChat.setLineWrapMode(QtGui.QTextEdit.WidgetWidth)
+        self.ShowChat.setReadOnly(True)
         self.ShowChat.setObjectName("ShowChat")
         ChatWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtGui.QMenuBar(ChatWindow)
