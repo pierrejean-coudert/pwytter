@@ -4,114 +4,331 @@
 <context>
     <name>MainWindow</name>
     <message>
-        <location filename="ui_mainwindow.py" line="189"/>
+        <location filename="ui_mainwindow.py" line="202"/>
         <source>Pwytter</source>
         <translation>Pwytter</translation>
     </message>
     <message>
-        <location filename="ui_mainwindow.py" line="190"/>
+        <location filename="ui_mainwindow.py" line="203"/>
         <source>&lt;b&gt;Reply to&lt;/b&gt;</source>
         <translation>&lt;b&gt;Svar til&lt;/b&gt;</translation>
     </message>
     <message>
-        <location filename="ui_mainwindow.py" line="191"/>
+        <location filename="ui_mainwindow.py" line="204"/>
         <source>Clear reply/direct message settings for this message.</source>
         <translation>Ryd svar/direkte besked instillinger for denne besked.</translation>
     </message>
     <message>
-        <location filename="ui_mainwindow.py" line="192"/>
+        <location filename="ui_mainwindow.py" line="205"/>
         <source>...</source>
         <translation>...</translation>
     </message>
     <message>
-        <location filename="ui_mainwindow.py" line="193"/>
+        <location filename="ui_mainwindow.py" line="206"/>
         <source>Update</source>
         <translation>Opdater</translation>
     </message>
     <message>
-        <location filename="ui_mainwindow.py" line="194"/>
+        <location filename="ui_mainwindow.py" line="207"/>
         <source>Account to post status update to.</source>
         <translation>Konto som status opdatering skal sendes til.</translation>
     </message>
     <message>
-        <location filename="ui_mainwindow.py" line="195"/>
+        <location filename="ui_mainwindow.py" line="208"/>
         <source>&amp;File</source>
         <translation>&amp;Filer</translation>
     </message>
     <message>
-        <location filename="ui_mainwindow.py" line="196"/>
+        <location filename="ui_mainwindow.py" line="209"/>
         <source>&amp;View</source>
         <translation>&amp;Vis</translation>
     </message>
     <message>
-        <location filename="ui_mainwindow.py" line="197"/>
+        <location filename="ui_mainwindow.py" line="210"/>
         <source>&amp;Accounts</source>
         <translation>&amp;Kontoer</translation>
     </message>
     <message>
-        <location filename="ui_mainwindow.py" line="198"/>
+        <location filename="ui_mainwindow.py" line="211"/>
         <source>Add account</source>
         <translation>Tilføj konto</translation>
     </message>
     <message>
-        <location filename="ui_mainwindow.py" line="199"/>
+        <location filename="ui_mainwindow.py" line="212"/>
         <source>Remove account</source>
         <translation>Fjern konto</translation>
     </message>
     <message>
-        <location filename="ui_mainwindow.py" line="206"/>
+        <location filename="ui_mainwindow.py" line="219"/>
         <source>&amp;Help</source>
         <translation>&amp;Hjælp</translation>
     </message>
     <message>
-        <location filename="ui_mainwindow.py" line="201"/>
+        <location filename="ui_mainwindow.py" line="214"/>
         <source>&amp;Edit</source>
         <translation>&amp;Rediger</translation>
     </message>
     <message>
-        <location filename="ui_mainwindow.py" line="202"/>
+        <location filename="ui_mainwindow.py" line="215"/>
         <source>Content toolbar</source>
         <translation>Indholds værktøjslinje</translation>
     </message>
     <message>
-        <location filename="ui_mainwindow.py" line="203"/>
+        <location filename="ui_mainwindow.py" line="216"/>
         <source>&amp;Twitter account</source>
         <translation>&amp;Twitter konto</translation>
     </message>
     <message>
-        <location filename="ui_mainwindow.py" line="204"/>
+        <location filename="ui_mainwindow.py" line="217"/>
         <source>&amp;Quit</source>
         <translation>&amp;Afslut</translation>
     </message>
     <message>
-        <location filename="ui_mainwindow.py" line="205"/>
+        <location filename="ui_mainwindow.py" line="218"/>
         <source>&amp;About</source>
         <translation>&amp;Om</translation>
     </message>
     <message>
         <location filename="ui_mainwindow.py" line="207"/>
         <source>&amp;Synchronize accounts</source>
-        <translation>&amp;Synkroniser kontoer</translation>
+        <translation type="obsolete">&amp;Synkroniser kontoer</translation>
     </message>
     <message>
-        <location filename="ui_mainwindow.py" line="208"/>
+        <location filename="ui_mainwindow.py" line="221"/>
         <source>&amp;Identi.ca account</source>
         <translation>&amp;Identi.ca konto</translation>
     </message>
     <message>
-        <location filename="ui_mainwindow.py" line="209"/>
+        <location filename="ui_mainwindow.py" line="222"/>
         <source>&amp;Hide window</source>
         <translation>&amp;Skjul vindue</translation>
     </message>
     <message>
-        <location filename="ui_mainwindow.py" line="210"/>
+        <location filename="ui_mainwindow.py" line="223"/>
         <source>Toggle new message field.</source>
         <translation>&amp;Vis/skjul ny besked felt.</translation>
     </message>
     <message>
-        <location filename="ui_mainwindow.py" line="211"/>
+        <location filename="ui_mainwindow.py" line="224"/>
         <source>&amp;Preferences</source>
         <translation>&amp;Indstillinger</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.py" line="61"/>
+        <source>New tweet by </source>
+        <translation>Ny besked af </translation>
+    </message>
+    <message>
+        <location filename="mainwindow.py" line="62"/>
+        <source>New reply from </source>
+        <translation>Ny svar fra </translation>
+    </message>
+    <message>
+        <location filename="mainwindow.py" line="63"/>
+        <source>New direct message from </source>
+        <translation>Ny direkte besked fra </translation>
+    </message>
+    <message>
+        <location filename="mainwindow.py" line="64"/>
+        <source>New follower</source>
+        <translation>Ny følger</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.py" line="65"/>
+        <source>%s on %s is now following you.</source>
+        <translation>%s på %s følger nu dig.</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.py" line="66"/>
+        <source>New friend</source>
+        <translation>Ny ven </translation>
+    </message>
+    <message>
+        <location filename="mainwindow.py" line="67"/>
+        <source>%s on %s is now a friend of yours.</source>
+        <translation>%s på %s er nu en af dine venner.</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.py" line="68"/>
+        <source> new tweets</source>
+        <translation> nye beskeder</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.py" line="69"/>
+        <source> new replies</source>
+        <translation> nye svar</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.py" line="70"/>
+        <source> new direct messages</source>
+        <translation> nye direkte beskeder</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.py" line="71"/>
+        <source> new followers</source>
+        <translation> nye følgere</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.py" line="72"/>
+        <source> new friends</source>
+        <translation> nye venner</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.py" line="73"/>
+        <source>You have </source>
+        <translation>Du har </translation>
+    </message>
+    <message>
+        <location filename="mainwindow.py" line="74"/>
+        <source> and </source>
+        <translation> og </translation>
+    </message>
+    <message>
+        <location filename="mainwindow.py" line="75"/>
+        <source>Synchronization completed</source>
+        <translation>Synkronisering fuldendt</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.py" line="76"/>
+        <source>Synchronization completed, nothing new was retrieved.</source>
+        <translation>Synkronisering fuldendt, intet nyt blev hentet.</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.py" line="108"/>
+        <source>Timeline</source>
+        <translation>Tidslinje</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.py" line="109"/>
+        <source>Replies</source>
+        <translation>Svar</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.py" line="110"/>
+        <source>Direct messages</source>
+        <translation>Direkte beskeder</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.py" line="111"/>
+        <source>Outbox</source>
+        <translation>Udbakke</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.py" line="112"/>
+        <source>Friends</source>
+        <translation>Venner</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.py" line="113"/>
+        <source>Followers</source>
+        <translation>Følgere</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.py" line="461"/>
+        <source>Reply to &lt;b&gt;%s&lt;/b&gt;</source>
+        <translation>Svar til &lt;b&gt;%s&lt;/b&gt;</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.py" line="463"/>
+        <source>Direct message to &lt;b&gt;%s&lt;/b&gt;</source>
+        <translation>Direkte besked til &lt;b&gt;%s&lt;/b&gt;</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.py" line="465"/>
+        <source> in reply to: &lt;i&gt;%s&lt;/i&gt;</source>
+        <translation> som svar på: &lt;i&gt;%s&lt;/i&gt;</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.py" line="486"/>
+        <source>Can&apos;t reply to %s using %s!</source>
+        <translation>Kan ikke svare til %s med %s!</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.py" line="488"/>
+        <source>Can&apos;t send direct messages to %s using %s!</source>
+        <translation>Can ikke sende direkte besked til %s med %s!</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.py" line="498"/>
+        <source>Reply to %s on </source>
+        <translation>Svar til %s på </translation>
+    </message>
+    <message>
+        <location filename="mainwindow.py" line="499"/>
+        <source>Reply</source>
+        <translation>Svar</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.py" line="505"/>
+        <source> and direct message to %s on </source>
+        <translation> og direkte besked til %s på </translation>
+    </message>
+    <message>
+        <location filename="mainwindow.py" line="506"/>
+        <source>Send and reply</source>
+        <translation>Send og svar</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.py" line="508"/>
+        <source>Direct message to %s on </source>
+        <translation>Direkte besked til %s på </translation>
+    </message>
+    <message>
+        <location filename="mainwindow.py" line="509"/>
+        <source>Send</source>
+        <translation>Send</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.py" line="676"/>
+        <source>All accounts</source>
+        <translation>Alle kontoer</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.py" line="651"/>
+        <source>Failed to connect to </source>
+        <translation>Kunne ikke forbinde til </translation>
+    </message>
+    <message>
+        <location filename="mainwindow.py" line="701"/>
+        <source>Do you really want to remove the connection to %s ?</source>
+        <translation>Ønsker du virkelig at fjerne forbindelsen til %s ?</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.py" line="726"/>
+        <source>About Pwytter</source>
+        <translation>Om Pwytter</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.py" line="726"/>
+        <source>Pwytter is an open source
+ microblog client for Windows, OS X and Linux.</source>
+        <translation>Pwytter er en open source
+ microblog client til Windows, OS X og Linux.</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.py" line="738"/>
+        <source>View/Hide &amp;Pwytter</source>
+        <translation>Vis/Skjul &amp;Pwytter</translation>
+    </message>
+    <message>
+        <location filename="ui_mainwindow.py" line="220"/>
+        <source>&amp;Synchronize selected accounts</source>
+        <translation>&amp;Synckroniser markerede kontoer</translation>
+    </message>
+    <message>
+        <location filename="ui_mainwindow.py" line="225"/>
+        <source>&amp;Synchronize all accounts</source>
+        <translation>&amp;Synkroniser all kontoer</translation>
+    </message>
+    <message>
+        <location filename="ui_mainwindow.py" line="226"/>
+        <source>Pause synchronization</source>
+        <translation>Pause synkronisering</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.py" line="382"/>
+        <source>All valid accounts</source>
+        <translation>Alle gyldige kontoer</translation>
     </message>
 </context>
 <context>
@@ -175,7 +392,7 @@
     <message>
         <location filename="ui_preferencesdialog.py" line="233"/>
         <source>Dialog</source>
-        <translation>Dialog</translation>
+        <translation type="obsolete">Dialog</translation>
     </message>
     <message>
         <location filename="ui_preferencesdialog.py" line="234"/>
@@ -255,7 +472,7 @@
     <message>
         <location filename="ui_preferencesdialog.py" line="250"/>
         <source>Blacklisted users</source>
-        <translation>Blockerede bruger liste</translation>
+        <translation>Blokerede bruger liste</translation>
     </message>
     <message>
         <location filename="ui_preferencesdialog.py" line="251"/>
@@ -296,6 +513,26 @@
         <location filename="ui_preferencesdialog.py" line="259"/>
         <source>Theme</source>
         <translation>Tema</translation>
+    </message>
+    <message>
+        <location filename="ui_preferencesdialog.py" line="233"/>
+        <source>Preferences</source>
+        <translation>Indstillinger</translation>
+    </message>
+    <message>
+        <location filename="preferencesdialog.py" line="172"/>
+        <source>Version:</source>
+        <translation>Version:</translation>
+    </message>
+    <message>
+        <location filename="preferencesdialog.py" line="174"/>
+        <source>Website:</source>
+        <translation>Hjemmeside:</translation>
+    </message>
+    <message>
+        <location filename="preferencesdialog.py" line="177"/>
+        <source>Authors:</source>
+        <translation>Kunstner:</translation>
     </message>
 </context>
 </TS>

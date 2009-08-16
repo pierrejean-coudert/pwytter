@@ -151,8 +151,33 @@ class PreferencesDialog(QDialog, Ui_PreferencesDialog):
         #TODO: Make this work...
         theme = self.ThemeListWidget.currentItem().data(Qt.UserRole).toPyObject()
         #Display description
-        #TODO: Insert author etc.
-        self.ThemeDescriptionTextBrowser.setHtml("<h3>" + theme.getTitle() + "</h3>" + theme.getDescription())
+        authors = u""
+        for author, email in theme.getAuthors().items():
+            authors += u" - <a href='mailto://%s'>%s</a><br>" % (email, author)
+        html = u"""
+        <h1>%s</h1>
+        <table><tr>
+            <td valign="top" width="180">
+                <b>%s  </b>%s<br>
+                <b>%s </b> <a href="%s">%s</a><br>
+                <b>%s </b>
+                <div style="margin-left: 20">
+                    %s
+                </div>
+            </td>
+            <td valign="top">
+                %s
+            </td>
+        </tr></table>""" % (theme.getTitle(),
+                            unicode(self.tr("Version:")), 
+                            theme.getVersion(), 
+                            str(self.tr("Website:")), 
+                            theme.getWebsite(), 
+                            theme.getWebsite(), 
+                            str(self.tr("Authors:")), 
+                            authors, 
+                            theme.getDescription())
+        self.ThemeDescriptionTextBrowser.setHtml(html)
         #Display preview
         pix = QPixmap()
         pix.loadFromData(theme.getPreview())

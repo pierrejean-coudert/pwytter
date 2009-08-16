@@ -9,7 +9,9 @@ import time
 import urllib
 import sqlite3
 
-"""
+"""A microblog account manager
+tweetstore provides the TweetStore class and abstractions for use with TweetStore.
+
 Database tables:
 
 tweets:
@@ -77,25 +79,6 @@ settings:
 notification_blacklist:
     id              User id
     blacklisted     Bool, true if user is blacklisted, false if user is not blacklisted.
-
-The TODO list:
-    notification_blacklist      list of user identifiers no notifications are wanted for.
-    settings_table              Settings for frontend, notifications settings (filter strings)
-    onNewNotification
-    refactor _syncMessages
-        Add __newTweets = (), and __newReplies, etc.
-        Add and integer called __synching_accounts = 0
-            Add one to this when an account is being synchronized
-            Remove one when account is done synchronizing
-            When it hits 0, raise onNewTweets with __newTweets and argument, and clear __newTweets
-
-public methods for tweetstore:
-    BlockFollower(User)
-    AddFriend(User)
-    RemoveFriend(User)
-    
-
-Implement search queries
 """
 
 def asynchronous(f):
@@ -1170,6 +1153,30 @@ class NotificationEngine:
         """Inform the notification engine that synchronization of an account is starting"""
         self.__synchronizing += 1
         
+    _StringsForTranslation = ("New tweet by ",
+                              "New reply from ",
+                              "New direct message from ",
+                              "New follower",
+                              "%s on %s is now following you.",
+                              "New friend",
+                              "%s on %s is now a friend of yours.",
+                              " new tweets",
+                              " new replies",
+                              " new direct messages",
+                              " new followers",
+                              " new friends",
+                              "You have ",
+                              " and ",
+                              "Synchronization completed",
+                              "Synchronization completed, nothing new was retrieved.")
+    """A tuple if strings that can be translated inorder to provide new translatoins for notifications.
+        This tuple can be replaced by a translated tuple at runtime. Translation is not done using gettext or
+        other technology, because this is the ONLY part of TweetStore that needs translations and consumers of
+        TweetStore may wish to implement their own translation system. Yes, this is an ugly hack and maybe in
+        the future TweetStore should provide a simpler implementation of NotificationEngine and allow consumers
+        to provide their own implementation of NotificationEngine instead of implementing all the things here.
+    """
+        
     def _endSync(self):
         """Inform the notification engine that synchronization of an account has ended, this may possibly raise events"""
         self.__synchronizing -= 1
@@ -1230,36 +1237,37 @@ class NotificationEngine:
             #If we have only one thing to notify about do that...
             if notifications == 1:
                 if len(nTweets) > 0:
-                    self.onNotification.raiseEvent("New tweet by " + nTweets[0].getUser().getName(), nTweets[0].getMessage(), nTweets[0].getUser().getImage())
+                    self.onNotification.raiseEvent(self._StringsForTranslation[0] + nTweets[0].getUser().getName(), nTweets[0].getMessage(), nTweets[0].getUser().getImage())
                 elif len(nReplies) > 0:
-                    self.onNotification.raiseEvent("New reply from " + nReplies[0].getUser().getName(), nReplies[0].getMessage(), nReplies[0].getUser().getImage())
+                    self.onNotification.raiseEvent(self._StringsForTranslation[1] + nReplies[0].getUser().getName(), nReplies[0].getMessage(), nReplies[0].getUser().getImage())
                 elif len(nDirectMessages) > 0:
-                    self.onNotification.raiseEvent("New direct message from " + nDirectMessages[0].getUser().getName(), nDirectMessages[0].getMessage(), nDirectMessages[0].getUser().getImage())
+                    self.onNotification.raiseEvent(self._StringsForTranslation[2] + nDirectMessages[0].getUser().getName(), nDirectMessages[0].getMessage(), nDirectMessages[0].getUser().getImage())
                 elif len(nFollowers) > 0:
-                    self.onNotification.raiseEvent("New follower", nFollowers[0].getName() + " on " + nFollowers[0].getService() + " is now following you.", nFollowers[0].getImage())
+                    self.onNotification.raiseEvent(self._StringsForTranslation[3], self._StringsForTranslation[4] % (nFollowers[0].getName(), nFollowers[0].getService()), nFollowers[0].getImage())
                 elif len(nFriends) > 0:
-                    self.onNotification.raiseEvent("New friend", nFriends[0].getName() + " on " + nFriends[0].getService() + " is now a friend of yours.", nFriends[0].getImage())
+                    self.onNotification.raiseEvent(self._StringsForTranslation[5], self._StringsForTranslation[6] % (nFriends[0].getName(), nFriends[0].getService()), nFriends[0].getImage())
+            
             #If we have multiple things to notify about do
             elif notifications > 1:
                 msgs = ()
                 if len(nTweets) > 0:
-                    msgs += (str(len(newTweets)) + " new tweets",) 
+                    msgs += (str(len(newTweets)) + self._StringsForTranslation[7],) 
                 if len(nReplies) > 0:
-                    msgs += (str(len(newReplies)) + " new replies",) 
+                    msgs += (str(len(newReplies)) + self._StringsForTranslation[8],) 
                 if len(nDirectMessages) > 0:
-                    msgs += (str(len(newDirectMessages)) + " new direct messages",) 
+                    msgs += (str(len(newDirectMessages)) + self._StringsForTranslation[9],) 
                 if len(nFollowers) > 0:
-                    msgs += (str(len(newFollowers)) + " new followers",) 
+                    msgs += (str(len(newFollowers)) + self._StringsForTranslation[10],) 
                 if len(nFriends) > 0:     
-                    msgs += (str(len(newFriends)) + " new friends",)
+                    msgs += (str(len(newFriends)) + self._StringsForTranslation[11],)
                 if len(msgs) == 1:
-                    notification = "You have " + msgs[0] + "."
+                    notification = self._StringsForTranslation[12] + msgs[0] + "."
                 else:
-                    notification = "You have " + ", ".join(msgs[:-1]) + " and " + msgs[-1] + "."
-                self.onNotification.raiseEvent("Synchronization completed", notification, None) #TODO: Consider having a image
+                    notification = self._StringsForTranslation[12] + ", ".join(msgs[:-1]) + self._StringsForTranslation[13] + msgs[-1] + "."
+                self.onNotification.raiseEvent(self._StringsForTranslation[14], notification, None) #TODO: Consider having a image
             #If we have no notifications, but the user demands us to notify on synchronized
             elif self.notifyOnSynchronized:
-                self.onNotification.raiseEvent("Synchronization completed", "Synchronization completed, nothing was retrieved.", None)
+                self.onNotification.raiseEvent(self._StringsForTranslation[14], self._StringsForTranslation[15], None)
     
     __newTweets = ()
     """Tuple of new tweets from users timeline that appeared during synchronization"""

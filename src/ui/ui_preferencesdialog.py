@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui/preferencesdialog.ui'
 #
-# Created: Mon Aug 10 17:38:27 2009
+# Created: Sun Aug 16 18:34:34 2009
 #      by: PyQt4 UI code generator 4.4.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -187,7 +187,7 @@ class Ui_PreferencesDialog(object):
         self.scrollArea.setWidgetResizable(True)
         self.scrollArea.setObjectName("scrollArea")
         self.scrollAreaWidgetContents = QtGui.QWidget(self.scrollArea)
-        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 456, 143))
+        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 456, 71))
         self.scrollAreaWidgetContents.setObjectName("scrollAreaWidgetContents")
         self.horizontalLayout_2 = QtGui.QHBoxLayout(self.scrollAreaWidgetContents)
         self.horizontalLayout_2.setObjectName("horizontalLayout_2")
@@ -230,7 +230,7 @@ class Ui_PreferencesDialog(object):
         QtCore.QMetaObject.connectSlotsByName(PreferencesDialog)
 
     def retranslateUi(self, PreferencesDialog):
-        PreferencesDialog.setWindowTitle(QtGui.QApplication.translate("PreferencesDialog", "Dialog", None, QtGui.QApplication.UnicodeUTF8))
+        PreferencesDialog.setWindowTitle(QtGui.QApplication.translate("PreferencesDialog", "Preferences", None, QtGui.QApplication.UnicodeUTF8))
         self.label_6.setText(QtGui.QApplication.translate("PreferencesDialog", "Synchronization interval:", None, QtGui.QApplication.UnicodeUTF8))
         self.SynchronizationIntervalSpinBox.setSuffix(QtGui.QApplication.translate("PreferencesDialog", "s", None, QtGui.QApplication.UnicodeUTF8))
         self.label_5.setText(QtGui.QApplication.translate("PreferencesDialog", "Number of tweet per page:", None, QtGui.QApplication.UnicodeUTF8))
