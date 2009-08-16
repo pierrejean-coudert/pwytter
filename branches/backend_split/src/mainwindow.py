@@ -57,6 +57,23 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if not os.path.isdir(configdir):
             os.makedirs(configdir)
         self._store = TweetStore(os.path.join(configdir, "pwytter.db"))
+        #Translate the strings that needs translation, Yes this is an ugly hack!
+        self._store.notification._StringsForTranslation = (unicode(self.tr("New tweet by ")),
+                                                           unicode(self.tr("New reply from ")),
+                                                           unicode(self.tr("New direct message from ")),
+                                                           unicode(self.tr("New follower")),
+                                                           unicode(self.tr("%s on %s is now following you.")),
+                                                           unicode(self.tr("New friend")),
+                                                           unicode(self.tr("%s on %s is now a friend of yours.")),
+                                                           unicode(self.tr(" new tweets")),
+                                                           unicode(self.tr(" new replies")),
+                                                           unicode(self.tr(" new direct messages")),
+                                                           unicode(self.tr(" new followers")),
+                                                           unicode(self.tr(" new friends")),
+                                                           unicode(self.tr("You have ")),
+                                                           unicode(self.tr(" and ")),
+                                                           unicode(self.tr("Synchronization completed")),
+                                                           unicode(self.tr("Synchronization completed, nothing new was retrieved.")))
         
         #Connect aboutToQuit to save settings
         self.connect(QCoreApplication.instance(), SIGNAL("aboutToQuit()"), self.saveSettings)
@@ -78,16 +95,22 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.loadSettings()
         
         self._statusIconLinks = {"unconfigured":QPixmap(":/icons/icons/tango/22x22/categories/preferences-system.png"), 
-                        "idle":                 QPixmap(":/icons/icons/tango/22x22/status/network-idle.png"),
-                        "offline":              QPixmap(":/icons/icons/tango/22x22/status/network-offline.png"),
-                        "updating":             QPixmap(":/icons/icons/tango/22x22/actions/view-refresh.png"),
-                        "bad authendication":   QPixmap(":/icons/icons/tango/22x22/status/dialog-error.png")}
+                                 "idle":                 QPixmap(":/icons/icons/tango/22x22/status/network-idle.png"),
+                                 "offline":              QPixmap(":/icons/icons/tango/22x22/status/network-offline.png"),
+                                 "updating":             QPixmap(":/icons/icons/tango/22x22/actions/view-refresh.png"),
+                                 "bad authendication":   QPixmap(":/icons/icons/tango/22x22/status/dialog-error.png")}
         
         #Add combobox to select view, cannot be done in QtDesigner
         self.ViewComboBox = QComboBox(self.ViewToolBar)
         self.ViewComboBox.setObjectName("ViewComboBox")
         self.ViewToolBar.addWidget(self.ViewComboBox)
-        self.ViewComboBox.addItems(["Timeline", "Replies", "Direct messages", "Outbox", "Friends", "Followers"])    #TODO: Add icons for these
+        #TODO: Add icons for these
+        self.ViewComboBox.addItem(self.tr("Timeline"),          QVariant("timeline"))
+        self.ViewComboBox.addItem(self.tr("Replies"),           QVariant("replies"))
+        self.ViewComboBox.addItem(self.tr("Direct messages"),   QVariant("direct messages"))
+        self.ViewComboBox.addItem(self.tr("Outbox"),            QVariant("outbox"))
+        self.ViewComboBox.addItem(self.tr("Friends"),           QVariant("friends"))
+        self.ViewComboBox.addItem(self.tr("Followers"),         QVariant("followers"))
         self.ViewComboBox.setCurrentIndex(0)
         self.connect(self.ViewComboBox, SIGNAL("currentIndexChanged(int)"), self.showMessages)
         
@@ -121,6 +144,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         
         #Start synchronization, everytime the application starts
         self._store.sync()
+        
+        #Make sure it's in a valid state and set the char counter
+        self.on_MessageTextEdit_textChanged()
 
     def loadSettings(self):
         """Loads settings, to be invoked during initialization and when settings have been altered."""
@@ -221,7 +247,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     
     def showMessages(self, *whatever):
         """Shows messages depending on comboboxes"""
-        
         #Get the account
         account = "all"
         actext = self.ViewAccountComboBox.currentText()
@@ -230,8 +255,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 account = ac
         
         #Get the view
-        view = str(self.ViewComboBox.currentText())
-        self.tweetView.load(QUrl("pwytter://view/" + view.lower() + "/" + str(account) + "/0"))
+        view = self.ViewComboBox.itemData(self.ViewComboBox.currentIndex()).toString()
+        
+        #Load the view
+        self.tweetView.load(QUrl("pwytter://view/" + view + "/" + str(account) + "/0"))
 
     def getClosetsRelatedAccount(self, user, accounts = None):
         """Gets the account that is closet related to a user from the list of accounts.
@@ -295,7 +322,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.MessageTextEdit.document().setPlainText(prefix)
         #Update PostFromComboBox
         self.PostFromComboBox.clear()
-        self.PostFromComboBox.addItem(QIcon(":/icons/icons/tango/32x32/apps/internet-group-chat.png"), "All")
+        self.PostFromComboBox.addItem(QIcon(":/icons/icons/tango/32x32/apps/internet-group-chat.png"), self.tr("All valid accounts"))
         index = 1
         for replyAccount in canReplyAccounts:
             self.PostFromComboBox.addItem(QIcon(":/icons/icons/services/" + replyAccount.getService() + ".png"), str(replyAccount))
@@ -352,7 +379,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.MessageTextEdit.document().setPlainText(prefix)
         #Update PostFromComboBox
         self.PostFromComboBox.clear()
-        self.PostFromComboBox.addItem(QIcon(":/icons/icons/tango/32x32/apps/internet-group-chat.png"), "All")
+        self.PostFromComboBox.addItem(QIcon(":/icons/icons/tango/32x32/apps/internet-group-chat.png"), self.tr("All valid accounts"))
         index = 1
         for directAccount in canDirectAccounts:
             self.PostFromComboBox.addItem(QIcon(":/icons/icons/services/" + directAccount.getService() + ".png"), str(directAccount))
@@ -431,11 +458,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.on_clearReplyButton_clicked()
                 return None 
             if self._newMessageState.endswith("reply"):
-                text = "Reply to <b>" + self._newMessageToUser.getUsername() + "</b>"
+                text = unicode(self.tr("Reply to <b>%s</b>")) % self._newMessageToUser.getUsername()
             if self._newMessageState.endswith("direct"):
-                text = "Direct message to <b>" + self._newMessageToUser.getUsername() + "</b>"
+                text = unicode(self.tr("Direct message to <b>%s</b>")) % self._newMessageToUser.getUsername()
             if self._newMessageInReplyTo:
-                text += " in reply to: <i>" + self._newMessageInReplyTo.getMessage() + "</i>"
+                text += unicode(self.tr(" in reply to: <i>%s</i>")) % self._newMessageInReplyTo.getMessage()
             self.replyLabel.setText(text)
             self.replyLabel.show()
             self.clearReplyButton.show()
@@ -456,9 +483,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 #If we cannot write direct or can't reply
                 if cantReply or cantDirect:
                     if cantReply:
-                        self.replyLabel.setText("<b style='color: red;'>Can't reply to " + user.getUsername() + " using " + str(account) + "!</b>")
+                        self.replyLabel.setText("<b style='color: red;'>" + unicode(self.tr("Can't reply to %s using %s!")) % (user.getUsername(), str(account)) + "</b>")
                     if cantDirect:
-                        self.replyLabel.setText("<b style='color: red;'>Can't send direct messages to " + user.getUsername() + " using " + str(account) + "!</b>")
+                        self.replyLabel.setText("<b style='color: red;'>" + unicode(self.tr("Can't send direct messages to %s using %s!")) % (user.getUsername(), str(account)) + "</b>")
                     self.replyLabel.show()
                     self.updateCharCount()
                     self.postButton.setDisabled(True)
@@ -468,18 +495,18 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     text = ""
                     #If this message is replying to somebody indicate it
                     if len(reply_to_users) > 0:
-                        text += "Reply to " + reply_to_users.values()[0].getUsername() + " on "
-                        self.postButton.setText("Reply")
+                        text += unicode(self.tr("Reply to %s on ")) % reply_to_users.values()[0].getUsername()
+                        self.postButton.setText(self.tr("Reply"))
                         for account, user in reply_to_users.items():
                             text += account.getService() + ", "
                         text = text[:-2] + " " #Remove last comma and space
                     #In case prefix for a reply and a direct message is the same, let's allow the UI to handle it
                     if len(direct_to_users) > 0 and len(reply_to_users) > 0:
-                        text += " and direct message to " + direct_to_users.values()[0].getUsername() + " on "
-                        self.postButton.setText("Send and reply")
+                        text += unicode(self.tr(" and direct message to %s on ")) % direct_to_users.values()[0].getUsername()
+                        self.postButton.setText(self.tr("Send and reply"))
                     elif len(direct_to_users) > 0:
-                        text += "Direct message to " + direct_to_users.values()[0].getUsername() + " on "
-                        self.postButton.setText("Send")
+                        text += unicode(self.tr("Direct message to %s on ")) % direct_to_users.values()[0].getUsername()
+                        self.postButton.setText(self.tr("Send"))
                     for account, user in direct_to_users.items():
                         text += account.getService() + ", "
                     if len(direct_to_users) > 0:
@@ -491,7 +518,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     self.updateCharCount(limit)
             if not byPrefix:
                 #If not prefixed we are writing an update, so hide labels and clear icon
-                self.postButton.setText("Update")
+                self.postButton.setText(self.tr("Update"))
                 self.postButton.setDisabled(False)
                 self.replyLabel.hide()
                 self.clearReplyButton.hide()
@@ -537,7 +564,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         #Add all items to PostFromComboBox
         current_account = self._currentPostToAccount
         self.PostFromComboBox.clear()
-        self.PostFromComboBox.addItem(QIcon(":/icons/icons/tango/32x32/apps/internet-group-chat.png"), "All")
+        self.PostFromComboBox.addItem(QIcon(":/icons/icons/tango/32x32/apps/internet-group-chat.png"), self.tr("All accounts"))
         index = 1
         for account in self._store.getAccounts():
             self.PostFromComboBox.addItem(QIcon(":/icons/icons/services/" + account.getService() + ".png"), str(account))
@@ -621,7 +648,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.updateAccountList()
             self.showMessages()
         else:
-            QMessageBox.warning(self, "Failed to connect to " + account.getService(), message)
+            QMessageBox.warning(self, self.tr("Failed to connect to ") + account.getService(), message)
     
     def updateAccountList(self, *whatever):
         """Update the widgets that uses a list of accounts"""
@@ -645,8 +672,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         
         #Update comboboxes and menues
         groupIcon = QIcon(":/icons/icons/tango/32x32/apps/internet-group-chat.png")
-        self.PostFromComboBox.addItem(groupIcon, "All")
-        self.ViewAccountComboBox.addItem(groupIcon, "All")
+        self.PostFromComboBox.addItem(groupIcon, self.tr("All accounts"))
+        self.ViewAccountComboBox.addItem(groupIcon, self.tr("All accounts"))
         for account in self._store.getAccounts():
             #TODO: Add icons for the accounts, extend tweetstore.Account to support this
             account_string = str(account)
@@ -670,8 +697,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def removeAccount(self, account):
         """Remove an account, triggered by remove account menu"""
         q = QMessageBox.question(self, 
-                                "Remove account",
-                                "Do you really want to remove the connection to " + str(account) + " ?",
+                                self.tr("Remove account"),
+                                unicode(self.tr("Do you really want to remove the connection to %s ?")) % str(account),
                                 QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
         if q == QMessageBox.Yes:
             self._store.removeAccount(account)
@@ -696,7 +723,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     @pyqtSignature("")
     def on_AboutAction_triggered(self):
         #TODO: Improve about box
-        QMessageBox.about(self, "About Pwytter", "Pwytter is an open source\n microblog client for Windows, OS X and Linux.")
+        QMessageBox.about(self, self.tr("About Pwytter"), self.tr("Pwytter is an open source\n microblog client for Windows, OS X and Linux."))
     
     @pyqtSignature("")
     def on_QuitAction_triggered(self):
@@ -708,7 +735,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         #TODO: Add dynamic tooltip
         #Create a context menu for the tray icon
         self.TrayContextMenu = QMenu("Pwytter", self)
-        self.TrayContextMenu.addAction("View/Hide &Pwytter", self.ViewOrHide)
+        self.TrayContextMenu.addAction(self.tr("View/Hide &Pwytter"), self.ViewOrHide)
         self.TrayContextMenu.addSeparator()
         self.TrayContextMenu.addAction(self.SynchronizeAllAccountsAction)
         self.TrayContextMenu.addAction(self.PauseSynchronizationAction)
