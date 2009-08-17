@@ -1,0 +1,6 @@
+<RCC>
+  <qresource prefix="translations" >
+    <file>locale/pwytter.da.qm</file>
+    <file>locale/pwytter.en.qm</file>
+  </qresource>
+</RCC>
