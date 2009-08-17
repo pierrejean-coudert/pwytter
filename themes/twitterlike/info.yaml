@@ -1,0 +1,11 @@
+Title: Twitter-Like
+Authors:
+    Jonas Finnemann Jensen: jopsen@gmail.com
+Website: http://jopsen.dk/
+Version: 0.1.0
+Requires: 0.1.0
+Description:
+    Minimalistic Pwytter theme inspired by Twitter.
+QtStyles:
+    - cleanlooks
+    - windows
