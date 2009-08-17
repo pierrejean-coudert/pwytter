@@ -1,0 +1,8 @@
+Before using Qt designer you must set the PYQTDESIGNERPATH enviroment variable to current path.
+$ PYQTDESIGNERPATH = .:PYQTDESIGNERPATH"
+$ export PYQTDESIGNERPATH
+$ designer-qt4
+
+Otherwise you won't be able to insert new TweetView widgets. However, you'll still be able to use the added widget, I think.
+
+After editing the at ui files, the ui_ files must be regenerated using the ./build.py script.
