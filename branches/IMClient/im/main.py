@@ -620,14 +620,15 @@ class ChatWindow(QMainWindow,Ui_ChatWindow):
 				
 					if id == sendto :				
 						sendtolist.append(frndskey)		
+				print sendtolist
 				for frnds in sendtolist :
-					recipient = User(self.store, frndskey, "twitter", "Gogtes Suyash")
+					recipient = User(self.store, frnds, "twitter")
 					msg = Message(self.store, text ,self.by_user, "twitter", reply_at = recipient)
 					self.store.postMessage(msg)
 						
 			except Exception ,e :
 				QMessageBox.warning(self,"Network error !","Message sending failed !")
-			      
+				print e	      
 				pass  	
 
 	
