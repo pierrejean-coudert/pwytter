@@ -117,6 +117,13 @@
              </widget>
             </item>
             <item>
+             <widget class="QCheckBox" name="chkXMPP" >
+              <property name="text" >
+               <string>Send by XMPP</string>
+              </property>
+             </widget>
+            </item>
+            <item>
              <widget class="QLabel" name="counterLabel" >
               <property name="text" >
                <string/>
@@ -131,13 +138,10 @@
               <property name="orientation" >
                <enum>Qt::Vertical</enum>
               </property>
-              <property name="sizeType" >
-               <enum>QSizePolicy::Expanding</enum>
-              </property>
               <property name="sizeHint" stdset="0" >
                <size>
-                <width>1</width>
-                <height>1</height>
+                <width>20</width>
+                <height>40</height>
                </size>
               </property>
              </spacer>
@@ -202,14 +206,27 @@
     <addaction name="menuConnect_to" />
     <addaction name="RemoveAccountMenu" />
    </widget>
-   <widget class="QMenu" name="menu_Help" >
+   <widget class="QMenu" name="menu_Edit" >
+    <property name="title" >
+     <string>&amp;Edit</string>
+    </property>
+    <addaction name="PreferencesAction" />
+   </widget>
+   <widget class="QMenu" name="menuTools" >
+    <property name="title" >
+     <string>&amp;Tools</string>
+    </property>
+    <addaction name="IMClientAction" />
+   </widget>
+   <widget class="QMenu" name="HelpAction_2" >
     <property name="title" >
      <string>&amp;Help</string>
     </property>
     <addaction name="HelpAction" />
-    <addaction name="separator" />
     <addaction name="AboutAction" />
    </widget>
+<<<<<<< .mine
+=======
    <widget class="QMenu" name="menu_Edit" >
     <property name="title" >
      <string>&amp;Edit</string>
@@ -219,11 +236,13 @@
     <addaction name="separator" />
     <addaction name="PreferencesAction" />
    </widget>
+>>>>>>> .r179
    <addaction name="menuFile" />
    <addaction name="menu_Edit" />
    <addaction name="menuView" />
    <addaction name="menuAccounts" />
-   <addaction name="menu_Help" />
+   <addaction name="menuTools" />
+   <addaction name="HelpAction_2" />
   </widget>
   <widget class="QStatusBar" name="statusbar" />
   <widget class="QToolBar" name="ViewToolBar" >
@@ -263,20 +282,6 @@
    </property>
    <property name="text" >
     <string>&amp;Quit</string>
-   </property>
-  </action>
-  <action name="AboutAction" >
-   <property name="text" >
-    <string>&amp;About</string>
-   </property>
-  </action>
-  <action name="HelpAction" >
-   <property name="icon" >
-    <iconset resource="ressources.qrc" >
-     <normaloff>:/icons/icons/tango/32x32/apps/help-browser.png</normaloff>:/icons/icons/tango/32x32/apps/help-browser.png</iconset>
-   </property>
-   <property name="text" >
-    <string>&amp;Help</string>
    </property>
   </action>
   <action name="SynchronizeSelectedAccountsAction" >
@@ -323,6 +328,27 @@
     <string>&amp;Preferences</string>
    </property>
   </action>
+<<<<<<< .mine
+  <action name="IMClientAction" >
+   <property name="text" >
+    <string>&amp;IMClient</string>
+   </property>
+  </action>
+  <action name="HelpAction" >
+   <property name="icon" >
+    <iconset resource="ressources.qrc" >
+     <normaloff>:/icons/icons/tango/32x32/apps/help-browser.png</normaloff>:/icons/icons/tango/32x32/apps/help-browser.png</iconset>
+   </property>
+   <property name="text" >
+    <string>&amp;Help</string>
+   </property>
+  </action>
+  <action name="AboutAction" >
+   <property name="text" >
+    <string>&amp;About</string>
+   </property>
+  </action>
+=======
   <action name="SynchronizeAllAccountsAction" >
    <property name="icon" >
     <iconset resource="ressources.qrc" >
@@ -345,6 +371,7 @@
     <string>Pause synchronization</string>
    </property>
   </action>
+>>>>>>> .r179
  </widget>
  <customwidgets>
   <customwidget>
