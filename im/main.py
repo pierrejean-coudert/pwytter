@@ -18,6 +18,7 @@ from tweetstore import Message, User
 
 
 
+
 class LogInScreen(QDialog,Ui_frm_login):
     ''' 
 
@@ -416,13 +417,13 @@ class MainWindow(QMainWindow,Ui_BuddyList):
         self.connect(self.lstFrndList,SIGNAL("itemEntered(QListWidgetItem *)"),self.setToolTipText)
         self.connect(self.lstFrndList,SIGNAL("itemClicked(QListWidgetItem *)"),self.memberClicked)
         self.connect(self.action_Quit,SIGNAL("triggered()"),self.quit)
-        pic = QPixmap("Available.png")
+        pic = QPixmap("./im/Available.png")
         icon = QIcon(pic)
         self.cmdSetStatus.addItem(icon,"Available")
-        pic = QPixmap("Away.png")
+        pic = QPixmap("./im/Away.png")
         icon = QIcon(pic)
         self.cmdSetStatus.addItem(icon,"Away")
-        pic = QPixmap("Dnd.png")
+        pic = QPixmap("./im/Dnd.png")
         icon = QIcon(pic)
         self.cmdSetStatus.addItem(icon,"Don't Disturb")
 	self.activeWindows = {}
@@ -620,7 +621,7 @@ class ChatWindow(QMainWindow,Ui_ChatWindow):
 				
 					if id == sendto :				
 						sendtolist.append(frndskey)		
-				print sendtolist
+				
 				for frnds in sendtolist :
 					recipient = User(self.store, frnds, "twitter")
 					msg = Message(self.store, text ,self.by_user, "twitter", reply_at = recipient)
