@@ -1,12 +1,10 @@
 # -*- coding: utf-8 -*-
 
-
-
 import locale
 from functools import partial
 from Queue import Queue
 from time import strftime, localtime, strptime
-import sys,os
+import os
 
 
 from PyQt4.QtCore import *
@@ -27,11 +25,6 @@ from theme import Theme
 #switch back to old locale, this fixes local bug in time.strptime()
 #see: http://www.mail-archive.com/python-bugs-list@python.org/msg11325.html
 locale.setlocale(locale.LC_TIME, (None, None))
-
-
-sys.path.append('./im')
-
-from main import *
 
 class EventSynchronizer(QObject):
     def __init__(self, parent):
@@ -155,10 +148,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         
         #Make sure it's in a valid state and set the char counter
         self.on_MessageTextEdit_textChanged()
-
-	#show IMClient 
-
-	self.setupIMClient()
 	
     def loadSettings(self):
         """Loads settings, to be invoked during initialization and when settings have been altered."""
@@ -634,16 +623,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     msg = Message(self._store, text, account.getUser())
                 #Post whatever message
                 self._store.postMessage(msg)
-        
-
-	#Clear once message has been sent
+        #Clear once message has been sent
         self.on_clearReplyButton_clicked()
         self.MessageTextEdit.document().clear()
-       	if self.chkXMPP.isChecked() :
-		start = text.find("@")
-		end = text.find(" ")
-		sendTo = text[start:end]
-		self.xmppReply(sendTo) 
+
     @pyqtSignature("")
     def on_NewTwitterAccountAction_triggered(self):
         """Launch dialog, ask for twitter username and password"""
@@ -784,27 +767,3 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         #Example of this association: https://wiki.ubuntu.com/NotifyOSD?action=AttachFile&do=get&target=3g-finished.png
 
 
-    def setupIMClient(self) :
-
-	self.connect(self.IMClientAction,SIGNAL("triggered()"),self.displayIM)
-	self.LoginForm=LogInScreen(self._store)
-
-
-    def displayIM(self) :
-
-	self.LoginForm.show()
- 	
-    def xmppReply(self,sendTo) :
-	print "hello suyash"	
-	sendTo = sendTo[1:]	
-	pw = pwNotifyParams.PwytterMapping()
-	pw.readFromXML()	
-	keys = pw.values.keys()
-	for frnd in keys :
-		gmailid = pw.values[frnd]
-		if gmailid == sendTo :
-			print "its present "
-		else :
-			print "not present"
-
-	
