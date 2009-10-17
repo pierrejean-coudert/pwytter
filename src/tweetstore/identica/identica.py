@@ -9,7 +9,7 @@ __version__ = '0.5'
 
 
 import base64
-import md5
+import hashlib
 import os
 import simplejson
 import sys
@@ -1526,7 +1526,8 @@ class _FileCache(object):
     self._root_directory = root_directory
 
   def _GetPath(self,key):
-    hashed_key = md5.new(key).hexdigest()
+    #Moved to hashlib from: hashed_key = md5.new(key).hexdigest()
+    hashed_key = hashlib.md5(key).hexdigest()
     return os.path.join(self._root_directory,
                         self._GetPrefix(hashed_key),
                         hashed_key)
