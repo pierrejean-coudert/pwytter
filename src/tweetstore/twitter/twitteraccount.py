@@ -92,7 +92,7 @@ class TwitterAccount(tweetstore.Account):
                 return False
             else:
                 raise e
-        except urllib2.URLError:
+        except (urllib2.URLError, ValueError):
             self.__changeStatus("offline")
             return False
         self.__changeStatus("idle")
@@ -111,7 +111,7 @@ class TwitterAccount(tweetstore.Account):
                 return False
             else:
                 raise e
-        except urllib2.URLError:
+        except (urllib2.URLError, ValueError):
             self.__changeStatus("offline")
             return False
         self.__changeStatus("idle")
@@ -130,7 +130,7 @@ class TwitterAccount(tweetstore.Account):
                 return False
             else:
                 raise e
-        except urllib2.URLError:
+        except (urllib2.URLError, ValueError):
             self.__changeStatus("offline")
             return False
         self.__changeStatus("idle")
@@ -155,7 +155,7 @@ class TwitterAccount(tweetstore.Account):
                 return False
             else:
                 raise e
-        except urllib2.URLError:
+        except (urllib2.URLError, ValueError):
             self.__changeStatus("offline")
             return False
         self.__changeStatus("idle")

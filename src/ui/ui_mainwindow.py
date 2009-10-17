@@ -1,14 +1,9 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'mainwindow.ui'
+# Form implementation generated from reading ui file 'ui/mainwindow.ui'
 #
-<<<<<<< .mine
-# Created: Mon Aug 17 11:24:34 2009
-#      by: PyQt4 UI code generator 4.5.2
-=======
-# Created: Sun Aug 16 18:34:33 2009
+# Created: Sat Oct 17 19:05:20 2009
 #      by: PyQt4 UI code generator 4.4.4
->>>>>>> .r179
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -85,14 +80,11 @@ class Ui_MainWindow(object):
         self.PostFromComboBox = QtGui.QComboBox(self.layoutWidget)
         self.PostFromComboBox.setObjectName("PostFromComboBox")
         self.verticalLayout.addWidget(self.PostFromComboBox)
-        self.chkXMPP = QtGui.QCheckBox(self.layoutWidget)
-        self.chkXMPP.setObjectName("chkXMPP")
-        self.verticalLayout.addWidget(self.chkXMPP)
         self.counterLabel = QtGui.QLabel(self.layoutWidget)
         self.counterLabel.setAlignment(QtCore.Qt.AlignCenter)
         self.counterLabel.setObjectName("counterLabel")
         self.verticalLayout.addWidget(self.counterLabel)
-        spacerItem = QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
+        spacerItem = QtGui.QSpacerItem(1, 1, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
         self.verticalLayout.addItem(spacerItem)
         self.horizontalLayout.addLayout(self.verticalLayout)
         self.verticalLayout_2.addLayout(self.horizontalLayout)
@@ -117,12 +109,10 @@ class Ui_MainWindow(object):
         icon3.addPixmap(QtGui.QPixmap(":/icons/icons/tango/32x32/actions/list-remove.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.RemoveAccountMenu.setIcon(icon3)
         self.RemoveAccountMenu.setObjectName("RemoveAccountMenu")
+        self.menu_Help = QtGui.QMenu(self.menubar)
+        self.menu_Help.setObjectName("menu_Help")
         self.menu_Edit = QtGui.QMenu(self.menubar)
         self.menu_Edit.setObjectName("menu_Edit")
-        self.menuTools = QtGui.QMenu(self.menubar)
-        self.menuTools.setObjectName("menuTools")
-        self.HelpAction_2 = QtGui.QMenu(self.menubar)
-        self.HelpAction_2.setObjectName("HelpAction_2")
         MainWindow.setMenuBar(self.menubar)
         self.statusbar = QtGui.QStatusBar(MainWindow)
         self.statusbar.setObjectName("statusbar")
@@ -143,13 +133,10 @@ class Ui_MainWindow(object):
         icon5.addPixmap(QtGui.QPixmap(":/icons/icons/tango/32x32/actions/system-log-out.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.QuitAction.setIcon(icon5)
         self.QuitAction.setObjectName("QuitAction")
-        self.SynchronizeAccountsAction = QtGui.QAction(MainWindow)
+        self.AboutAction = QtGui.QAction(MainWindow)
+        self.AboutAction.setObjectName("AboutAction")
+        self.HelpAction = QtGui.QAction(MainWindow)
         icon6 = QtGui.QIcon()
-<<<<<<< .mine
-        icon6.addPixmap(QtGui.QPixmap(":/icons/icons/tango/32x32/actions/view-refresh.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
-        self.SynchronizeAccountsAction.setIcon(icon6)
-        self.SynchronizeAccountsAction.setObjectName("SynchronizeAccountsAction")
-=======
         icon6.addPixmap(QtGui.QPixmap(":/icons/icons/tango/32x32/apps/help-browser.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.HelpAction.setIcon(icon6)
         self.HelpAction.setObjectName("HelpAction")
@@ -158,34 +145,24 @@ class Ui_MainWindow(object):
         icon7.addPixmap(QtGui.QPixmap(":/icons/icons/tango/32x32/actions/view-refresh.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.SynchronizeSelectedAccountsAction.setIcon(icon7)
         self.SynchronizeSelectedAccountsAction.setObjectName("SynchronizeSelectedAccountsAction")
->>>>>>> .r179
         self.NewIdenticaAccountAction = QtGui.QAction(MainWindow)
-        icon7 = QtGui.QIcon()
-        icon7.addPixmap(QtGui.QPixmap(":/icons/icons/services/Identi.ca.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
-        self.NewIdenticaAccountAction.setIcon(icon7)
+        icon8 = QtGui.QIcon()
+        icon8.addPixmap(QtGui.QPixmap(":/icons/icons/services/Identi.ca.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.NewIdenticaAccountAction.setIcon(icon8)
         self.NewIdenticaAccountAction.setObjectName("NewIdenticaAccountAction")
         self.HideWindowAction = QtGui.QAction(MainWindow)
         self.HideWindowAction.setObjectName("HideWindowAction")
         self.CollapseMessageEditAction = QtGui.QAction(MainWindow)
         self.CollapseMessageEditAction.setCheckable(True)
-        icon8 = QtGui.QIcon()
-        icon8.addPixmap(QtGui.QPixmap(":/icons/icons/tango/22x22/apps/preferences-desktop-keyboard-shortcuts.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
-        self.CollapseMessageEditAction.setIcon(icon8)
+        icon9 = QtGui.QIcon()
+        icon9.addPixmap(QtGui.QPixmap(":/icons/icons/tango/22x22/apps/preferences-desktop-keyboard-shortcuts.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.CollapseMessageEditAction.setIcon(icon9)
         self.CollapseMessageEditAction.setObjectName("CollapseMessageEditAction")
         self.PreferencesAction = QtGui.QAction(MainWindow)
-        icon9 = QtGui.QIcon()
-        icon9.addPixmap(QtGui.QPixmap(":/icons/icons/tango/22x22/categories/preferences-system.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
-        self.PreferencesAction.setIcon(icon9)
-        self.PreferencesAction.setObjectName("PreferencesAction")
-        self.IMClientAction = QtGui.QAction(MainWindow)
-        self.IMClientAction.setObjectName("IMClientAction")
-        self.HelpAction = QtGui.QAction(MainWindow)
         icon10 = QtGui.QIcon()
-        icon10.addPixmap(QtGui.QPixmap(":/icons/icons/tango/32x32/apps/help-browser.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
-        self.HelpAction.setIcon(icon10)
-        self.HelpAction.setObjectName("HelpAction")
-        self.AboutAction = QtGui.QAction(MainWindow)
-        self.AboutAction.setObjectName("AboutAction")
+        icon10.addPixmap(QtGui.QPixmap(":/icons/icons/tango/22x22/categories/preferences-system.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.PreferencesAction.setIcon(icon10)
+        self.PreferencesAction.setObjectName("PreferencesAction")
         self.SynchronizeAllAccountsAction = QtGui.QAction(MainWindow)
         self.SynchronizeAllAccountsAction.setIcon(icon7)
         self.SynchronizeAllAccountsAction.setObjectName("SynchronizeAllAccountsAction")
@@ -204,19 +181,18 @@ class Ui_MainWindow(object):
         self.menuAccounts.addSeparator()
         self.menuAccounts.addAction(self.menuConnect_to.menuAction())
         self.menuAccounts.addAction(self.RemoveAccountMenu.menuAction())
+        self.menu_Help.addAction(self.HelpAction)
+        self.menu_Help.addSeparator()
+        self.menu_Help.addAction(self.AboutAction)
         self.menu_Edit.addAction(self.SynchronizeAllAccountsAction)
         self.menu_Edit.addAction(self.PauseSynchronizationAction)
         self.menu_Edit.addSeparator()
         self.menu_Edit.addAction(self.PreferencesAction)
-        self.menuTools.addAction(self.IMClientAction)
-        self.HelpAction_2.addAction(self.HelpAction)
-        self.HelpAction_2.addAction(self.AboutAction)
         self.menubar.addAction(self.menuFile.menuAction())
         self.menubar.addAction(self.menu_Edit.menuAction())
         self.menubar.addAction(self.menuView.menuAction())
         self.menubar.addAction(self.menuAccounts.menuAction())
-        self.menubar.addAction(self.menuTools.menuAction())
-        self.menubar.addAction(self.HelpAction_2.menuAction())
+        self.menubar.addAction(self.menu_Help.menuAction())
         self.ViewToolBar.addAction(self.SynchronizeSelectedAccountsAction)
 
         self.retranslateUi(MainWindow)
@@ -229,31 +205,25 @@ class Ui_MainWindow(object):
         self.clearReplyButton.setText(QtGui.QApplication.translate("MainWindow", "...", None, QtGui.QApplication.UnicodeUTF8))
         self.postButton.setText(QtGui.QApplication.translate("MainWindow", "Update", None, QtGui.QApplication.UnicodeUTF8))
         self.PostFromComboBox.setToolTip(QtGui.QApplication.translate("MainWindow", "Account to post status update to.", None, QtGui.QApplication.UnicodeUTF8))
-        self.chkXMPP.setText(QtGui.QApplication.translate("MainWindow", "Send by XMPP", None, QtGui.QApplication.UnicodeUTF8))
         self.menuFile.setTitle(QtGui.QApplication.translate("MainWindow", "&File", None, QtGui.QApplication.UnicodeUTF8))
         self.menuView.setTitle(QtGui.QApplication.translate("MainWindow", "&View", None, QtGui.QApplication.UnicodeUTF8))
         self.menuAccounts.setTitle(QtGui.QApplication.translate("MainWindow", "&Accounts", None, QtGui.QApplication.UnicodeUTF8))
         self.menuConnect_to.setTitle(QtGui.QApplication.translate("MainWindow", "Add account", None, QtGui.QApplication.UnicodeUTF8))
         self.RemoveAccountMenu.setTitle(QtGui.QApplication.translate("MainWindow", "Remove account", None, QtGui.QApplication.UnicodeUTF8))
+        self.menu_Help.setTitle(QtGui.QApplication.translate("MainWindow", "&Help", None, QtGui.QApplication.UnicodeUTF8))
         self.menu_Edit.setTitle(QtGui.QApplication.translate("MainWindow", "&Edit", None, QtGui.QApplication.UnicodeUTF8))
-        self.menuTools.setTitle(QtGui.QApplication.translate("MainWindow", "&Tools", None, QtGui.QApplication.UnicodeUTF8))
-        self.HelpAction_2.setTitle(QtGui.QApplication.translate("MainWindow", "&Help", None, QtGui.QApplication.UnicodeUTF8))
         self.ViewToolBar.setWindowTitle(QtGui.QApplication.translate("MainWindow", "Content toolbar", None, QtGui.QApplication.UnicodeUTF8))
         self.NewTwitterAccountAction.setText(QtGui.QApplication.translate("MainWindow", "&Twitter account", None, QtGui.QApplication.UnicodeUTF8))
         self.QuitAction.setText(QtGui.QApplication.translate("MainWindow", "&Quit", None, QtGui.QApplication.UnicodeUTF8))
+        self.AboutAction.setText(QtGui.QApplication.translate("MainWindow", "&About", None, QtGui.QApplication.UnicodeUTF8))
+        self.HelpAction.setText(QtGui.QApplication.translate("MainWindow", "&Help", None, QtGui.QApplication.UnicodeUTF8))
         self.SynchronizeSelectedAccountsAction.setText(QtGui.QApplication.translate("MainWindow", "&Synchronize selected accounts", None, QtGui.QApplication.UnicodeUTF8))
         self.NewIdenticaAccountAction.setText(QtGui.QApplication.translate("MainWindow", "&Identi.ca account", None, QtGui.QApplication.UnicodeUTF8))
         self.HideWindowAction.setText(QtGui.QApplication.translate("MainWindow", "&Hide window", None, QtGui.QApplication.UnicodeUTF8))
         self.CollapseMessageEditAction.setText(QtGui.QApplication.translate("MainWindow", "Toggle new message field.", None, QtGui.QApplication.UnicodeUTF8))
         self.PreferencesAction.setText(QtGui.QApplication.translate("MainWindow", "&Preferences", None, QtGui.QApplication.UnicodeUTF8))
-<<<<<<< .mine
-        self.IMClientAction.setText(QtGui.QApplication.translate("MainWindow", "&IMClient", None, QtGui.QApplication.UnicodeUTF8))
-        self.HelpAction.setText(QtGui.QApplication.translate("MainWindow", "&Help", None, QtGui.QApplication.UnicodeUTF8))
-        self.AboutAction.setText(QtGui.QApplication.translate("MainWindow", "&About", None, QtGui.QApplication.UnicodeUTF8))
-=======
         self.SynchronizeAllAccountsAction.setText(QtGui.QApplication.translate("MainWindow", "&Synchronize all accounts", None, QtGui.QApplication.UnicodeUTF8))
         self.PauseSynchronizationAction.setText(QtGui.QApplication.translate("MainWindow", "Pause synchronization", None, QtGui.QApplication.UnicodeUTF8))
->>>>>>> .r179
 
 from tweetview import TweetView
 import ressources_rc
