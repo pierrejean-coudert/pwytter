@@ -126,7 +126,9 @@ class TweetView(QWebView):
                 reply.setContent(u"<h1>User not found</h1>Username " + urlparts[5] + " on " + urlparts[4] + " was not found in the database.", "text/html; charset=UTF-8")
             else:
                 self._content = (user,)
-                html = tinpy.build(self.__theme.getDetailedUserTemplate(), {"User" : UserWrapper(user, self._store, 0)}, strict = __debug__)
+                vars = {"User" : UserWrapper(user, self._store, 0)}
+                vars["Text"] = self.__GetTranslatedText()
+                html = tinpy.build(self.__theme.getDetailedUserTemplate(), vars, strict = __debug__)
                 reply.setContent(unicode(html).encode('utf-8'), "text/html; charset=UTF-8")
             return None
 
@@ -162,6 +164,7 @@ class TweetView(QWebView):
         #Parse template
         if urlparts[3] in ("followers", "friends"):
             vars = {}
+            vars["Text"] = self.__GetTranslatedText()
             vars["Users"] = ()
             pageUniqueId = 0
             for user in self._content:
@@ -176,6 +179,7 @@ class TweetView(QWebView):
             reply.setContent(unicode(html).encode('utf-8'), "text/html; charset=UTF-8")
         else:
             vars = {}
+            vars["Text"] = self.__GetTranslatedText()
             vars["Messages"] = ()
             pageUniqueId = 0
             for message in self._content:
@@ -256,6 +260,27 @@ class TweetView(QWebView):
             return "Item does not exist, there's likely a bug in the template!"
         except:
             return "Exception occured: \n" + traceback.format_exc()
+    
+    __lazyLoadedTranslatedText = None
+    def __GetTranslatedText(self):
+        """Lazy loads and returns a dictionary of translated strings for use in templates"""
+        #Load if not already loaded
+        if self.__lazyLoadedTranslatedText == None:
+            text = {}
+            text["Reply"] = unicode(self.tr("Reply"))
+            text["Retweet"] = unicode(self.tr("Retweet"))
+            text["Direct_message"] = unicode(self.tr("Direct message"))
+            text["Delete_message"] = unicode(self.tr("Delete message"))
+            text["Prev_page"] = unicode(self.tr("Prev page"))
+            text["Next_page"] = unicode(self.tr("Next page"))
+            text["Go_to_previous_page"] = unicode(self.tr("Go to previous page"))
+            text["Go_to_next_page"] = unicode(self.tr("Go to next page"))
+            text["<user>_on_<service>"] = unicode(self.tr("on", "'on' as in: Jopsen on twitter"))
+            text["Description"] = unicode(self.tr("Description"))
+            text["On_<date>"] = unicode(self.tr("On", "'On' as in: On the 21 of 12, 2009."))
+            self.__lazyLoadedTranslatedText = text
+        #Return the dictionary
+        return self.__lazyLoadedTranslatedText
 
 class PwytterReply(QNetworkReply):
     """A reply for a pwytter:// request, does nothing but waits for someone to set it's content"""

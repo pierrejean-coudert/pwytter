@@ -340,7 +340,7 @@ class TweetStore:
             if friend["id"] in friend_ids:
                 friend_ids.remove(friend["id"])
             else:
-                self.__db.execute("DELETE FROM friends WHERE account = ? AND id = ?", account_id, friend)
+                self.__db.execute("DELETE FROM friends WHERE account = ? AND id = ?", account_id, friend["id"])
         #Insert new friends
         for friend_id in friend_ids:
             self.__db.execute("INSERT INTO friends (id, account) VALUES (?,?)", friend_id, account_id)

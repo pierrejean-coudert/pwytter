@@ -22,6 +22,7 @@ commands = ("pyuic4 " + path.join("ui", "mainwindow.ui") + " -o " + path.join("u
             "pyuic4 " + path.join("ui", "newtwitteraccountdialog.ui") + " -o " + path.join("ui", "ui_newtwitteraccountdialog.py"),
             "pyuic4 " + path.join("ui", "newidenticaaccountdialog.ui") + " -o " + path.join("ui", "ui_newidenticaaccountdialog.py"),
             "pyuic4 " + path.join("ui", "preferencesdialog.ui") + " -o " + path.join("ui", "ui_preferencesdialog.py"),
+            "pyuic4 " + path.join("ui", "passworddialog.ui") + " -o " + path.join("ui", "ui_passworddialog.py"),
             "lrelease " + path.join("ui", "locale", "pwytter.*.ts"),
             "pyrcc4 " + path.join("ui", "ressources.qrc") + " -o " + path.join("ui", "ressources_rc.py")
 )

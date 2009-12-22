@@ -176,7 +176,7 @@ class IdenticaAccount(tweetstore.Account):
         if not self._store: raise tweetstore.OwnerNotSetError, "Cannot assert capabilities without owner."
         return IdenticaCapabilities(self._store, self)
 
-    def reauthendicate(password = None):
+    def reauthendicate(self, password = None):
         """Attempt login with another password
 
             To change username the account must be removed an a new account added
@@ -185,7 +185,6 @@ class IdenticaAccount(tweetstore.Account):
         if password == None:
             password = self._password
         self.__api = identica.Api(self._username, password, twitterserver='identi.ca/api')
-        self._store._updateAccount(self)
         self._store.sync(self)
 
     def __getstate__(self):

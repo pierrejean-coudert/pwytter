@@ -31,24 +31,24 @@ a.service{
 		<img src="[% var User['Image'] %]">
 	</td><td>
 		 <a class="name" href="pwytter://view/user/[% var User["Service"] %]/[% var User["Username"] %]">[% var User['Name'] %]</a>
-		 on <a class="service" href="[% var User['Url'] %]">[% var User['Service'] %]</a><br>
+		 [% var Text["<user>_on_<service>"] %] <a class="service" href="[% var User['Url'] %]">[% var User['Service'] %]</a><br>
 		<span style="font-size: small;">
 			[%if User["CanReply"]%]
-				<u class='cmd' onclick='window.pwytter.reply([% var User["Id"]%])'>reply</u>
+				<u class='cmd' onclick='window.pwytter.reply([% var User["Id"]%])'>[% var Text["Reply"] %]</u>
 			[%endif%]
 			[%if User["CanReply"]%][%if User["CanSendDirectMessage"]%]
 				|
 			[%endif%][%endif%]
 			[%if User["CanSendDirectMessage"]%]
-				<u class='cmd' onclick='window.pwytter.direct([% var User["Id"]%])'>direct message</u>
+				<u class='cmd' onclick='window.pwytter.direct([% var User["Id"]%])'>[% var Text["Direct_message"] %]</u>
 			[%endif%]
 		</span>
 	</td></tr>
 </table>
 [% done %]
 <br>
-[% if HasPrevPage %]<a href="[% var PrevPage %]">prev page</a>[% endif %]
+[% if HasPrevPage %]<a href="[% var PrevPage %]">[% var Text["Prev_page"] %]</a>[% endif %]
 [% if HasPrevPage %][% if HasNextPage %] | [% endif %][% endif %]
-[% if HasNextPage %]<a href="[% var NextPage %]">next page</a>[% endif %]
+[% if HasNextPage %]<a href="[% var NextPage %]">[% var Text["Next_page"] %]</a>[% endif %]
 </body>
 </html>

@@ -75,17 +75,17 @@ function CreateAlternateTable(){
 		<img src="[% var User['Image'] %]">
 	</td><td class="content">
 		<a class="name" href="pwytter://view/user/[% var User["Service"] %]/[% var User["Username"] %]" title="[% var User["Name"] %]">[% var User["Username"] %]</a>
-		on <a class="service" href="[% var User['Url'] %]">[% var User['Service'] %]</a><br>
+		[% var Text["<user>_on_<service>"] %] <a class="service" href="[% var User['Url'] %]">[% var User['Service'] %]</a><br>
 		[% var User["Name"] %] | [% var User["Location"] %]<br>
 		<span class="meta">
 			[% var User["Description"] %].
 		</span>
 		<div class="actions">
 			[%if User["CanReply"]%]
-				<img src="pwytter://theme/images/reply-all.png" title="Reply" onclick="window.pwytter.reply([% var User["Id"] %])">
+				<img src="pwytter://theme/images/reply-all.png" title="[% var Text["Reply"] %]" onclick="window.pwytter.reply([% var User["Id"] %])">
 			[%endif%]
 			[%if User["CanSendDirectMessage"]%]
-				<img src="pwytter://theme/images/reply-sender.png" title="Direct message" onclick="window.pwytter.direct([% var User["Id"] %])">
+				<img src="pwytter://theme/images/reply-sender.png" title="[% var Text["Direct_message"] %]" onclick="window.pwytter.direct([% var User["Id"] %])">
 			[%endif%]
 		</div>
 	</td></tr>
