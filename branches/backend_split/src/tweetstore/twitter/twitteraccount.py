@@ -182,7 +182,7 @@ class TwitterAccount(tweetstore.Account):
         if not self._store: raise tweetstore.OwnerNotSetError, "Cannot assert capabilities without owner."
         return TwitterCapabilities(self._store, self)
 
-    def reauthendicate(password = None):
+    def reauthendicate(self, password = None):
         """Attempt login with another password
 
             To change username the account must be removed an a new account added
@@ -191,7 +191,6 @@ class TwitterAccount(tweetstore.Account):
         if password == None:
             password = self._password
         self.__api = twitter.Api(self._username, password)
-        self._store._updateAccount(self)
         self._store.sync(self)
 
     def __getstate__(self):

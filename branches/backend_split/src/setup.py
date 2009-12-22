@@ -24,11 +24,6 @@
      - TODO: Write an NSIS installer
 """
 
-#Build stuff before setup
-#from build import build
-#TODO: Build all files...
-#build()
-
 from ez_setup import use_setuptools
 use_setuptools()
 
@@ -94,7 +89,7 @@ setup(
 
     #About the package
     packages = find_packages(),
-    py_modules = ["mainwindow", "newidenticaaccountdialog", "newtwitteraccountdialog", "preferencesdialog", "theme", "tinpy", "tweetview"],
+    py_modules = ["mainwindow", "newidenticaaccountdialog", "newtwitteraccountdialog", "passworddialog", "preferencesdialog", "theme", "tinpy", "tweetview"],
     scripts = ["pwytter.pyw"],
     install_requires = ["pyyaml>=2.0", "simplejson>=1.9", "setuptools"],
     include_package_data = False,

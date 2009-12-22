@@ -30,21 +30,21 @@ a.service{
 		<img src="[% var User['Image'] %]">
 	</td><td>
 		<b> [% var User['Name'] %]</b>
-		 on <a class="service" href="[% var User['Url'] %]">[% var User['Service'] %]</a><br>
+		 [% var Text["<user>_on_<service>"] %] <a class="service" href="[% var User['Url'] %]">[% var User['Service'] %]</a><br>
 		<span style="font-size: small;">
 			[%if User["CanReply"]%]
-				<u class='cmd' onclick='window.pwytter.reply([% var User["Id"]%])'>reply</u>
+				<u class='cmd' onclick='window.pwytter.reply([% var User["Id"]%])'>[% var Text["Reply"] %]</u>
 			[%endif%]
 			[%if User["CanReply"]%][%if User["CanSendDirectMessage"]%]
 				|
 			[%endif%][%endif%]
 			[%if User["CanSendDirectMessage"]%]
-				<u class='cmd' onclick='window.pwytter.direct([% var User["Id"]%])'>direct message</u>
+				<u class='cmd' onclick='window.pwytter.direct([% var User["Id"]%])'>[% var Text["Direct_message"] %]</u>
 			[%endif%]
 		</span>
 	</td></tr>
 	<tr><td colspan="2">
-	<b>Description:</b><br>
+	<b>[% var Text["Description"] %]:</b><br>
 		[% var User['Description'] %]
 	<td>
 </table>

@@ -29,26 +29,26 @@ a.name:hover{
 	<a class="name" href="pwytter://view/user/[% var Message["User"]["Service"] %]/[% var Message["User"]["Username"] %]">[% var Message["User"]["Name"] %]</a>
 	[% var Message["Text"] %]<br>
 	<span style="font-size: small;">
-		<i>On [% var Message["Created"] %].</i>
+		<i>[% var Text["On_<date>"] %] [% var Message["Created"] %].</i>
 		[%if Message["CanReply"]%]
-			<u class='cmd' onclick='window.pwytter.reply([% var Message["Id"]%])'>reply</u>
+			<u class='cmd' onclick='window.pwytter.reply([% var Message["Id"]%])'>[% var Text["Reply"] %]</u>
 		[%endif%]
 		[%if Message["CanRetweet"]%]
-			<u class='cmd' onclick='window.pwytter.retweet([% var Message["Id"]%])'>retweet</u>
+			<u class='cmd' onclick='window.pwytter.retweet([% var Message["Id"]%])'>[% var Text["Retweet"] %]</u>
 		[%endif%]
 		[%if Message["CanSendDirectMessage"]%]
-			<u class='cmd' onclick='window.pwytter.direct([% var Message["Id"]%])'>direct message</u>
+			<u class='cmd' onclick='window.pwytter.direct([% var Message["Id"]%])'>[% var Text["Direct_message"] %]</u>
 		[%endif%]
 		[%if Message["CanDelete"]%]
-			<u class='cmd' onclick='window.pwytter.delete([% var Message["Id"]%])'>delete</u>
+			<u class='cmd' onclick='window.pwytter.delete([% var Message["Id"]%])'>[% var Text["Delete_message"] %]</u>
 		[%endif%]
 	</span>
 	</td></tr>
 </table>
 [% done %]
 <br>
-[% if HasPrevPage %]<a href="[% var PrevPage %]">prev page</a>[% endif %]
+[% if HasPrevPage %]<a href="[% var PrevPage %]">[% var Text["Prev_page"] %]</a>[% endif %]
 [% if HasPrevPage %][% if HasNextPage %] | [% endif %][% endif %]
-[% if HasNextPage %]<a href="[% var NextPage %]">next page</a>[% endif %]
+[% if HasNextPage %]<a href="[% var NextPage %]">[% var Text["Next_page"] %]</a>[% endif %]
 </body>
 </html>

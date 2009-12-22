@@ -20,6 +20,7 @@ from tweetstore import event
 from newtwitteraccountdialog import NewTwitterAccountDialog
 from newidenticaaccountdialog import NewIdenticaAccountDialog
 from preferencesdialog import PreferencesDialog
+from passworddialog import PasswordDialog
 from theme import Theme
 
 #switch back to old locale, this fixes local bug in time.strptime()
@@ -175,13 +176,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             assert QApplication.setStyle(self.__defaultStyle) != None, "Couldn't set default QStyle."
         #Load Qt stylesheet
         QCoreApplication.instance().setStyleSheet(self.theme.getQtStylesheet())
-        #TODO: Load settings for synchronizations timer, interval is self._store.settings.get("MainWindow/SynchronizationInterval", 180)
-        #TODO: Load form size, position etc. if we want to... 
+        #Load window size, position
+        if "MainWindow/Geometry" in self._store.settings:
+            self.restoreGeometry(self._store.settings["MainWindow/Geometry"])
 
     def saveSettings(self):
         """Save various settings, before closing"""
+        #Save window size, position
+        self._store.settings["MainWindow/Geometry"] = self.saveGeometry()
         self._store.save()
-        #TODO: Save form size, position etc. if we want to... 
 
     def closeEvent(self, event):
         """Hide mainWindow when it's suppose to close
@@ -708,7 +711,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def statusChanged(self, account, status):
         self._statusbarLabels[account].setPixmap(self._statusIconLinks[status])
         self._statusbarLabels[account].setToolTip(str(account) + "\n" + status)
-        #TODO: Attempt reauthendicate if status is "bad authendication"
+        #Attempt reauthendicate if status is "bad authendication"
+        if status == "bad authendication":
+            dlg = PasswordDialog(self)
+            #Set the text for the account
+            dlg.ExplainationLabel.setText(unicode(self.tr("Failed to login with %s please provide correct password.")) % str(account))
+            #If dialog is accepted, reauthenticate the account
+            if dlg.exec_() == QDialog.Accepted:
+                account.reauthendicate(dlg.AccountPasswordEdit.text())
         
     @pyqtSignature("")
     def on_PreferencesAction_triggered(self):

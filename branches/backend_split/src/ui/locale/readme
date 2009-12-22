@@ -1,0 +1,4 @@
+To update danish translations run the following command in the source root:
+pylupdate4 *.py ui/*.py -ts ui/locale/pwytter.da.ts
+
+To add or update another language, replace "da" in the filename, and remember to run ./build.py it will automatically compile and add all pwytter.*.ts files in ui/locale/ to the ui/translations.qrc resource file.

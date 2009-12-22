@@ -2,8 +2,8 @@
 
 # Form implementation generated from reading ui file 'ui/preferencesdialog.ui'
 #
-# Created: Sat Oct 17 19:05:21 2009
-#      by: PyQt4 UI code generator 4.4.4
+# Created: Tue Dec 22 13:07:41 2009
+#      by: PyQt4 UI code generator 4.6
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -28,7 +28,7 @@ class Ui_PreferencesDialog(object):
         self.SynchronizationIntervalSpinBox.setMinimum(120)
         self.SynchronizationIntervalSpinBox.setMaximum(604800)
         self.SynchronizationIntervalSpinBox.setSingleStep(30)
-        self.SynchronizationIntervalSpinBox.setProperty("value", QtCore.QVariant(180))
+        self.SynchronizationIntervalSpinBox.setProperty("value", 180)
         self.SynchronizationIntervalSpinBox.setObjectName("SynchronizationIntervalSpinBox")
         self.formLayout.setWidget(0, QtGui.QFormLayout.FieldRole, self.SynchronizationIntervalSpinBox)
         self.label_5 = QtGui.QLabel(self.tab)
@@ -38,7 +38,7 @@ class Ui_PreferencesDialog(object):
         self.TweetsPerPageSpinBox.setMinimum(1)
         self.TweetsPerPageSpinBox.setMaximum(100)
         self.TweetsPerPageSpinBox.setSingleStep(5)
-        self.TweetsPerPageSpinBox.setProperty("value", QtCore.QVariant(10))
+        self.TweetsPerPageSpinBox.setProperty("value", 10)
         self.TweetsPerPageSpinBox.setObjectName("TweetsPerPageSpinBox")
         self.formLayout.setWidget(1, QtGui.QFormLayout.FieldRole, self.TweetsPerPageSpinBox)
         self.label_7 = QtGui.QLabel(self.tab)
@@ -48,7 +48,7 @@ class Ui_PreferencesDialog(object):
         self.UsersPerPageSpinBox.setMinimum(1)
         self.UsersPerPageSpinBox.setMaximum(100)
         self.UsersPerPageSpinBox.setSingleStep(5)
-        self.UsersPerPageSpinBox.setProperty("value", QtCore.QVariant(15))
+        self.UsersPerPageSpinBox.setProperty("value", 15)
         self.UsersPerPageSpinBox.setObjectName("UsersPerPageSpinBox")
         self.formLayout.setWidget(2, QtGui.QFormLayout.FieldRole, self.UsersPerPageSpinBox)
         self.ShowMainWindowOnStartupCheckBox = QtGui.QCheckBox(self.tab)

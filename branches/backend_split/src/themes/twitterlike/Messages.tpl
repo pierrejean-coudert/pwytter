@@ -52,20 +52,20 @@ a.name:hover{
 		<a class="name" href="pwytter://view/user/[% var Message["User"]["Service"] %]/[% var Message["User"]["Username"] %]" title="[% var Message["User"]["Name"] %]">[% var Message["User"]["Username"] %]</a>
 		[% var Message["Text"] %]<br>
 		<span class="meta">
-			On [% var Message["Created"] %].
+			[% var Text["On_<date>"] %] [% var Message["Created"] %].
 		</span>
 		<div class="actions">
 			[%if Message["CanReply"]%]
-				<img src="pwytter://theme/images/reply-all.png" title="Reply" onclick="window.pwytter.reply([% var Message["Id"] %])">
+				<img src="pwytter://theme/images/reply-all.png" title="[% var Text["Reply"] %]" onclick="window.pwytter.reply([% var Message["Id"] %])">
 			[%endif%]
 			[%if Message["CanRetweet"]%]
-				<img src="pwytter://theme/images/mail-forward.png" title="Retweet" onclick="window.pwytter.retweet([% var Message["Id"] %])">
+				<img src="pwytter://theme/images/mail-forward.png" title="[% var Text["Retweet"] %]" onclick="window.pwytter.retweet([% var Message["Id"] %])">
 			[%endif%]
 			[%if Message["CanSendDirectMessage"]%]
-				<img src="pwytter://theme/images/reply-sender.png" title="Direct message" onclick="window.pwytter.direct([% var Message["Id"] %])">
+				<img src="pwytter://theme/images/reply-sender.png" title="[% var Text["Direct_message"] %]" onclick="window.pwytter.direct([% var Message["Id"] %])">
 			[%endif%]
 			[%if Message["CanDelete"]%]
-				<img src="pwytter://theme/images/trash.png" title="Delete message" onclick="window.pwytter.delete([% var Message["Id"] %])">
+				<img src="pwytter://theme/images/trash.png" title="[% var Text["Delete_message"] %]" onclick="window.pwytter.delete([% var Message["Id"] %])">
 			[%endif%]
 		</div>
 	</td></tr>
@@ -74,10 +74,10 @@ a.name:hover{
 [% done %]
 <br>
 [% if HasPrevPage %]
-	<a href="[% var PrevPage %]" title="Go to previous page"><img src="pwytter://theme/images/previous.png"></a>
+	<a href="[% var PrevPage %]" title="[% var Text["Go_to_previous_page"] %]"><img src="pwytter://theme/images/previous.png"></a>
 [% endif %]
 [% if HasNextPage %]
-	<a href="[% var NextPage %]" title="Go to next page"><img style="float: right;" src="pwytter://theme/images/next.png"></a>
+	<a href="[% var NextPage %]" title="[% var Text["Go_to_next_page"] %]"><img style="float: right;" src="pwytter://theme/images/next.png"></a>
 [% endif %]
 </body>
 </html>
